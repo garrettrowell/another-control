@@ -26,7 +26,7 @@ File { backup => false }
 # For more on node definitions, see: https://puppet.com/docs/puppet/latest/lang_node_definitions.html
 node default {
   $factpath = $facts['kernel'] ? {
-    'windows' => 'C:\ProgramData\PuppetLabs\facter\facts.d',
+    'windows' => 'C:\\ProgramData\\PuppetLabs\\facter\\facts.d',
     'Linux'   => '/etc/puppetlabs/facter/facts.d',
     default   => fail('Unsuported Kernel')
   }
