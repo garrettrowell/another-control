@@ -10,3 +10,10 @@ hierarchy:
     paths:
       - "nodes/%{trusted.certname}.yaml"
       - "common.yaml"
+
+  - name: 'patching'
+    data_hash: yaml_data
+    paths:
+      - "patching/%{group}/%{cust_env}.yaml"
+      - "patching/%{group}.yaml"
+      - "patching/%{kernel}.yaml"
