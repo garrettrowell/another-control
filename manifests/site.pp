@@ -25,7 +25,26 @@ File { backup => false }
 #
 # For more on node definitions, see: https://puppet.com/docs/puppet/latest/lang_node_definitions.html
 node default {
-  # This is where you can declare classes for all nodes.
-  # Example:
-  #   class { 'my_class': }
+  $factpath = $facts['kernel'] ? {
+    'windows' => 'C:\ProgramData\PuppetLabs\facter\facts.d',
+    'Linux'   => '/etc/puppetlabs/facter/facts.d',
+    default   => fail('Unsuported Kernel')
+  }
+
+  $factpathtree = dirtree($factpath)
+
+  file {
+    default:
+      ensure => directory,
+    ;
+    $factpathtree:
+    ;
+    "${factpath}/my_org.yaml":
+      ensure  => file,
+      content => stdlib::to_yaml({
+        'cust_group' => lookup('cust_group'),
+        'cust_env'   => lookup('cust_env')
+      })
+    ;
+  }
 }
