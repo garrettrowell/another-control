@@ -19,3 +19,7 @@ puppet_enterprise::master::puppetserver::reserved_code_cache: 192m
 puppet_infrastructure_tune::metadata:
   pe_version: 2023.8.0
   tune_date: '2024-10-21'
+
+
+cust_group: 'infra'
+cust_env: 'prod'
