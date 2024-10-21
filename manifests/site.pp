@@ -42,8 +42,8 @@ node default {
     "${factpath}/my_org.yaml":
       ensure  => file,
       content => stdlib::to_yaml({
-        'cust_group' => lookup('cust_group'),
-        'cust_env'   => lookup('cust_env')
+        'cust_group' => lookup('cust_group', undef, undef, undef),
+        'cust_env'   => lookup('cust_env', undef, undef, undef)
       })
     ;
   }
