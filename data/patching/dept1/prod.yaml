@@ -10,3 +10,5 @@ patching_as_code::patch_schedule:
     hours: 10:00 - 11:00
     max_runs: 1
     reboot: ifneeded
+patching_as_code::patch_group:
+  - dept1_prod
