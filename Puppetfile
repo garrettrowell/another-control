@@ -18,3 +18,4 @@ forge 'https://forge.puppet.com'
 
 mod 'pltraining-dirtree', '0.3.0'
 mod 'puppetlabs-stdlib', '9.6.0'
+mod 'puppetlabs-patching_as_code', '2.0.0'
