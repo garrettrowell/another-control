@@ -6,7 +6,7 @@
 #   include growell_patch
 class growell_patch (
   Struct[{
-    day      => Enum['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+    day      => Growell_patch::Weekday,
     week     => Integer,
     offset   => Integer,
     hours    => String,
@@ -35,7 +35,6 @@ class growell_patch (
   # Purely for demonstration purposes
   notify {
     default:
-      withpath => true,
       ;
     'patch1':
       message => "Hieradata says we will patch ${patch_schedule['offset']} days after the ${patch_schedule['week']}${week_suffix} ${patch_schedule['day']}",
