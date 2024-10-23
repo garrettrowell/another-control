@@ -28,15 +28,12 @@ class growell_patch (
       $_pre_patch_script_path  = "${_script_base}/pre_patch_script.sh"
       $_post_patch_script_path = "${_script_base}/post_patch_script.sh"
       $_pre_reboot_script_path = "${_script_base}/pre_reboot_script.sh"
-
-      $_script_paths = [
-        '/usr/local/sbin',
-        '/usr/local/bin',
-        '/usr/sbin',
-        '/usr/bin',
-        '/sbin',
-        '/bin',
-      ]
+      $_common_present_args = {
+        ensure => present,
+        mode   => '0700',
+        owner  => 'root',
+        group  => 'root',
+      }
 
       # Determine whats needed for pre_patch_script
       if $pre_patch_script == undef {
@@ -48,16 +45,13 @@ class growell_patch (
         $_pre_patch_commands = {
           'pre_patch_script' => {
             'command' => $_pre_patch_script_path,
-            'path'    => $_script_paths,
+            'path'    => $facts['path'],
           }
         }
-        $_pre_patch_file_args = {
-          ensure => present,
-          source => "puppet:///modules/growell_patch/${pre_patch_script}",
-          mode   => '0700',
-          owner  => 'root',
-          group  => 'root',
-        }
+        $_pre_patch_file_args = stdlib::merge(
+          $_common_present_args,
+          { source => "puppet:///modules/growell_patch/${pre_patch_script}" }
+        )
       }
 
       # Determine whats needed for post_patch_script
@@ -70,16 +64,13 @@ class growell_patch (
         $_post_patch_commands = {
           'post_patch_script' => {
             'command' => $_post_patch_script_path,
-            'path'    => $_script_paths,
+            'path'    => $facts['path'],
           }
         }
-        $_post_patch_file_args = {
-          ensure => present,
-          source => "puppet:///modules/growell_patch/${post_patch_script}",
-          mode   => '0700',
-          owner  => 'root',
-          group  => 'root',
-        }
+        $_post_patch_file_args = stdlib::merge(
+          $_common_present_args,
+          { source => "puppet:///modules/growell_patch/${post_patch_script}" }
+        )
       }
 
       # Determine whats needed for pre_reboot_script
@@ -92,16 +83,13 @@ class growell_patch (
         $_pre_reboot_commands = {
           'pre_reboot_script' => {
             'command' => $_pre_reboot_script_path,
-            'path'    => $_script_paths,
+            'path'    => $facts['path'],
           }
         }
-        $_pre_reboot_file_args = {
-          ensure => present,
-          source => "puppet:///modules/growell_patch/${pre_reboot_script}",
-          mode   => '0700',
-          owner  => 'root',
-          group  => 'root',
-        }
+        $_pre_reboot_file_args = stdlib::merge(
+          $_common_present_args,
+          { source => "puppet:///modules/growell_patch/${pre_reboot_script}" }
+        )
       }
     }
     'windows': {
@@ -109,6 +97,10 @@ class growell_patch (
       $_pre_patch_script_path  = "${_script_base}/pre_patch_script.ps1"
       $_post_patch_script_path = "${_script_base}/post_patch_script.ps1"
       $_pre_reboot_script_path = "${_script_base}/pre_reboot_script.ps1"
+      $_common_present_args = {
+        ensure => present,
+        mode   => '0770',
+      }
 
       # Determine whats needed for pre_patch_script
       if $pre_patch_script == undef {
@@ -123,11 +115,10 @@ class growell_patch (
             'provider' => 'powershell',
           }
         }
-        $_pre_patch_file_args = {
-          ensure => present,
-          source => "puppet:///modules/growell_patch/${pre_patch_script}",
-          mode   => '0770',
-        }
+        $_pre_patch_file_args = stdlib::merge(
+          $_common_present_args,
+          { source => "puppet:///modules/growell_patch/${pre_patch_script}" }
+        )
       }
 
       # Determine whats needed for post_patch_script
@@ -143,11 +134,10 @@ class growell_patch (
             'provider' => 'powershell',
           }
         }
-        $_post_patch_file_args = {
-          ensure => present,
-          source => "puppet:///modules/growell_patch/${post_patch_script}",
-          mode   => '0770',
-        }
+        $_post_patch_file_args = stdlib::merge(
+          $_common_present_args,
+          { source => "puppet:///modules/growell_patch/${post_patch_script}" }
+        )
       }
 
       # Determine whats needed for pre_reboot_script
@@ -163,11 +153,10 @@ class growell_patch (
             'provider' => 'powershell',
           }
         }
-        $_pre_reboot_file_args = {
-          ensure => present,
-          source => "puppet:///modules/growell_patch/${pre_reboot_script}",
-          mode   => '0770',
-        }
+        $_pre_reboot_file_args = stdlib::merge(
+          $_common_present_args,
+          { source => "puppet:///modules/growell_patch/${pre_reboot_script}" }
+        )
       }
     }
     default: { fail("Unsupported OS: ${facts['kernel']}") }
