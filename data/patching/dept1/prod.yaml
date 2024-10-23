@@ -18,6 +18,6 @@ growell_patch::patch_schedule:
   max_runs: '1'
   reboot: ifneeded
 growell_patch::patch_group: dep1_prod
-growell_patch::pre_patch_script: 'dept1/prod/pre_patch.sh'
+#growell_patch::pre_patch_script: 'dept1/prod/pre_patch.sh'
 #patching_as_code::patch_group:
 #  - dept1_prod
