@@ -9,9 +9,23 @@ Puppet::Functions.create_function(:'growell_patch::patchday') do
     cond = condition_date(day, week)
     outdate = desired_date(cond, offset)
     {
-      'date' => outdate,
-      'nth'  => nth_occurance(outdate)
+      'day_of_week'   => get_day(outdate),
+      'count_of_week' => nth_occurance(outdate)
     }
+  end
+
+  DAYS_MAPPING = {
+    0=>"Sunday",
+    1=>"Monday",
+    2=>"Tuesday",
+    3=>"Wednesday",
+    4=>"Thursday",
+    5=>"Friday",
+    6=>"Saturday"
+  }
+
+  def get_day(date)
+    DAYS_MAPPING[date.wday]
   end
 
   def new_by_mday(year, month, weekday, nr)
