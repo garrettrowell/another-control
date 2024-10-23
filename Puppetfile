@@ -16,7 +16,11 @@ forge 'https://forge.puppet.com'
 #  git:    'https://github.com/puppetlabs/puppetlabs-apache',
 #  branch: 'docs_experiment'
 
-mod 'pltraining-dirtree', '0.3.0'
+#mod 'pltraining-dirtree', '0.3.0'
+mod 'dirtree',
+  git: 'git@github.com:garrettrowell/pltraining-dirtree.git',
+  branch: 'update'
+
 mod 'puppetlabs-stdlib', '9.6.0'
 mod 'puppetlabs-patching_as_code', '2.0.0'
 mod 'puppetlabs-puppet_agent', '4.21.0'
