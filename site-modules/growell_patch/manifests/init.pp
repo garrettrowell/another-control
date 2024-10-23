@@ -35,7 +35,7 @@ class growell_patch (
   # Purely for demonstration purposes
   notify {
     default:
-      withpath => false,
+      withpath => true,
       ;
     'patch1':
       message => "Hieradata says we will patch ${patch_schedule['offset']} days after the ${patch_schedule['week']}${week_suffix} ${patch_schedule['day']}",
