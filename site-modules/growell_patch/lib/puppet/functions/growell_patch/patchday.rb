@@ -1,6 +1,6 @@
 Puppet::Functions.create_function(:'growell_patch::patchday') do
   dispatch :patchday do
-    required_param 'Enum[Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday]', :day
+    required_param "Enum['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']", :day
     required_param 'Integer', :week
     required_param 'Integer', :offset
   end
