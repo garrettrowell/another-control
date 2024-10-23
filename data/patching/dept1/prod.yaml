@@ -3,12 +3,21 @@
 # Data specific to 'dept1's 'prod' nodes
 
 # needs to be the thurs after the second tues
-patching_as_code::patch_schedule:
-  dept1_prod:
-    day_of_week: Thursday
-    count_of_week: 2
-    hours: 10:00 - 11:00
-    max_runs: 1
-    reboot: ifneeded
-patching_as_code::patch_group:
-  - dept1_prod
+#patching_as_code::patch_schedule:
+#  dept1_prod:
+#    day_of_week: Thursday
+#    count_of_week: 2
+#    hours: 10:00 - 11:00
+#    max_runs: 1
+#    reboot: ifneeded
+growell_patch::patch_schedule:
+  day: 'Tuesday'
+  week: 2
+  offset: 4
+  hours: 10:00 - 11:00
+  max_runs: 1
+  reboot: ifneeded
+growell_patch::patch_group: dep1_prod
+
+#patching_as_code::patch_group:
+#  - dept1_prod
