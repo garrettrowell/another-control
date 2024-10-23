@@ -23,47 +23,60 @@ class growell_patch (
   case $facts['kernel'] {
     'Linux': {
       $_pre_patch_script_path = '/opt/puppetlabs/pe_patch/pre_patch_script.sh'
+      $_script_paths = [
+        '/usr/local/sbin',
+        '/usr/local/bin',
+        '/usr/sbin',
+        '/usr/bin',
+        '/sbin',
+        '/bin',
+      ]
 
       if $pre_patch_script == undef {
         $_pre_patch_commands = undef
-        file { 'growell_patch pre_patch_script':
-          path   => $_pre_patch_script_path,
+        $_pre_patch_file_args = {
           ensure => absent,
         }
-      } else {
-        $_pre_patch_commands = {
-          'prepatch script' => {
-            'command' => $_pre_patch_script_path,
-            'path'    => [
-              '/usr/local/sbin',
-              '/usr/local/bin',
-              '/usr/sbin',
-              '/usr/bin',
-              '/sbin',
-              '/bin',
-            ],
+        # file { 'growell_patch pre_patch_script':
+        #   path   => $_pre_patch_script_path,
+        #   ensure => absent,
+        # }
+        } else {
+          $_pre_patch_commands = {
+            'prepatch script' => {
+              'command' => $_pre_patch_script_path,
+              'path'    => $_script_paths,
+            }
           }
+          $_pre_patch_file_args = {
+            ensure => present,
+            source => "puppet:///modules/growell_patch/${pre_patch_script}",
+            mode   => '0700',
+            owner  => 'root',
+            group  => 'root',
+          }
+          # file { 'growell_patch pre_patch_script':
+          #   ensure => present,
+          #   path   => $_pre_patch_script_path,
+          #   source => "puppet:///modules/growell_patch/${pre_patch_script}",
+          #   mode   => '0700',
+          #   owner  => 'root',
+          #   group  => 'root',
+          # }
         }
-        file { 'growell_patch pre_patch_script':
-          ensure => present,
-          path   => $_pre_patch_script_path,
-          source => "puppet:///modules/growell_patch/${pre_patch_script}",
-          mode   => '0700',
-          owner  => 'root',
-          group  => 'root',
-        }
-      }
     }
     'windows': {
       $_pre_patch_script_path = 'C:/ProgramData/PuppetLabs/pe_patch/pre_patch_script.ps1'
 
       if $pre_patch_script == undef {
         $_pre_patch_commands = undef
-        file { 'growell_patch pre_patch_script':
-          ensure => absent,
-          path   => $_pre_patch_script_path,
+        $_pre_patch_file_args = {
+          ensure => absent
         }
-
+        # file { 'growell_patch pre_patch_script':
+        #   ensure => absent,
+        #   path   => $_pre_patch_script_path,
+        # }
       } else {
         $_pre_patch_commands = {
           'prepatch script' => {
@@ -72,14 +85,24 @@ class growell_patch (
           }
         }
 
-        file { 'growell_patch pre_patch_script':
+        $_pre_patch_file_args = {
           ensure => present,
-          path   => $_pre_patch_script_path,
+          source => "puppet:///modules/growell_patch/${pre_patch_script}",
           mode   => '0770',
         }
+        # file { 'growell_patch pre_patch_script':
+        #   ensure => present,
+        #   path   => $_pre_patch_script_path,
+        #   mode   => '0770',
+        # }
       }
     }
     default: { fail("Unsupported OS: ${facts['kernel']}") }
+  }
+
+  file { 'pre_patch_script':
+    path => $_pre_patch_script_path,
+    *    => $_pre_patch_file_args,
   }
 
   # Helpers only for the notify resources below
