@@ -13,29 +13,35 @@ class growell_patch (
     max_runs => String,
     reboot   => Enum['always', 'never', 'ifneeded'],
   }] $patch_schedule,
-  String $patch_group
+  String $patch_group,
 ) {
 
   $patchday = growell_patch::patchday($patch_schedule['day'], $patch_schedule['week'], $patch_schedule['offset'])
+
+  # Helpers only for the notify resources below
   $week_suffix = $patch_schedule['week'] ? {
     1       => 'st',
     2       => 'nd',
     3       => 'rd',
-    default => 'th'
+    default => 'th',
   }
   $patch_suffix = $patchday['count_of_week'] ? {
     1       => 'st',
     2       => 'nd',
     3       => 'rd',
-    default => 'th'
+    default => 'th',
   }
+
+  # Purely for demonstration purposes
   notify {
     default:
       withpath => false,
       ;
-    "Hieradata says we will patch ${patch_schedule['offset']} days after the ${patch_schedule['week']}${week_suffix} ${patch_schedule['day']}":
+    'patch1':
+      message => "Hieradata says we will patch ${patch_schedule['offset']} days after the ${patch_schedule['week']}${week_suffix} ${patch_schedule['day']}",
       ;
-    "Which corresponds to the ${patchday['count_of_week']}${patch_suffix} ${patchday['day_of_week']}":
+    'patch2':
+      message => "Which corresponds to the ${patchday['count_of_week']}${patch_suffix} ${patchday['day_of_week']}",
       ;
   }
 
