@@ -32,7 +32,7 @@ node default {
   }
 
   $factpathtree = dirtree($factpath)
-  $cust = lookup('cust_group', undef, undef, undef)
+  $cust = lookup('cust', undef, undef, undef)
 
   file {
     default:
