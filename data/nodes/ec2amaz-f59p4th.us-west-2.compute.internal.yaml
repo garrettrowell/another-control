@@ -1,4 +1,5 @@
 ---
 
-cust_group: 'win_adm'
-cust_env: 'dev'
+cust:
+  group: 'win_adm'
+  env: 'dev'

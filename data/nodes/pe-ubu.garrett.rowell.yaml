@@ -1,4 +1,5 @@
 ---
 
-cust_group: 'lin_adm'
-cust_env: 'dev'
+cust:
+  group: 'lin_adm'
+  env: 'dev'
