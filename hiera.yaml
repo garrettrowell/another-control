@@ -14,6 +14,6 @@ hierarchy:
   - name: 'patching'
     data_hash: yaml_data
     paths:
-      - "patching/%{cust_group}/%{cust_env}.yaml"
-      - "patching/%{cust_group}.yaml"
+      - "patching/%{cust.group}/%{cust.env}.yaml"
+      - "patching/%{cust.group}.yaml"
       - "patching/%{kernel}.yaml"
