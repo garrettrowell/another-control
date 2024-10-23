@@ -15,6 +15,7 @@ class growell_patch (
   }] $patch_schedule,
   String $patch_group,
   Optional[String[1]] $pre_patch_script = undef,
+  Optional[String[1]] $post_patch_script = undef,
 ) {
   # function determines the patchday to set based on the given day, week and offset
   # for example to achieve: 3 days after the 2nd Thursday.
@@ -22,7 +23,10 @@ class growell_patch (
 
   case $facts['kernel'] {
     'Linux': {
-      $_pre_patch_script_path = '/opt/puppetlabs/pe_patch/pre_patch_script.sh'
+      $_script_base            = '/opt/puppetlabs/pe_patch'
+      $_pre_patch_script_path  = "${_script_base}/pre_patch_script.sh"
+      $_post_patch_script_path = "${_script_base}/post_patch_script.sh"
+
       $_script_paths = [
         '/usr/local/sbin',
         '/usr/local/bin',
@@ -32,6 +36,7 @@ class growell_patch (
         '/bin',
       ]
 
+      # Determine whats needed for pre_patch_script
       if $pre_patch_script == undef {
         $_pre_patch_commands = undef
         $_pre_patch_file_args = {
@@ -39,7 +44,7 @@ class growell_patch (
         }
       } else {
         $_pre_patch_commands = {
-          'prepatch script' => {
+          'pre_patch_script' => {
             'command' => $_pre_patch_script_path,
             'path'    => $_script_paths,
           }
@@ -52,10 +57,35 @@ class growell_patch (
           group  => 'root',
         }
       }
+
+      # Determine whats needed for post_patch_script
+      if $post_patch_script == undef {
+        $_post_patch_commands = undef
+        $_post_patch_file_args = {
+          ensure => absent,
+        }
+      } else {
+        $_post_patch_commands = {
+          'post_patch_script' => {
+            'command' => $_post_patch_script_path,
+            'path'    => $_script_paths,
+          }
+        }
+        $_post_patch_file_args = {
+          ensure => present,
+          source => "puppet:///modules/growell_patch/${post_patch_script}",
+          mode   => '0700',
+          owner  => 'root',
+          group  => 'root',
+        }
+      }
     }
     'windows': {
-      $_pre_patch_script_path = 'C:/ProgramData/PuppetLabs/pe_patch/pre_patch_script.ps1'
+      $_script_base            = 'C:/ProgramData/PuppetLabs/pe_patch'
+      $_pre_patch_script_path  = "${_script_base}/pre_patch_script.ps1"
+      $_post_patch_script_path = "${_script_base}/post_patch_script.ps1"
 
+      # Determine whats needed for pre_patch_script
       if $pre_patch_script == undef {
         $_pre_patch_commands = undef
         $_pre_patch_file_args = {
@@ -63,7 +93,7 @@ class growell_patch (
         }
       } else {
         $_pre_patch_commands = {
-          'prepatch script' => {
+          'pre_patch_script' => {
             'command'  => $_pre_patch_script_path,
             'provider' => 'powershell',
           }
@@ -71,6 +101,26 @@ class growell_patch (
         $_pre_patch_file_args = {
           ensure => present,
           source => "puppet:///modules/growell_patch/${pre_patch_script}",
+          mode   => '0770',
+        }
+      }
+
+      # Determine whats needed for post_patch_script
+      if $post_patch_script == undef {
+        $_post_patch_commands = undef
+        $_post_patch_file_args = {
+          ensure => absent
+        }
+      } else {
+        $_post_patch_commands = {
+          'post_patch_script' => {
+            'command'  => $_post_patch_script_path,
+            'provider' => 'powershell',
+          }
+        }
+        $_post_patch_file_args = {
+          ensure => present,
+          source => "puppet:///modules/growell_patch/${post_patch_script}",
           mode   => '0770',
         }
       }
@@ -83,9 +133,9 @@ class growell_patch (
     *    => $_pre_patch_file_args,
   }
 
-  exec { 'test run':
-    command => $_pre_patch_script_path,
-    path    => $_script_paths,
+  file { 'post_patch_script':
+    path => $_post_patch_script_path,
+    *    => $_post_patch_file_args,
   }
 
   # Helpers only for the notify resources below
@@ -115,10 +165,11 @@ class growell_patch (
   }
 
   class { 'patching_as_code':
-    classify_pe_patch  => true,
-    patch_group        => $patch_group,
-    pre_patch_commands => $_pre_patch_commands,
-    patch_schedule     => {
+    classify_pe_patch   => true,
+    patch_group         => $patch_group,
+    pre_patch_commands  => $_pre_patch_commands,
+    post_patch_commands => $_post_patch_commands,
+    patch_schedule      => {
       $patch_group => {
         day_of_week   => $patchday['day_of_week'],
         count_of_week => $patchday['count_of_week'],
