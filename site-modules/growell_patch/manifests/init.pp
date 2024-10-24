@@ -25,7 +25,19 @@ class growell_patch (
 ) {
   # function determines the patchday to set based on the given day, week and offset
   # for example to achieve: 3 days after the 2nd Thursday.
-  $patchday = growell_patch::patchday($patch_schedule['day'], $patch_schedule['week'], $patch_schedule['offset'])
+  #  $patchday = growell_patch::patchday($patch_schedule['day'], $patch_schedule['week'], $patch_schedule['offset'])
+  $_patch_schedule = $patch_schedule.map |$key, $value| {
+    #    $patchday = growell_patch::patchday($value['day'], $value['week'], $value['offset'])
+    {
+      $key => {
+        'day_of_week'   => growell_patch::patchday($value['day'], $value['week'], $value['offset'])['day_of_week'],
+        'count_of_week' => growell_patch::patchday($value['day'], $value['week'], $value['offset'])['count_of_week'],
+        'hours'         => $value['hours'],
+        'max_runs'      => $value['max_runs'],
+        'reboot'        => $value['reboot'],
+      }
+    }
+  }
 
   case $facts['kernel'] {
     'Linux': {
@@ -183,49 +195,50 @@ class growell_patch (
     *    => $_pre_reboot_file_args,
   }
 
-  # Helpers only for the notify resources below
-  $week_suffix = $patch_schedule['week'] ? {
-    1       => 'st',
-    2       => 'nd',
-    3       => 'rd',
-    default => 'th',
-  }
-  $patch_suffix = $patchday['count_of_week'] ? {
-    1       => 'st',
-    2       => 'nd',
-    3       => 'rd',
-    default => 'th',
-  }
-
-  # Purely for demonstration purposes
-  notify {
-    default:
-      ;
-    'patch1':
-      message => "Hieradata says we will patch ${patch_schedule['offset']} days after the ${patch_schedule['week']}${week_suffix} ${patch_schedule['day']}",
-      ;
-    'patch2':
-      message => "Which corresponds to the ${patchday['count_of_week']}${patch_suffix} ${patchday['day_of_week']}",
-      ;
-  }
+  #  # Helpers only for the notify resources below
+  #  $week_suffix = $patch_schedule['week'] ? {
+  #    1       => 'st',
+  #    2       => 'nd',
+  #    3       => 'rd',
+  #    default => 'th',
+  #  }
+  #  $patch_suffix = $patchday['count_of_week'] ? {
+  #    1       => 'st',
+  #    2       => 'nd',
+  #    3       => 'rd',
+  #    default => 'th',
+  #  }
+  #
+  #  # Purely for demonstration purposes
+  #  notify {
+  #    default:
+  #      ;
+  #    'patch1':
+  #      message => "Hieradata says we will patch ${patch_schedule['offset']} days after the ${patch_schedule['week']}${week_suffix} ${patch_schedule['day']}",
+  #      ;
+  #    'patch2':
+  #      message => "Which corresponds to the ${patchday['count_of_week']}${patch_suffix} ${patchday['day_of_week']}",
+  #      ;
+  #  }
 
   class { 'patching_as_code':
-    classify_pe_patch   => true,
-    patch_group         => $patch_group,
-    pre_patch_commands  => $_pre_patch_commands,
-    post_patch_commands => $_post_patch_commands,
-    pre_reboot_commands => $_pre_reboot_commands,
-    install_options     => $install_options,
-    blocklist           => $blocklist,
-    blocklist_mode      => $blocklist_mode,
-    patch_schedule      => {
-      $patch_group => {
-        day_of_week   => $patchday['day_of_week'],
-        count_of_week => $patchday['count_of_week'],
-        hours         => $patch_schedule['hours'],
-        max_runs      => $patch_schedule['max_runs'],
-        reboot        => $patch_schedule['reboot']
-      }
-    }
+    classify_pe_patch      => true,
+    patch_group            => $patch_group,
+    pre_patch_commands     => $_pre_patch_commands,
+    post_patch_commands    => $_post_patch_commands,
+    pre_reboot_commands    => $_pre_reboot_commands,
+    install_options        => $install_options,
+    blocklist              => $blocklist,
+    blocklist_mode         => $blocklist_mode,
+    patch_schedule         => $_patch_schedule,
+    #    patch_schedule    => {
+    #      $patch_group    => {
+    #        day_of_week   => $patchday['day_of_week'],
+    #        count_of_week => $patchday['count_of_week'],
+    #        hours         => $patch_schedule['hours'],
+    #        max_runs      => $patch_schedule['max_runs'],
+    #        reboot        => $patch_schedule['reboot']
+    #      }
+    #    }
   }
 }
