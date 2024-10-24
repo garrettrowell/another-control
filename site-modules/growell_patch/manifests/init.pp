@@ -37,8 +37,21 @@ class growell_patch (
         owner  => 'root',
         group  => 'root',
       }
-      File <| title == "${_script_base}/pe_patch_fact_generation.sh" |> {
-        mode => '0777'
+
+      # Override the fact generation script so we can use versions that take into account the blocklist
+      unless $blocklist == undef {
+        case $blocklist_mode {
+          'fuzzy': {
+            File <| title == "${_script_base}/pe_patch_fact_generation.sh" |> {
+              content => epp("${module_name}/pe_patch_fact_generation_fuzzy_override.sh.epp", {'environment' => $environment}),
+            }
+          }
+          'strict': {
+            File <| title == "${_script_base}/pe_patch_fact_generation.sh" |> {
+              content => epp("${module_name}/pe_patch_fact_generation_strict_override.sh.epp", {'environment' => $environment}),
+            }
+          }
+        }
       }
 
       # Determine whats needed for pre_patch_script
@@ -56,7 +69,7 @@ class growell_patch (
         }
         $_pre_patch_file_args = stdlib::merge(
           $_common_present_args,
-          { source => "puppet:///modules/growell_patch/${pre_patch_script}" }
+          { source => "puppet:///modules/${module_name}/${pre_patch_script}" }
         )
       }
 
@@ -75,7 +88,7 @@ class growell_patch (
         }
         $_post_patch_file_args = stdlib::merge(
           $_common_present_args,
-          { source => "puppet:///modules/growell_patch/${post_patch_script}" }
+          { source => "puppet:///modules/${module_name}/${post_patch_script}" }
         )
       }
 
@@ -94,7 +107,7 @@ class growell_patch (
         }
         $_pre_reboot_file_args = stdlib::merge(
           $_common_present_args,
-          { source => "puppet:///modules/growell_patch/${pre_reboot_script}" }
+          { source => "puppet:///modules/${module_name}/${pre_reboot_script}" }
         )
       }
     }
@@ -123,7 +136,7 @@ class growell_patch (
         }
         $_pre_patch_file_args = stdlib::merge(
           $_common_present_args,
-          { source => "puppet:///modules/growell_patch/${pre_patch_script}" }
+          { source => "puppet:///modules/${module_name}/${pre_patch_script}" }
         )
       }
 
@@ -142,7 +155,7 @@ class growell_patch (
         }
         $_post_patch_file_args = stdlib::merge(
           $_common_present_args,
-          { source => "puppet:///modules/growell_patch/${post_patch_script}" }
+          { source => "puppet:///modules/${module_name}/${post_patch_script}" }
         )
       }
 
@@ -161,7 +174,7 @@ class growell_patch (
         }
         $_pre_reboot_file_args = stdlib::merge(
           $_common_present_args,
-          { source => "puppet:///modules/growell_patch/${pre_reboot_script}" }
+          { source => "puppet:///modules/${module_name}/${pre_reboot_script}" }
         )
       }
     }
