@@ -12,12 +12,16 @@
 #    reboot: ifneeded
 growell_patch::patch_schedule:
   day: 'Tuesday'
-  week: 2
-  offset: 4
-  hours: 10:00 - 11:00
+  week: 4
+  offset: 2
+  hours: 16:00 - 18:00
   max_runs: '1'
   reboot: ifneeded
 growell_patch::patch_group: dep1_prod
 growell_patch::pre_patch_script: 'dept1/prod/pre_patch.sh'
+growell_patch::install_options:
+  - '-t'
+  - 'nonexist'
+
 #patching_as_code::patch_group:
 #  - dept1_prod

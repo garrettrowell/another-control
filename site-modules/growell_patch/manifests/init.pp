@@ -17,6 +17,7 @@ class growell_patch (
   Optional[String[1]] $pre_patch_script  = undef,
   Optional[String[1]] $post_patch_script = undef,
   Optional[String[1]] $pre_reboot_script = undef,
+  Optional[Array] $install_options = undef,
 ) {
   # function determines the patchday to set based on the given day, week and offset
   # for example to achieve: 3 days after the 2nd Thursday.
@@ -210,6 +211,7 @@ class growell_patch (
     pre_patch_commands  => $_pre_patch_commands,
     post_patch_commands => $_post_patch_commands,
     pre_reboot_commands => $_pre_reboot_commands,
+    install_options     => $install_options,
     patch_schedule      => {
       $patch_group => {
         day_of_week   => $patchday['day_of_week'],
