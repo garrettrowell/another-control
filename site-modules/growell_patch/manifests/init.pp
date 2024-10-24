@@ -5,15 +5,6 @@
 # @example
 #   include growell_patch
 class growell_patch (
-  #  Struct[{
-  #    day      => Growell_patch::Weekday,
-  #    week     => Integer,
-  #    offset   => Integer,
-  #    hours    => String,
-  #    max_runs => String,
-  #    reboot   => Enum['always', 'never', 'ifneeded'],
-  #  }] $patch_schedule,
-  #  String[1] $patch_group,
   Hash[String[1], Growell_patch::Patch_schedule] $patch_schedule,
   Variant[String[1], Array[String[1]]] $patch_group,
   Optional[String[1]] $pre_patch_script  = undef,
@@ -23,9 +14,10 @@ class growell_patch (
   Optional[Array] $blocklist = undef,
   Optional[Enum['strict','fuzzy']] $blocklist_mode = 'strict',
 ) {
-  # function determines the patchday to set based on the given day, week and offset
-  # for example to achieve: 3 days after the 2nd Thursday.
-  #  $patchday = growell_patch::patchday($patch_schedule['day'], $patch_schedule['week'], $patch_schedule['offset'])
+  # Convert our custom schedule into the form expected by patching_as_code.
+  #
+  # Using the growell_patch::patchday function we are able to determine the 'day_of_week'
+  #   and 'count_of_week' based off of our 'day', 'week', and 'offset' params.
   $_patch_schedule = $patch_schedule.reduce({}) |$memo, $x| {
     $memo + {
       $x[0] => {
@@ -37,20 +29,6 @@ class growell_patch (
       }
     }
   }
-
-  #  $_patch_schedule = $patch_schedule.map |$key, $value| {
-  #    #    $patchday = growell_patch::patchday($value['day'], $value['week'], $value['offset'])
-  #    {
-  #      $key => {
-  #        'day_of_week'   => growell_patch::patchday($value['day'], $value['week'], $value['offset'])['day_of_week'],
-  #        'count_of_week' => growell_patch::patchday($value['day'], $value['week'], $value['offset'])['count_of_week'],
-  #        'hours'         => $value['hours'],
-  #        'max_runs'      => $value['max_runs'],
-  #        'reboot'        => $value['reboot'],
-  #      }
-  #    }
-  #  }.flatten
-  notify { "sch: ${_patch_schedule}": }
 
   case $facts['kernel'] {
     'Linux': {
@@ -208,32 +186,7 @@ class growell_patch (
     *    => $_pre_reboot_file_args,
   }
 
-  #  # Helpers only for the notify resources below
-  #  $week_suffix = $patch_schedule['week'] ? {
-  #    1       => 'st',
-  #    2       => 'nd',
-  #    3       => 'rd',
-  #    default => 'th',
-  #  }
-  #  $patch_suffix = $patchday['count_of_week'] ? {
-  #    1       => 'st',
-  #    2       => 'nd',
-  #    3       => 'rd',
-  #    default => 'th',
-  #  }
-  #
-  #  # Purely for demonstration purposes
-  #  notify {
-  #    default:
-  #      ;
-  #    'patch1':
-  #      message => "Hieradata says we will patch ${patch_schedule['offset']} days after the ${patch_schedule['week']}${week_suffix} ${patch_schedule['day']}",
-  #      ;
-  #    'patch2':
-  #      message => "Which corresponds to the ${patchday['count_of_week']}${patch_suffix} ${patchday['day_of_week']}",
-  #      ;
-  #  }
-
+  # Finally we have the information to pass to 'patching_as_code'
   class { 'patching_as_code':
     classify_pe_patch      => true,
     patch_group            => $patch_group,
@@ -244,14 +197,5 @@ class growell_patch (
     blocklist              => $blocklist,
     blocklist_mode         => $blocklist_mode,
     patch_schedule         => $_patch_schedule,
-    #    patch_schedule    => {
-    #      $patch_group    => {
-    #        day_of_week   => $patchday['day_of_week'],
-    #        count_of_week => $patchday['count_of_week'],
-    #        hours         => $patch_schedule['hours'],
-    #        max_runs      => $patch_schedule['max_runs'],
-    #        reboot        => $patch_schedule['reboot']
-    #      }
-    #    }
   }
 }
