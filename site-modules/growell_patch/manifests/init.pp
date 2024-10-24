@@ -38,6 +38,7 @@ class growell_patch (
       }
     }
   }
+  notify { "sch: ${_patch_schedule}": }
 
   case $facts['kernel'] {
     'Linux': {
@@ -221,24 +222,24 @@ class growell_patch (
   #      ;
   #  }
 
-  class { 'patching_as_code':
-    classify_pe_patch      => true,
-    patch_group            => $patch_group,
-    pre_patch_commands     => $_pre_patch_commands,
-    post_patch_commands    => $_post_patch_commands,
-    pre_reboot_commands    => $_pre_reboot_commands,
-    install_options        => $install_options,
-    blocklist              => $blocklist,
-    blocklist_mode         => $blocklist_mode,
-    patch_schedule         => $_patch_schedule,
-    #    patch_schedule    => {
-    #      $patch_group    => {
-    #        day_of_week   => $patchday['day_of_week'],
-    #        count_of_week => $patchday['count_of_week'],
-    #        hours         => $patch_schedule['hours'],
-    #        max_runs      => $patch_schedule['max_runs'],
-    #        reboot        => $patch_schedule['reboot']
-    #      }
-    #    }
-  }
+  #  class { 'patching_as_code':
+  #    classify_pe_patch      => true,
+  #    patch_group            => $patch_group,
+  #    pre_patch_commands     => $_pre_patch_commands,
+  #    post_patch_commands    => $_post_patch_commands,
+  #    pre_reboot_commands    => $_pre_reboot_commands,
+  #    install_options        => $install_options,
+  #    blocklist              => $blocklist,
+  #    blocklist_mode         => $blocklist_mode,
+  #    patch_schedule         => $_patch_schedule,
+  #    #    patch_schedule    => {
+  #    #      $patch_group    => {
+  #    #        day_of_week   => $patchday['day_of_week'],
+  #    #        count_of_week => $patchday['count_of_week'],
+  #    #        hours         => $patch_schedule['hours'],
+  #    #        max_runs      => $patch_schedule['max_runs'],
+  #    #        reboot        => $patch_schedule['reboot']
+  #    #      }
+  #    #    }
+  #  }
 }
