@@ -37,7 +37,7 @@ class growell_patch (
         'reboot'        => $value['reboot'],
       }
     }
-  }
+  }.flatten
   notify { "sch: ${_patch_schedule}": }
 
   case $facts['kernel'] {
