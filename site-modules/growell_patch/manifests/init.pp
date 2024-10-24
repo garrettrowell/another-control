@@ -37,6 +37,9 @@ class growell_patch (
         owner  => 'root',
         group  => 'root',
       }
+      File <| title == "${script_base}/pe_patch_generation.sh" |> {
+        mode => '0777'
+      }
 
       # Determine whats needed for pre_patch_script
       if $pre_patch_script == undef {
