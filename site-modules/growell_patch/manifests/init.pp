@@ -37,7 +37,7 @@ class growell_patch (
         owner  => 'root',
         group  => 'root',
       }
-      File <| title == "${_script_base}/pe_patch_generation.sh" |> {
+      File <| title == "${_script_base}/pe_patch_fact_generation.sh" |> {
         mode => '0777'
       }
 
