@@ -24,7 +24,7 @@ growell_patch::install_options:
   - '-t'
   - 'nonexist'
 growell_patch::blocklist:
-  - 'apache2*'
+  - 'apache2'
 
 #patching_as_code::patch_group:
 #  - dept1_prod
