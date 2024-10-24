@@ -38,21 +38,21 @@ class growell_patch (
         group  => 'root',
       }
 
-      # Override the fact generation script so we can use versions that take into account the blocklist
-      unless $blocklist == undef {
-        case $blocklist_mode {
-          'fuzzy': {
-            File <| title == "${_script_base}/pe_patch_fact_generation.sh" |> {
-              content => epp("${module_name}/pe_patch_fact_generation_fuzzy_override.sh.epp", {'environment' => $environment}),
-            }
-          }
-          'strict': {
-            File <| title == "${_script_base}/pe_patch_fact_generation.sh" |> {
-              content => epp("${module_name}/pe_patch_fact_generation_strict_override.sh.epp", {'environment' => $environment}),
-            }
-          }
-        }
-      }
+      #      # Override the fact generation script so we can use versions that take into account the blocklist
+      #      unless $blocklist == undef {
+      #        case $blocklist_mode {
+      #          'fuzzy': {
+      #            File <| title == "${_script_base}/pe_patch_fact_generation.sh" |> {
+      #              content => epp("${module_name}/pe_patch_fact_generation_fuzzy_override.sh.epp", {'environment' => $environment}),
+      #            }
+      #          }
+      #          'strict': {
+      #            File <| title == "${_script_base}/pe_patch_fact_generation.sh" |> {
+      #              content => epp("${module_name}/pe_patch_fact_generation_strict_override.sh.epp", {'environment' => $environment}),
+      #            }
+      #          }
+      #        }
+      #      }
 
       # Determine whats needed for pre_patch_script
       if $pre_patch_script == undef {
