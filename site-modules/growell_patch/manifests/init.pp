@@ -26,18 +26,39 @@ class growell_patch (
   # function determines the patchday to set based on the given day, week and offset
   # for example to achieve: 3 days after the 2nd Thursday.
   #  $patchday = growell_patch::patchday($patch_schedule['day'], $patch_schedule['week'], $patch_schedule['offset'])
-  $_patch_schedule = $patch_schedule.map |$key, $value| {
-    #    $patchday = growell_patch::patchday($value['day'], $value['week'], $value['offset'])
-    {
-      $key => {
-        'day_of_week'   => growell_patch::patchday($value['day'], $value['week'], $value['offset'])['day_of_week'],
-        'count_of_week' => growell_patch::patchday($value['day'], $value['week'], $value['offset'])['count_of_week'],
-        'hours'         => $value['hours'],
-        'max_runs'      => $value['max_runs'],
-        'reboot'        => $value['reboot'],
+  $_patch_schedule = $patch_schedule.reduce({}) |$memo, $x| {
+    $memo + {
+      $x[0] => {
+        'day_of_week'   => growell_patch::patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['day_of_week'],
+        'count_of_week' => growell_patch::patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['count_of_week'],
+        'hours'         => $x[1]['hours'],
+        'max_runs'      => $x[1]['max_runs'],
+        'reboot'        => $x[1]['reboot'],
       }
     }
-  }.flatten
+    #    {
+    #      $key => {
+    #        'day_of_week'   => growell_patch::patchday($value['day'], $value['week'], $value['offset'])['day_of_week'],
+    #        'count_of_week' => growell_patch::patchday($value['day'], $value['week'], $value['offset'])['count_of_week'],
+    #        'hours'         => $value['hours'],
+    #        'max_runs'      => $value['max_runs'],
+    #        'reboot'        => $value['reboot'],
+    #      }
+    #    }
+  }
+
+  #  $_patch_schedule = $patch_schedule.map |$key, $value| {
+  #    #    $patchday = growell_patch::patchday($value['day'], $value['week'], $value['offset'])
+  #    {
+  #      $key => {
+  #        'day_of_week'   => growell_patch::patchday($value['day'], $value['week'], $value['offset'])['day_of_week'],
+  #        'count_of_week' => growell_patch::patchday($value['day'], $value['week'], $value['offset'])['count_of_week'],
+  #        'hours'         => $value['hours'],
+  #        'max_runs'      => $value['max_runs'],
+  #        'reboot'        => $value['reboot'],
+  #      }
+  #    }
+  #  }.flatten
   notify { "sch: ${_patch_schedule}": }
 
   case $facts['kernel'] {
