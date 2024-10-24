@@ -5,15 +5,17 @@
 # @example
 #   include growell_patch
 class growell_patch (
-  Struct[{
-    day      => Growell_patch::Weekday,
-    week     => Integer,
-    offset   => Integer,
-    hours    => String,
-    max_runs => String,
-    reboot   => Enum['always', 'never', 'ifneeded'],
-  }] $patch_schedule,
-  String $patch_group,
+  #  Struct[{
+  #    day      => Growell_patch::Weekday,
+  #    week     => Integer,
+  #    offset   => Integer,
+  #    hours    => String,
+  #    max_runs => String,
+  #    reboot   => Enum['always', 'never', 'ifneeded'],
+  #  }] $patch_schedule,
+  #  String[1] $patch_group,
+  Hash[String[1], Growell_patch::Patch_schedule] $patch_schedule,
+  Variant[String[1], Array[String[1]]] $patch_group,
   Optional[String[1]] $pre_patch_script  = undef,
   Optional[String[1]] $post_patch_script = undef,
   Optional[String[1]] $pre_reboot_script = undef,
@@ -37,22 +39,6 @@ class growell_patch (
         owner  => 'root',
         group  => 'root',
       }
-
-      #      # Override the fact generation script so we can use versions that take into account the blocklist
-      #      unless $blocklist == undef {
-      #        case $blocklist_mode {
-      #          'fuzzy': {
-      #            File <| title == "${_script_base}/pe_patch_fact_generation.sh" |> {
-      #              content => epp("${module_name}/pe_patch_fact_generation_fuzzy_override.sh.epp", {'environment' => $environment}),
-      #            }
-      #          }
-      #          'strict': {
-      #            File <| title == "${_script_base}/pe_patch_fact_generation.sh" |> {
-      #              content => epp("${module_name}/pe_patch_fact_generation_strict_override.sh.epp", {'environment' => $environment}),
-      #            }
-      #          }
-      #        }
-      #      }
 
       # Determine whats needed for pre_patch_script
       if $pre_patch_script == undef {
