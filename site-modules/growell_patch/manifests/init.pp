@@ -125,7 +125,6 @@ class growell_patch (
           $_common_present_args,
           {
             source => "puppet:///modules/${module_name}/${pre_check_script}",
-            before => Class['patching_as_code'],
           }
         )
         exec { 'pre_check_script':
@@ -145,8 +144,7 @@ class growell_patch (
         $_post_check_file_args = stdlib::merge(
           $_common_present_args,
           {
-            source  => "puppet:///modules/${module_name}/${post_check_script}",
-            require => Class['patching_as_code'],
+            source => "puppet:///modules/${module_name}/${post_check_script}",
           }
         )
         exec { 'post_check_script':
@@ -262,6 +260,7 @@ class growell_patch (
   file {
     default:
       require => File[$_script_base],
+      before  => Class['patching_as_code'],
       ;
     'pre_patch_script':
       path => $_pre_patch_script_path,
