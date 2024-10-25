@@ -38,6 +38,8 @@ growell_patch::install_options:
 growell_patch::blocklist:
   - 'apache2*'
 growell_patch::blocklist_mode: 'fuzzy'
+growell_patch::pre_check_script: 'false.sh'
+growell_patch::post_check_script: 'false.sh'
 
 #patching_as_code::patch_group:
 #  - dept1_prod

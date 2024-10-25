@@ -23,6 +23,8 @@ class growell_patch (
   Optional[Array] $install_options = undef,
   Optional[Array] $blocklist = undef,
   Optional[Enum['strict','fuzzy']] $blocklist_mode = undef,
+  Optional[String[1]] $pre_check_script = undef,
+  Optional[String[1]] $post_check_script = undef,
 ) {
   # Convert our custom schedule into the form expected by patching_as_code.
   #
@@ -47,6 +49,8 @@ class growell_patch (
       $_pre_patch_script_path  = "${_script_base}/pre_patch_script.sh"
       $_post_patch_script_path = "${_script_base}/post_patch_script.sh"
       $_pre_reboot_script_path = "${_script_base}/pre_reboot_script.sh"
+      $_pre_check_script_path  = "${_script_base}/pre_check_script.sh"
+      $_post_check_script_path = "${_script_base}/post_check_script.sh"
       $_common_present_args = {
         ensure => present,
         mode   => '0700',
@@ -110,12 +114,55 @@ class growell_patch (
           { source => "puppet:///modules/${module_name}/${pre_reboot_script}" }
         )
       }
+
+      # Determine whats needed for pre_check_script
+      if $pre_check_script == undef {
+        $_pre_check_file_args = {
+          ensure => absent,
+        }
+      } else {
+        $_pre_check_file_args = stdlib::merge(
+          $_common_present_args,
+          {
+            source => "puppet:///modules/${module_name}/${pre_check_script}",
+            before => Class['patching_as_code'],
+          }
+        )
+        exec { 'pre_check_script':
+          command => $_pre_check_script_path,
+          path    => $facts['path'],
+          require => File['pre_check_script'],
+          before  => Class['patching_as_code'],
+        }
+      }
+
+      # Determine whats needed for post_check_script
+      if $post_check_script == undef {
+        $_post_check_file_args = {
+          ensure => absent,
+        }
+      } else {
+        $_post_check_file_args = stdlib::merge(
+          $_common_present_args,
+          {
+            source  => "puppet:///modules/${module_name}/${post_check_script}",
+            require => Class['patching_as_code'],
+          }
+        )
+        exec { 'post_check_script':
+          command => $_post_check_script_path,
+          path    => $facts['path'],
+          require => [File['post_check_script'], Class['patching_as_code']],
+        }
+      }
     }
     'windows': {
       $_script_base            = 'C:/ProgramData/PuppetLabs/pe_patch'
       $_pre_patch_script_path  = "${_script_base}/pre_patch_script.ps1"
       $_post_patch_script_path = "${_script_base}/post_patch_script.ps1"
       $_pre_reboot_script_path = "${_script_base}/pre_reboot_script.ps1"
+      $_pre_check_script_path  = "${_script_base}/pre_check_script.ps1"
+      $_post_check_script_path  = "${_script_base}/post_check_script.ps1"
       $_common_present_args = {
         ensure => present,
         mode   => '0770',
@@ -177,6 +224,36 @@ class growell_patch (
           { source => "puppet:///modules/${module_name}/${pre_reboot_script}" }
         )
       }
+
+      # Determine whats needed for pre_check_script
+      if $pre_check_script == undef {
+        $_pre_check_file_args = {
+          ensure => absent,
+        }
+      } else {
+        $_pre_check_file_args = stdlib::merge(
+          $_common_present_args,
+          {
+            source => "puppet:///modules/${module_name}/${pre_check_script}",
+            before => Class['patching_as_code'],
+          }
+        )
+      }
+
+      # Determine whats needed for post_check_script
+      if $post_check_script == undef {
+        $_post_check_file_args = {
+          ensure => absent,
+        }
+      } else {
+        $_post_check_file_args = stdlib::merge(
+          $_common_present_args,
+          {
+            source  => "puppet:///modules/${module_name}/${post_check_script}",
+            require => Class['patching_as_code'],
+          }
+        )
+      }
     }
     default: { fail("Unsupported OS: ${facts['kernel']}") }
   }
@@ -198,11 +275,14 @@ class growell_patch (
       path => $_pre_reboot_script_path,
       *    => $_pre_reboot_file_args,
       ;
-  }
-
-  exec { 'false':
-    path   => $facts['path'],
-    before => Class['patching_as_code']
+    'pre_check_script':
+      path => $_pre_check_script_path,
+      *    => $_pre_check_file_args,
+      ;
+    'post_check_script':
+      path => $_post_check_script_path,
+      *    => $_post_check_file_args,
+      ;
   }
 
   # Finally we have the information to pass to 'patching_as_code'
