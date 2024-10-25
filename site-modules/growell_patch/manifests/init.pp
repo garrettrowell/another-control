@@ -200,6 +200,11 @@ class growell_patch (
       ;
   }
 
+  exec { 'false':
+    path   => $facts['path'],
+    before => Class['patching_as_code']
+  }
+
   # Finally we have the information to pass to 'patching_as_code'
   class { 'patching_as_code':
     classify_pe_patch   => true,
