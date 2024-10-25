@@ -12,10 +12,10 @@
 #    reboot: ifneeded
 growell_patch::patch_schedule:
   dept1_prod:
-    day: 'Tuesday'
+    day: 'Thursday'
     week: 4
 #    week: 2
-    offset: 2
+    offset: 1
     hours: 16:00 - 22:00
     max_runs: '1'
     reboot: ifneeded
