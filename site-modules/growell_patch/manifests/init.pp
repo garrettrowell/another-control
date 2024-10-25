@@ -12,7 +12,7 @@ class growell_patch (
   Optional[String[1]] $pre_reboot_script = undef,
   Optional[Array] $install_options = undef,
   Optional[Array] $blocklist = undef,
-  Optional[Enum['strict','fuzzy']] $blocklist_mode = 'strict',
+  Optional[Enum['strict','fuzzy']] $blocklist_mode = undef,
 ) {
   # Convert our custom schedule into the form expected by patching_as_code.
   #
@@ -30,6 +30,7 @@ class growell_patch (
     }
   }
 
+  # Determine the states of the pre/post scripts based on operating system
   case $facts['kernel'] {
     'Linux': {
       $_script_base            = '/opt/puppetlabs/pe_patch'
@@ -54,7 +55,7 @@ class growell_patch (
           'pre_patch_script' => {
             'command' => $_pre_patch_script_path,
             'path'    => $facts['path'],
-          }
+          },
         }
         $_pre_patch_file_args = stdlib::merge(
           $_common_present_args,
@@ -73,7 +74,7 @@ class growell_patch (
           'post_patch_script' => {
             'command' => $_post_patch_script_path,
             'path'    => $facts['path'],
-          }
+          },
         }
         $_post_patch_file_args = stdlib::merge(
           $_common_present_args,
@@ -92,7 +93,7 @@ class growell_patch (
           'pre_reboot_script' => {
             'command' => $_pre_reboot_script_path,
             'path'    => $facts['path'],
-          }
+          },
         }
         $_pre_reboot_file_args = stdlib::merge(
           $_common_present_args,
@@ -114,14 +115,14 @@ class growell_patch (
       if $pre_patch_script == undef {
         $_pre_patch_commands = undef
         $_pre_patch_file_args = {
-          ensure => absent
+          ensure => absent,
         }
       } else {
         $_pre_patch_commands = {
           'pre_patch_script' => {
             'command'  => $_pre_patch_script_path,
             'provider' => 'powershell',
-          }
+          },
         }
         $_pre_patch_file_args = stdlib::merge(
           $_common_present_args,
@@ -133,14 +134,14 @@ class growell_patch (
       if $post_patch_script == undef {
         $_post_patch_commands = undef
         $_post_patch_file_args = {
-          ensure => absent
+          ensure => absent,
         }
       } else {
         $_post_patch_commands = {
           'post_patch_script' => {
             'command'  => $_post_patch_script_path,
             'provider' => 'powershell',
-          }
+          },
         }
         $_post_patch_file_args = stdlib::merge(
           $_common_present_args,
@@ -152,14 +153,14 @@ class growell_patch (
       if $pre_reboot_script == undef {
         $_pre_reboot_commands = undef
         $_pre_reboot_file_args = {
-          ensure => absent
+          ensure => absent,
         }
       } else {
         $_pre_reboot_commands = {
           'pre_reboot_script' => {
             'command'  => $_pre_reboot_script_path,
             'provider' => 'powershell',
-          }
+          },
         }
         $_pre_reboot_file_args = stdlib::merge(
           $_common_present_args,
@@ -171,31 +172,34 @@ class growell_patch (
   }
 
   # Manage the various pre/post scripts
-  file { 'pre_patch_script':
-    path => $_pre_patch_script_path,
-    *    => $_pre_patch_file_args,
-  }
-
-  file { 'post_patch_script':
-    path => $_post_patch_script_path,
-    *    => $_post_patch_file_args,
-  }
-
-  file { 'pre_reboot_script':
-    path => $_pre_reboot_script_path,
-    *    => $_pre_reboot_file_args,
+  file {
+    default:
+      require => File[$_script_base],
+      ;
+    'pre_patch_script':
+      path => $_pre_patch_script_path,
+      *    => $_pre_patch_file_args,
+      ;
+    'post_patch_script':
+      path => $_post_patch_script_path,
+      *    => $_post_patch_file_args,
+      ;
+    'pre_reboot_script':
+      path => $_pre_reboot_script_path,
+      *    => $_pre_reboot_file_args,
+      ;
   }
 
   # Finally we have the information to pass to 'patching_as_code'
   class { 'patching_as_code':
-    classify_pe_patch      => true,
-    patch_group            => $patch_group,
-    pre_patch_commands     => $_pre_patch_commands,
-    post_patch_commands    => $_post_patch_commands,
-    pre_reboot_commands    => $_pre_reboot_commands,
-    install_options        => $install_options,
-    blocklist              => $blocklist,
-    blocklist_mode         => $blocklist_mode,
-    patch_schedule         => $_patch_schedule,
+    classify_pe_patch   => true,
+    patch_group         => $patch_group,
+    pre_patch_commands  => $_pre_patch_commands,
+    post_patch_commands => $_post_patch_commands,
+    pre_reboot_commands => $_pre_reboot_commands,
+    install_options     => $install_options,
+    blocklist           => $blocklist,
+    blocklist_mode      => $blocklist_mode,
+    patch_schedule      => $_patch_schedule,
   }
 }
