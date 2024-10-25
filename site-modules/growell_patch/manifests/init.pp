@@ -130,7 +130,8 @@ class growell_patch (
         exec { 'pre_check_script':
           command => $_pre_check_script_path,
           path    => $facts['path'],
-          require => File['pre_check_script'],
+          schedule => 'Patching as Code - Patch Window',
+          require => [File['pre_check_script'], Anchor['patching_as_code::pre']],
           before  => Class['patching_as_code'],
         }
       }
@@ -150,7 +151,8 @@ class growell_patch (
         exec { 'post_check_script':
           command => $_post_check_script_path,
           path    => $facts['path'],
-          require => [File['post_check_script'], Class['patching_as_code']],
+          schedule => 'Patching as Code - Patch Window',
+          require => [File['post_check_script'], Class['patching_as_code'], Anchor['patching_as_code::post']],
         }
       }
     }
