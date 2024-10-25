@@ -131,7 +131,7 @@ class growell_patch (
           command  => $_pre_check_script_path,
           path     => $facts['path'],
           require  => File['pre_check_script'],
-          before   => Class["patching_as_code::${0}::patchday"],
+          before   => Class['patching_as_code::linux::patchday'],
         }
       }
 
