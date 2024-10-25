@@ -42,7 +42,13 @@ class growell_patch (
     }
   }
 
-  $result = patching_as_code::process_patch_groups()
+  #  $is_patch_day = 
+  #  function patching_as_code::is_patchday(
+  #  Enum['Any','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] $day_of_week,
+  #  Variant[Integer, Array] $week_iteration,
+  #  String $patch_group
+  #)
+
   # Determine the states of the pre/post scripts based on operating system
   case $facts['kernel'] {
     'Linux': {
@@ -128,13 +134,11 @@ class growell_patch (
             source => "puppet:///modules/${module_name}/${pre_check_script}",
           }
         )
-        if $result['is_patch_day'] or $result['is_high_prio_patch_day'] {
-          exec { 'pre_check_script':
-            command => $_pre_check_script_path,
-            path    => $facts['path'],
-            require => File['pre_check_script'],
-            before  => Class['patching_as_code'],
-          }
+        exec { 'pre_check_script':
+          command => $_pre_check_script_path,
+          path    => $facts['path'],
+          require => File['pre_check_script'],
+          before  => Class['patching_as_code'],
         }
       }
 
@@ -151,8 +155,9 @@ class growell_patch (
           }
         )
         exec { 'post_check_script':
-          command  => $_post_check_script_path,
-          path     => $facts['path'],
+          command => $_post_check_script_path,
+          path    => $facts['path'],
+          require => [File['post_check_script'], Class['patching_as_code']],
         }
       }
     }
