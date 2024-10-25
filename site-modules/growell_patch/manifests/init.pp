@@ -152,7 +152,7 @@ class growell_patch (
           command  => $_post_check_script_path,
           path     => $facts['path'],
           schedule => 'Patching as Code - Patch Window',
-          require  => [File['post_check_script'], Class['patching_as_code'], Anchor['patching_as_code::post']],
+          require  => [File['post_check_script'], Class['patching_as_code']],
         }
       }
     }
