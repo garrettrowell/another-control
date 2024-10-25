@@ -1,6 +1,16 @@
-# @summary A short summary of the purpose of this class
+# @summary A wrapper around the puppetlabs/patching_as_code, which itself is a wrapper
+#   around puppetlabs/pe_patch
 #
 # A description of what this class does
+#
+# @param patch_schedule
+# @param patch_group
+# @param pre_patch_script
+# @param post_patch_script
+# @param pre_reboot_script
+# @param install_options
+# @param blocklist
+# @param blocklist_mode
 #
 # @example
 #   include growell_patch
