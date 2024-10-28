@@ -11,20 +11,24 @@
 # @param install_options
 # @param blocklist
 # @param blocklist_mode
+# @param pre_check_script
+# @param post_check_script
+# @param high_priority_patch_group
 #
 # @example
 #   include growell_patch
 class growell_patch (
   Hash[String[1], Growell_patch::Patch_schedule] $patch_schedule,
-  Variant[String[1], Array[String[1]]] $patch_group,
-  Optional[String[1]] $pre_patch_script  = undef,
-  Optional[String[1]] $post_patch_script = undef,
-  Optional[String[1]] $pre_reboot_script = undef,
-  Optional[Array] $install_options = undef,
-  Optional[Array] $blocklist = undef,
-  Optional[Enum['strict','fuzzy']] $blocklist_mode = undef,
-  Optional[String[1]] $pre_check_script = undef,
-  Optional[String[1]] $post_check_script = undef,
+  Variant[String[1], Array[String[1]]]           $patch_group,
+  Optional[String[1]]                            $pre_patch_script          = undef,
+  Optional[String[1]]                            $post_patch_script         = undef,
+  Optional[String[1]]                            $pre_reboot_script         = undef,
+  Optional[Array]                                $install_options           = undef,
+  Optional[Array]                                $blocklist                 = undef,
+  Optional[Enum['strict','fuzzy']]               $blocklist_mode            = undef,
+  Optional[String[1]]                            $pre_check_script          = undef,
+  Optional[String[1]]                            $post_check_script         = undef,
+  Optional[String[1]]                            $high_priority_patch_group = undef,
 ) {
   # Convert our custom schedule into the form expected by patching_as_code.
   #
@@ -42,13 +46,9 @@ class growell_patch (
     }
   }
 
-  #  $result = growell_patch::patch_groups($patch_group, $_patch_schedule)
-  #  $is_patch_day = 
-  #  function patching_as_code::is_patchday(
-  #  Enum['Any','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] $day_of_week,
-  #  Variant[Integer, Array] $week_iteration,
-  #  String $patch_group
-  #)
+  $result = growell_patch::process_groups($patch_group, $_patch_schedule, $high_priority_patch_group)
+  $_is_patchday            = $result['is_patch_day']
+  $_is_high_prio_patch_day = $result['is_high_prio_patch_day']
 
   # Determine the states of the pre/post scripts based on operating system
   case $facts['kernel'] {
@@ -141,11 +141,13 @@ class growell_patch (
             source => "puppet:///modules/${module_name}/${pre_check_script}",
           }
         )
-        exec { 'pre_check_script':
-          command => $_pre_check_script_path,
-          path    => $facts['path'],
-          require => File['pre_check_script'],
-          before  => Class['patching_as_code'],
+        if $_is_patchday or $_is_high_prio_patch_day {
+          exec { 'pre_check_script':
+            command => $_pre_check_script_path,
+            path    => $facts['path'],
+            require => File['pre_check_script'],
+            before  => Class['patching_as_code'],
+          }
         }
       }
 
@@ -161,10 +163,12 @@ class growell_patch (
             source => "puppet:///modules/${module_name}/${post_check_script}",
           }
         )
-        exec { 'post_check_script':
-          command => $_post_check_script_path,
-          path    => $facts['path'],
-          require => [File['post_check_script'], Class['patching_as_code']],
+        if $_is_patchday or $_is_high_prio_patch_day {
+          exec { 'post_check_script':
+            command => $_post_check_script_path,
+            path    => $facts['path'],
+            require => [File['post_check_script'], Class['patching_as_code']],
+          }
         }
       }
     }
@@ -304,14 +308,15 @@ class growell_patch (
 
   # Finally we have the information to pass to 'patching_as_code'
   class { 'patching_as_code':
-    classify_pe_patch   => true,
-    patch_group         => $patch_group,
-    pre_patch_commands  => $_pre_patch_commands,
-    post_patch_commands => $_post_patch_commands,
-    pre_reboot_commands => $_pre_reboot_commands,
-    install_options     => $install_options,
-    blocklist           => $blocklist,
-    blocklist_mode      => $blocklist_mode,
-    patch_schedule      => $_patch_schedule,
+    classify_pe_patch         => true,
+    patch_group               => $patch_group,
+    pre_patch_commands        => $_pre_patch_commands,
+    post_patch_commands       => $_post_patch_commands,
+    pre_reboot_commands       => $_pre_reboot_commands,
+    install_options           => $install_options,
+    blocklist                 => $blocklist,
+    blocklist_mode            => $blocklist_mode,
+    patch_schedule            => $_patch_schedule,
+    high_priority_patch_group => $high_priority_patch_group,
   }
 }
