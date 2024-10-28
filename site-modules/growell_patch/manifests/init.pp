@@ -46,9 +46,14 @@ class growell_patch (
     }
   }
 
+  # Determine if we will actually be patching
   $result = growell_patch::process_groups($patch_group, $_patch_schedule, $high_priority_patch_group)
-  $_is_patchday            = $result['is_patch_day']
-  $_is_high_prio_patch_day = $result['is_high_prio_patch_day']
+  $_is_patchday               = $result['is_patch_day']
+  $_in_patch_window           = $result['in_patch_window']
+  $_is_high_prio_patch_day    = $result['is_high_prio_patch_day']
+  $_in_high_prio_patch_window = $result['in_high_prio_patch_window']
+
+  notify { "info: ${result}": }
 
   # Determine the states of the pre/post scripts based on operating system
   case $facts['kernel'] {
@@ -141,7 +146,7 @@ class growell_patch (
             source => "puppet:///modules/${module_name}/${pre_check_script}",
           }
         )
-        if $_is_patchday or $_is_high_prio_patch_day {
+        if ($_is_patchday or $_is_high_prio_patch_day) and ($_in_patch_window or $_in_high_prio_patch_window) {
           exec { 'pre_check_script':
             command => $_pre_check_script_path,
             path    => $facts['path'],
@@ -163,7 +168,7 @@ class growell_patch (
             source => "puppet:///modules/${module_name}/${post_check_script}",
           }
         )
-        if $_is_patchday or $_is_high_prio_patch_day {
+        if ($_is_patchday or $_is_high_prio_patch_day) and ($_in_patch_window or $_in_high_prio_patch_window) {
           exec { 'post_check_script':
             command => $_post_check_script_path,
             path    => $facts['path'],
