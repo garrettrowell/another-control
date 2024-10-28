@@ -19,7 +19,7 @@ fi
 
 case $(facter osfamily) in
   RedHat)
-    case $(facter package_provider) in
+    case $(facter -p package_provider) in
       yum)
         # Sometimes yum check-update will output extra info like this:
         # ---
@@ -47,7 +47,7 @@ case $(facter osfamily) in
     HELDPKGS=$(zypper --non-interactive --no-abbrev --quiet ll | grep '|' | grep -v '^Repository' | awk -F'|' '/^[[:alnum:]]/ {print $2}' | sed 's/^\s*\|\s*$//')
   ;;
   Debian)
-    case $(facter package_provider) in
+    case $(facter -p package_provider) in
     apt)
       PKGS=$(apt upgrade -s 2>/dev/null | awk '$1 == "Inst" {print $2}')
       SECPKGS=$(apt upgrade -s 2>/dev/null | awk '$1 == "Inst" && /[Ss]ecurity/ {print $2}')
