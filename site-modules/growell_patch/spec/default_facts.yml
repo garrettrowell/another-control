@@ -7,3 +7,8 @@ networking:
   ip6: "FE80:0000:0000:0000:AAAA:AAAA:AAAA"
   mac: "AA:AA:AA:AA:AA:AA"
 is_pe: false
+cust:
+  group: dept1
+  env: prod
+puppet_confdir: '/etc/puppetlabs/puppet'
+puppet_vardir: '/opt/puppetlabs/puppet/cache'

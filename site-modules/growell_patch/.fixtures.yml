@@ -3,4 +3,37 @@
 ---
 fixtures:
   forge_modules:
-#     stdlib: "puppetlabs/stdlib"
+    stdlib:
+      repo: 'puppetlabs/stdlib'
+      ref: '9.6.0'
+    puppet_agent:
+      repo: 'puppetlabs/puppet_agent'
+      ref: '4.21.0'
+    inifile:
+      repo: 'puppetlabs/inifile'
+      ref: '6.1.1'
+    facts:
+      repo: 'puppetlabs/facts'
+      ref: '1.6.0'
+    reboot:
+      repo: 'puppetlabs/reboot'
+      ref: '5.0.0'
+    pwshlib:
+      repo: 'puppetlabs/pwshlib'
+      ref: '1.2.2'
+    powershell:
+      repo: 'puppetlabs/powershell'
+      ref: '6.0.0'
+    scheduled_task:
+      repo: 'puppetlabs/scheduled_task'
+      ref: '1.0.1'
+  repositories:
+    patching_as_code:
+      repo: 'https://github.com/garrettrowell/puppetlabs-patching_as_code.git'
+      branch: 'modify'
+    pe_patch:
+      repo: 'https://github.com/puppetlabs/pe_patch.git'
+      branch: 'main'
+    cron_core:
+      repo: 'https://github.com/puppetlabs/puppetlabs-cron_core.git'
+      ref: 'v1.3.0'

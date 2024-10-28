@@ -42,6 +42,7 @@ class growell_patch (
     }
   }
 
+  #$result = growell_patch::process_patch_groups($patch_group, $patch_schedule)
   #  $is_patch_day = 
   #  function patching_as_code::is_patchday(
   #  Enum['Any','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] $day_of_week,
