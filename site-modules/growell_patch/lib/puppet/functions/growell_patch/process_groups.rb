@@ -1,8 +1,8 @@
 Puppet::Functions.create_function(:'growell_patch::process_groups') do
   dispatch :process_groups do
-    required_param 'Variant[String[1], Array[String[1]]]', :patch_group
-    required_param 'Hash[String[1], Hash]',                :patch_schedule
-    optional_param 'Optional[String[1]]',                  :high_priority_patch_group
+    required_param 'Variant[String[1], Array[String[1]]]',               :patch_group
+    required_param 'Hash[String[1], Growell_patch::Pac_patch_schedule]', :patch_schedule
+    optional_param 'Optional[String[1]]',                                :high_priority_patch_group
   end
 
   def process_groups(patch_group, patch_schedule, high_priority_patch_group = nil)
