@@ -42,7 +42,7 @@ class growell_patch (
     }
   }
 
-  #$result = growell_patch::process_patch_groups($patch_group, $patch_schedule)
+  #  $result = growell_patch::patch_groups($patch_group, $_patch_schedule)
   #  $is_patch_day = 
   #  function patching_as_code::is_patchday(
   #  Enum['Any','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] $day_of_week,
@@ -59,11 +59,17 @@ class growell_patch (
       $_pre_reboot_script_path = "${_script_base}/pre_reboot_script.sh"
       $_pre_check_script_path  = "${_script_base}/pre_check_script.sh"
       $_post_check_script_path = "${_script_base}/post_check_script.sh"
+      $_fact_file              = 'pe_patch_fact_generation.sh'
       $_common_present_args = {
         ensure => present,
         mode   => '0700',
         owner  => 'root',
         group  => 'root',
+      }
+
+      # override the fact generation file in order to support dnf for Redhat
+      File <| title == "${_script_base}/${_fact_file}" |> {
+        content => epp("${module_name}/${_fact_file}.epp", { 'environment' => $environment })
       }
 
       # Determine whats needed for pre_patch_script
