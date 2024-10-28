@@ -264,6 +264,14 @@ class growell_patch (
             source => "puppet:///modules/${module_name}/${pre_check_script}",
           }
         )
+        if (($_is_patchday or $_is_high_prio_patch_day) and ($_in_patch_window or $_in_high_prio_patch_window)) {
+          exec { 'pre_check_script':
+            command  => $_pre_check_script_path,
+            provider => powershell,
+            require  => File['pre_check_script'],
+            before   => Class['patching_as_code'],
+          }
+        }
       }
 
       # Determine whats needed for post_check_script
@@ -278,6 +286,14 @@ class growell_patch (
             source  => "puppet:///modules/${module_name}/${post_check_script}",
           }
         )
+        if (($_is_patchday or $_is_high_prio_patch_day) and ($_in_patch_window or $_in_high_prio_patch_window)) {
+          exec { 'post_check_script':
+            command  => $_post_check_script_path,
+            provider => powershell,
+            require  => [File['post_check_script'], Class['patching_as_code']],
+          }
+        }
+
       }
     }
     default: { fail("Unsupported OS: ${facts['kernel']}") }
