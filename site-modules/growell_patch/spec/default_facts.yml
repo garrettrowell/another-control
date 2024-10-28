@@ -10,5 +10,3 @@ is_pe: false
 cust:
   group: dept1
   env: prod
-puppet_confdir: '/etc/puppetlabs/puppet'
-puppet_vardir: '/opt/puppetlabs/puppet/cache'

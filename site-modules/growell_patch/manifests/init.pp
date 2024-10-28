@@ -168,7 +168,7 @@ class growell_patch (
       $_post_patch_script_path = "${_script_base}/post_patch_script.ps1"
       $_pre_reboot_script_path = "${_script_base}/pre_reboot_script.ps1"
       $_pre_check_script_path  = "${_script_base}/pre_check_script.ps1"
-      $_post_check_script_path  = "${_script_base}/post_check_script.ps1"
+      $_post_check_script_path = "${_script_base}/post_check_script.ps1"
       $_common_present_args = {
         ensure => present,
         mode   => '0770',
@@ -189,7 +189,9 @@ class growell_patch (
         }
         $_pre_patch_file_args = stdlib::merge(
           $_common_present_args,
-          { source => "puppet:///modules/${module_name}/${pre_patch_script}" }
+          {
+            source => "puppet:///modules/${module_name}/${pre_patch_script}"
+          }
         )
       }
 
@@ -208,7 +210,9 @@ class growell_patch (
         }
         $_post_patch_file_args = stdlib::merge(
           $_common_present_args,
-          { source => "puppet:///modules/${module_name}/${post_patch_script}" }
+          {
+            source => "puppet:///modules/${module_name}/${post_patch_script}"
+          }
         )
       }
 
@@ -227,7 +231,9 @@ class growell_patch (
         }
         $_pre_reboot_file_args = stdlib::merge(
           $_common_present_args,
-          { source => "puppet:///modules/${module_name}/${pre_reboot_script}" }
+          {
+            source => "puppet:///modules/${module_name}/${pre_reboot_script}"
+          }
         )
       }
 
@@ -241,7 +247,6 @@ class growell_patch (
           $_common_present_args,
           {
             source => "puppet:///modules/${module_name}/${pre_check_script}",
-            before => Class['patching_as_code'],
           }
         )
       }
@@ -256,7 +261,6 @@ class growell_patch (
           $_common_present_args,
           {
             source  => "puppet:///modules/${module_name}/${post_check_script}",
-            require => Class['patching_as_code'],
           }
         )
       }
