@@ -29,6 +29,7 @@ class growell_patch (
   Optional[String[1]]                            $pre_check_script          = undef,
   Optional[String[1]]                            $post_check_script         = undef,
   Optional[String[1]]                            $high_priority_patch_group = undef,
+  Optional[String[1]]                            $windows_prefetch_before   = undef,
 ) {
   # Convert our custom schedule into the form expected by patching_as_code.
   #
@@ -47,7 +48,7 @@ class growell_patch (
   }
 
   # Determine if we will actually be patching
-  $result = growell_patch::process_groups($patch_group, $_patch_schedule, $high_priority_patch_group)
+  $result = Deferred('growell_patch::process_groups', [$patch_group, $_patch_schedule, $high_priority_patch_group])
   $_is_patchday               = $result['is_patch_day']
   $_in_patch_window           = $result['in_patch_window']
   $_is_high_prio_patch_day    = $result['is_high_prio_patch_day']
