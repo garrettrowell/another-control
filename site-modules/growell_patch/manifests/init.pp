@@ -18,14 +18,18 @@
 # @example
 #   include growell_patch
 class growell_patch (
-  Hash[String[1], Growell_patch::Patch_schedule] $patch_schedule,
-  Variant[String[1], Array[String[1]]]           $patch_group,
+  Hash[String[1], Growell_patch::Patch_schedule] $patch_schedule, Variant[String[1], Array[String[1]]]           $patch_group,
+  Boolean                                        $enable_patching           = true,
+  Boolean                                        $high_priority_only        = false,
+  Boolean                                        $security_only             = false,
+  Enum['strict', 'fuzzy']                        $blocklist_mode            = 'strict',
   Optional[String[1]]                            $pre_patch_script          = undef,
   Optional[String[1]]                            $post_patch_script         = undef,
   Optional[String[1]]                            $pre_reboot_script         = undef,
   Optional[Array]                                $install_options           = undef,
-  Optional[Array]                                $blocklist                 = undef,
-  Optional[Enum['strict','fuzzy']]               $blocklist_mode            = undef,
+  Array                                          $allowlist                 = [],
+  Array                                          $blocklist                 = [],
+  Array                                          $high_priority_list        = [],
   Optional[String[1]]                            $pre_check_script          = undef,
   Optional[String[1]]                            $post_check_script         = undef,
   Optional[String[1]]                            $high_priority_patch_group = undef,
@@ -57,6 +61,81 @@ class growell_patch (
   $_in_high_prio_prefetch_window = $result['in_high_prio_prefetch_window']
 
   notify { "info: ${result}": }
+
+  if $facts['pe_patch'] {
+    $available_updates = $facts['kernel'] ? {
+      'windows' => if $security_only and !$high_priority_only {
+        unless $facts['pe_patch']['missing_security_kbs'].empty {
+          $facts['pe_patch']['missing_security_kbs']
+        } else {
+          $facts['pe_patch']['missing_update_kbs']
+        }
+      } elsif !$high_priority_only {
+        $facts['pe_patch']['missing_update_kbs']
+      } else {
+        []
+      },
+      'Linux' => if $security_only and !$high_priority_only {
+        patching_as_code::dedupe_arch($facts['pe_patch']['security_package_updates'])
+      } elsif !$high_priority_only {
+        patching_as_code::dedupe_arch($facts['pe_patch']['package_updates'])
+      } else {
+        []
+      },
+      default => []
+    }
+    $high_prio_updates = $facts['kernel'] ? {
+      'windows' => $facts['pe_patch']['missing_update_kbs'].filter |$item| { $item in $high_priority_list },
+      'Linux'   => patching_as_code::dedupe_arch($facts['pe_patch']['package_updates'].filter |$item| { $item in $high_priority_list }),
+      default   => []
+    }
+  }
+  else {
+    $available_updates = []
+    $high_prio_updates = []
+  }
+
+  case $allowlist.count {
+    0: {
+      case $blocklist_mode {
+        'strict': {
+          $_updates_to_install          = $available_updates.filter |$item| { !($item in $blocklist) }
+          $high_prio_updates_to_install = $high_prio_updates.filter |$item| { !($item in $blocklist) }
+        }
+        'fuzzy': {
+          $_updates_to_install          = growell_patch::fuzzy_filter($available_updates, $blocklist)
+          $high_prio_updates_to_install = growell_patch::fuzzy_filter($high_prio_updates, $blocklist)
+        }
+      }
+      if ($_is_patchday and $_is_high_prio_patch_day) {
+        $updates_to_install = $_updates_to_install.filter |$item| { !($item in $high_prio_updates_to_install) }
+      } else {
+        $updates_to_install = $_updates_to_install
+      }
+    }
+    default: {
+      $whitelisted_updates  = $available_updates.filter |$item| { $item in $allowlist }
+      case $blocklist_mode {
+        'strict': {
+          $_updates_to_install          = $whitelisted_updates.filter |$item| { !($item in $blocklist) }
+          $high_prio_updates_to_install = $high_prio_updates.filter |$item| { !($item in $blocklist) }
+        }
+        'fuzzy': {
+          $_updates_to_install          = growell_patch::fuzzy_filter($whitelisted_updates, $blocklist)
+          $high_prio_updates_to_install = growell_patch::fuzzy_filter($high_prio_updates, $blocklist)
+        }
+      }
+      if ($_is_patchday and $_is_high_prio_patch_day) {
+        $updates_to_install = $_updates_to_install.filter |$item| { !($item in $high_prio_updates_to_install) }
+      } else {
+        $updates_to_install = $_updates_to_install
+      }
+    }
+  }
+
+  notify { "available_updates => ${available_updates}": }
+  notify { "high_prio_updates => ${high_prio_updates}": }
+  notify { "updates_to_install => ${updates_to_install}": }
 
   # Determine the states of the pre/post scripts based on operating system
   case $facts['kernel'] {
@@ -342,14 +421,19 @@ class growell_patch (
   # Finally we have the information to pass to 'patching_as_code'
   class { 'patching_as_code':
     classify_pe_patch         => true,
+    enable_patching           => $enable_patching,
+    security_only             => $security_only,
+    high_priority_only        => $high_priority_only,
     patch_group               => $patch_group,
     pre_patch_commands        => $_pre_patch_commands,
     post_patch_commands       => $_post_patch_commands,
     pre_reboot_commands       => $_pre_reboot_commands,
     install_options           => $install_options,
+    allowlist                 => $allowlist,
     blocklist                 => $blocklist,
     blocklist_mode            => $blocklist_mode,
     patch_schedule            => $_patch_schedule,
     high_priority_patch_group => $high_priority_patch_group,
+    high_priority_list        => $high_priority_list,
   }
 }
