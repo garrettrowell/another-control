@@ -61,15 +61,15 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     end
 
     if high_priority_patch_group == 'never'
-      bool_high_prio_patch_day  = false
-      in_high_prio_patch_window = false
-      high_prio_reboot          = 'never'
-      in_prefetch_window        = false
+      bool_high_prio_patch_day     = false
+      in_high_prio_patch_window    = false
+      high_prio_reboot             = 'never'
+      in_high_prio_prefetch_window = false
     elsif high_priority_patch_group == 'always'
-      bool_high_prio_patch_day  = true
-      in_high_prio_patch_window = true
-      high_prio_reboot          = 'ifneeded'
-      in_prefetch_window        = true
+      bool_high_prio_patch_day     = true
+      in_high_prio_patch_window    = true
+      high_prio_reboot             = 'ifneeded'
+      in_high_prio_prefetch_window = true
     elsif high_priority_patch_group != nil
       bool_high_prio_patch_day = call_function('patching_as_code::is_patchday',
                                                patch_schedule[high_priority_patch_group]['day_of_week'],
@@ -77,35 +77,36 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
                                                high_priority_patch_group
                                               )
       if bool_high_prio_patch_day
-        high_prio_reboot          = patch_schedule[high_priority_patch_group]['reboot']
-        in_high_prio_patch_window = in_window(patch_schedule[high_priority_patch_group]['hours'])
-        in_prefetch_window        = case windows_prefetch_before.nil?
+        high_prio_reboot             = patch_schedule[high_priority_patch_group]['reboot']
+        in_high_prio_patch_window    = in_window(patch_schedule[high_priority_patch_group]['hours'])
+        in_high_prio_prefetch_window = case windows_prefetch_before.nil?
                                     when true
                                       false
                                     else
                                       in_prefetch(windows_prefetch_before, patch_schedule[high_priority_patch_group]['hours'])
                                     end
       else
-        high_prio_reboot          = 'never'
-        in_high_prio_patch_window = false
-        in_prefetch_window        = false
+        high_prio_reboot             = 'never'
+        in_high_prio_patch_window    = false
+        in_high_prio_prefetch_window = false
       end
     else
-      bool_high_prio_patch_day  = false
-      in_high_prio_patch_window = false
-      high_prio_reboot          = 'never'
-      in_prefetch_window        = false
+      bool_high_prio_patch_day     = false
+      in_high_prio_patch_window    = false
+      high_prio_reboot             = 'never'
+      in_high_prio_prefetch_window = false
     end
 
     {
-      'is_patch_day'              => bool_patch_day,
-      'in_patch_window'           => in_patch_window,
-      'reboot'                    => reboot,
-      'active_pg'                 => active_pg,
-      'is_high_prio_patch_day'    => bool_high_prio_patch_day,
-      'in_high_prio_patch_window' => in_high_prio_patch_window,
-      'high_prio_reboot'          => high_prio_reboot,
-      'in_prefetch_window'        => in_prefetch_window,
+      'is_patch_day'                 => bool_patch_day,
+      'in_patch_window'              => in_patch_window,
+      'reboot'                       => reboot,
+      'active_pg'                    => active_pg,
+      'is_high_prio_patch_day'       => bool_high_prio_patch_day,
+      'in_high_prio_patch_window'    => in_high_prio_patch_window,
+      'high_prio_reboot'             => high_prio_reboot,
+      'in_prefetch_window'           => in_prefetch_window,
+      'in_high_prio_prefetch_window' => in_high_prio_prefetch_window,
     }
   end
 
