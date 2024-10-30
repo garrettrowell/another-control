@@ -17,6 +17,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
       active_pg       = 'always'
       in_patch_window = true
     else
+      patch_group = patch_group.is_a?(String) ? [patch_group] : patch_group
       pg_info = patch_group.map do |pg|
         {
           'name'            => pg,
