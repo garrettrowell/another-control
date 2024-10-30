@@ -62,6 +62,7 @@ class growell_patch (
 
   notify { "info: ${result}": }
 
+  # Determine the available updates if any
   if $facts['pe_patch'] {
     $available_updates = $facts['kernel'] ? {
       'windows' => if $security_only and !$high_priority_only {
@@ -95,6 +96,7 @@ class growell_patch (
     $high_prio_updates = []
   }
 
+  # Determine which updates should get installed if any
   case $allowlist.count {
     0: {
       case $blocklist_mode {
@@ -132,7 +134,12 @@ class growell_patch (
       }
     }
   }
-  $_blocklist = growell_patch::fuzzy_match($available_updates, $blocklist)
+
+  # create the blocklist assuming we want to fuzzy match
+  $_blocklist = $blocklist_mode == 'fuzzy' ? {
+    true    => growell_patch::fuzzy_match($available_updates, $blocklist),
+    default => $blocklist,
+  }
 
   notify { "available_updates  => ${available_updates}": }
   notify { "high_prio_updates  => ${high_prio_updates}": }
@@ -432,8 +439,7 @@ class growell_patch (
     pre_reboot_commands       => $_pre_reboot_commands,
     install_options           => $install_options,
     allowlist                 => $allowlist,
-    blocklist                 => $blocklist,
-    blocklist_mode            => $blocklist_mode,
+    blocklist                 => $_blocklist,
     patch_schedule            => $_patch_schedule,
     high_priority_patch_group => $high_priority_patch_group,
     high_priority_list        => $high_priority_list,
