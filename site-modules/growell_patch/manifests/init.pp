@@ -191,11 +191,13 @@ class growell_patch (
         mode   => '0770',
       }
 
-      unless (($windows_prefetch_before == undef) and ($_in_prefetch_window == false)) {
-      # Need to determine what patches need to be downloaded and passed to Get-WindowsUpdate
-      # ex:
-      #  Get-WindowsUpdate -KBArticleID "KB5044281" -Download -AcceptAll
-        notify { 'i would prefetch some kbs': }
+      unless ($windows_prefetch_before == undef) {
+        if $_in_prefetch_window {
+          # Need to determine what patches need to be downloaded and passed to Get-WindowsUpdate
+          # ex:
+          #  Get-WindowsUpdate -KBArticleID "KB5044281" -Download -AcceptAll
+          notify { 'i would prefetch some kbs': }
+        }
       }
 
       # Determine whats needed for pre_patch_script
