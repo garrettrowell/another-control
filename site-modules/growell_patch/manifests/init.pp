@@ -48,7 +48,7 @@ class growell_patch (
   }
 
   # Determine if we will actually be patching
-  $result = Deferred('growell_patch::process_groups', [$patch_group, $_patch_schedule, $high_priority_patch_group])
+  $result = growell_patch::process_groups($patch_group, $_patch_schedule, $high_priority_patch_group)
   $_is_patchday               = $result['is_patch_day']
   $_in_patch_window           = $result['in_patch_window']
   $_is_high_prio_patch_day    = $result['is_high_prio_patch_day']
