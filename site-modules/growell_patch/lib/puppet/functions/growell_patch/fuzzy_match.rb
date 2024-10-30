@@ -8,7 +8,7 @@ Puppet::Functions.create_function(:'growell_patch::fuzzy_match') do
     output = []
     input_arr.each do |item|
       match_found = false
-      filter_arr.each do |match_item|
+      match_arr.each do |match_item|
         break if match_found
         match_found = true if item.match(Regexp.new(match_item))
       end
