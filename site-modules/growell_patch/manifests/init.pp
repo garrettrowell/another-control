@@ -48,11 +48,12 @@ class growell_patch (
   }
 
   # Determine if we will actually be patching
-  $result = growell_patch::process_groups($patch_group, $_patch_schedule, $high_priority_patch_group)
+  $result = growell_patch::process_groups($patch_group, $_patch_schedule, $high_priority_patch_group, $windows_prefetch_before)
   $_is_patchday               = $result['is_patch_day']
   $_in_patch_window           = $result['in_patch_window']
   $_is_high_prio_patch_day    = $result['is_high_prio_patch_day']
   $_in_high_prio_patch_window = $result['in_high_prio_patch_window']
+  $_in_prefetch_window        = $result['in_prefetch_window']
 
   notify { "info: ${result}": }
 
@@ -188,6 +189,13 @@ class growell_patch (
       $_common_present_args = {
         ensure => present,
         mode   => '0770',
+      }
+
+      unless (($windows_prefetch_before == undef) and ($_in_prefetch_window == false)) {
+      # Need to determine what patches need to be downloaded and passed to Get-WindowsUpdate
+      # ex:
+      #  Get-WindowsUpdate -KBArticleID "KB5044281" -Download -AcceptAll
+        notify { 'i would prefetch some kbs': }
       }
 
       # Determine whats needed for pre_patch_script
