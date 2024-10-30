@@ -129,8 +129,8 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
   def in_prefetch(prefetch_time, window)
     time_now = Time.now
     prefetch_arr = prefetch_time.split(':')
-    prefetch_hour = prefetch_arr[0]
-    prefetch_min = prefetch_arr[1]
+    prefetch_hour = prefetch_arr[0].to_i * 60 * 60
+    prefetch_min = prefetch_arr[1].to_i * 60
     window_arr = window.split('-')
     window_start = window_arr[0].strip
     start_arr = window_start.split(':')
@@ -138,7 +138,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     start_min = start_arr[1]
     cur_t = Time.new(time_now.year, time_now.month, time_now.day, time_now.hour, time_now.min)
     start_t = Time.new(time_now.year, time_now.month, time_now.day, start_hour, start_min)
-    prefetch_t = (start_t - (60*60*prefetch_hour.to_i)) - (60*prefetch_min.to_i)
+    prefetch_t = (start_t - prefetch_hour) - prefetch_min
     cur_t.between?(prefetch_t, start_t)
   end
 end
