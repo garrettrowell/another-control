@@ -140,15 +140,6 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     cur_t = Time.new(time_now.year, time_now.month, time_now.day, time_now.hour, time_now.min)
     start_t = Time.new(time_now.year, time_now.month, time_now.day, start_hour, start_min)
     prefetch_t = (start_t - prefetch_hour) - prefetch_min
-    is_between = cur_t.between?(prefetch_t, start_t)
-    is_between
-#    {
-#      'time_now' => time_now,
-#      'prefetch_time' => prefetch_time,
-#      'cur_t' => cur_t,
-#      'start_t' => start_t,
-#      'prefetch_t' => prefetch_t,
-#      'is_between' => is_between
-#    }
+    cur_t.between?(prefetch_t, start_t)
   end
 end
