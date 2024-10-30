@@ -132,10 +132,12 @@ class growell_patch (
       }
     }
   }
+  $_blocklist = growell_patch::fuzzy_match($available_updates, $blocklist)
 
-  notify { "available_updates => ${available_updates}": }
-  notify { "high_prio_updates => ${high_prio_updates}": }
+  notify { "available_updates  => ${available_updates}": }
+  notify { "high_prio_updates  => ${high_prio_updates}": }
   notify { "updates_to_install => ${updates_to_install}": }
+  notify { "_blocklist          => ${_blocklist}": }
 
   # Determine the states of the pre/post scripts based on operating system
   case $facts['kernel'] {
