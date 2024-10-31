@@ -54,11 +54,11 @@ class growell_patch (
   ##  notify { 'settings before':
   ##    message => Deferred('growell_patch::get_settings')
   ##  }
-  Deferred('growell_patch::override_runtimeout')
-  exec { 'sleep':
-    command => 'sleep 50',
-    path    => $facts['path'],
-  }
+  #  Deferred('growell_patch::override_runtimeout')
+  #  exec { 'sleep':
+  #    command => 'sleep 50',
+  #    path    => $facts['path'],
+  #  }
   #  notify { 'settings after':
   #    message => Deferred('growell_patch::get_settings')
   #  }
@@ -71,6 +71,16 @@ class growell_patch (
   $_in_high_prio_patch_window    = $result['in_high_prio_patch_window']
   $_in_prefetch_window           = $result['in_prefetch_window']
   $_in_high_prio_prefetch_window = $result['in_high_prio_prefetch_window']
+
+  if ($_is_patchday or $_is_high_prio_patch_day) {
+    class { 'puppet_agent':
+      config => [{ section => 'main', setting => 'runtimeout', value => '14400' }],
+    }
+  } else {
+    class { 'puppet_agent':
+      config => [{ section => 'main', setting => 'runtimeout', value => '3600' }],
+    }
+  }
 
   notify { "info: ${result}": }
 
