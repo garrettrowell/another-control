@@ -51,30 +51,52 @@ class growell_patch (
     }
   }
 
-  # Determine if we will actually be patching/prefetching
+  # Process the configured groups so we can determine the proper outcome
   $result = growell_patch::process_groups($patch_group, $_patch_schedule, $high_priority_patch_group, $windows_prefetch_before)
-  $_is_patchday                  = $result['normal_patch']['is_patch_day']
-  $_in_patch_window              = $result['normal_patch']['window']['within']
-  $_is_high_prio_patch_day       = $result['high_prio_patch']['is_patch_day']
-  $_in_high_prio_patch_window    = $result['high_prio_patch']['window']['within']
+  # Determine if we will be patching
+  $_is_patchday               = $result['normal_patch']['is_patch_day']
+  $_is_high_prio_patch_day    = $result['high_prio_patch']['is_patch_day']
+  # Determine if we are in the patch window
+  $_in_patch_window           = $result['normal_patch']['window']['within']
+  $_in_high_prio_patch_window = $result['high_prio_patch']['window']['within']
+  # Determine if we need to prefetch the windows kb's
   $_in_prefetch_window           = $result['normal_patch']['prefetch_window']['within']
   $_in_high_prio_prefetch_window = $result['high_prio_patch']['prefetch_window']['within']
+  # Determine if we are before/after the various windows
+  $_before_patch_window              = $result['normal_patch']['window']['before']
+  $_after_patch_window               = $result['normal_patch']['window']['after']
+  $_before_prefetch_window           = $result['normal_patch']['prefetch_window']['before']
+  $_after_prefetch_window            = $result['normal_patch']['prefetch_window']['after']
+  $_before_high_prio_patch_window    = $result['high_prio_patch']['window']['before']
+  $_after_high_prio_patch_window     = $result['high_prio_patch']['window']['after']
+  $_before_high_prio_prefetch_window = $result['high_prio_patch']['prefetch_window']['before']
+  $_after_high_prio_prefetch_window  = $result['high_prio_patch']['prefetch_window']['after']
+  # Determine the longest window (in seconds) that applies
+  $_longest_duration = $result['longest_duration']
 
-  #  if ($_is_patchday or $_is_high_prio_patch_day) {
-  #    if defined('puppet_agent') {
-  #    } else {
-  #      class { 'puppet_agent':
-  #        config => [{ section => 'main', setting => 'runtimeout', value => '14400' }],
-  #      }
-  #    }
-  #  } else {
-  #    if defined('puppet_agent') {
-  #    } else {
-  #      class { 'puppet_agent':
-  #        config => [{ section => 'main', setting => 'runtimeout', ensure => absent }],
-  #      }
-  #    }
-  #  }
+  # this is for testing
+  class { 'puppet_agent':
+    config => [{ section => 'main', setting => 'runtimeout', value => '3600'}]
+  }
+
+  # Configure the agents runtimeout accordingly
+  # Currently a WIP
+  if ($_is_patchday or $_is_high_prio_patch_day) {
+    if defined('puppet_agent') {
+      notify { "test: ${puppet_agent::config}": }
+    } else {
+      class { 'puppet_agent':
+        config => [{ section => 'main', setting => 'runtimeout', value => $_longest_duration }],
+      }
+    }
+  } else {
+    if defined('puppet_agent') {
+    } else {
+      class { 'puppet_agent':
+        config => [{ section => 'main', setting => 'runtimeout', ensure => absent }],
+      }
+    }
+  }
 
   notify { "info: ${result}": }
 
