@@ -51,6 +51,14 @@ class growell_patch (
     }
   }
 
+  notify { 'settings before':
+    message => Deferred('growell_patch::get_settings')
+  }
+  Deferred('growell_patch::override_runtimeout')
+  notify { 'settings after':
+    message => Deferred('growell_patch::get_settings')
+  }
+
   # Determine if we will actually be patching/prefetching
   $result = growell_patch::process_groups($patch_group, $_patch_schedule, $high_priority_patch_group, $windows_prefetch_before)
   $_is_patchday                  = $result['is_patch_day']
