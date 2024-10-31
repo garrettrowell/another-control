@@ -285,7 +285,12 @@ class growell_patch (
           # Need to determine what patches need to be downloaded and passed to Get-WindowsUpdate
           # ex:
           #  Get-WindowsUpdate -KBArticleID "KB5044281" -Download -AcceptAll
-          notify { 'i would prefetch some kbs': }
+          $updates_to_install.each |String $kb| {
+            exec { "prefetch ${kb}":
+              command  => "Get-WindowsUpdate -KBArticleID ${kb} -Download -AcceptAll",
+              provider => 'powershell',
+            }
+          }
         }
       }
 
