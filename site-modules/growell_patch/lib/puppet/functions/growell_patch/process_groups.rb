@@ -71,7 +71,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
           after_prefetch_window  = false
           prefetch_duration      = 'n/a'
         else
-          parsed_prefetch        = parse_prefetch(windows_prefetch_before, patch_schedule[active_pg]['hours'], time_now)
+          parsed_prefetch        = parse_prefetch(windows_prefetch_before, parsed_window, time_now)
           in_prefetch_window     = in_prefetch(parsed_prefetch, parsed_window)
           before_prefetch_window = 'todo'
           after_prefetch_window = 'todo'
