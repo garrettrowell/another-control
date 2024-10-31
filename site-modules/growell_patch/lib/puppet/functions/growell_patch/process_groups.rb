@@ -50,7 +50,6 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         reboot             = patch_schedule[active_pg]['reboot']
         parsed_window      = parse_window(patch_schedule[active_pg]['hours'], time_now)
         in_patch_window    = in_window(parsed_window)
-#        in_patch_window = in_window(patch_schedule[active_pg]['hours'])
         in_prefetch_window = case windows_prefetch_before.nil?
                              when true
                                false
@@ -84,7 +83,6 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         high_prio_reboot              = patch_schedule[high_priority_patch_group]['reboot']
         parsed_high_prio_patch_window = parse_window(patch_schedule[high_priority_patch_group]['hours'], time_now)
         in_high_prio_patch_window     = in_window(parsed_high_prio_patch_window)
-#        in_high_prio_patch_window    = in_window(patch_schedule[high_priority_patch_group]['hours'], time_now)
         in_high_prio_prefetch_window = case windows_prefetch_before.nil?
                                     when true
                                       false
@@ -103,16 +101,46 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
       in_high_prio_prefetch_window = false
     end
 
+#    {
+#      'is_patch_day'                 => bool_patch_day,
+#      'in_patch_window'              => in_patch_window,
+#      'reboot'                       => reboot,
+#      'active_pg'                    => active_pg,
+#      'is_high_prio_patch_day'       => bool_high_prio_patch_day,
+#      'in_high_prio_patch_window'    => in_high_prio_patch_window,
+#      'high_prio_reboot'             => high_prio_reboot,
+#      'in_prefetch_window'           => in_prefetch_window,
+#      'in_high_prio_prefetch_window' => in_high_prio_prefetch_window,
+#    }
     {
-      'is_patch_day'                 => bool_patch_day,
-      'in_patch_window'              => in_patch_window,
-      'reboot'                       => reboot,
-      'active_pg'                    => active_pg,
-      'is_high_prio_patch_day'       => bool_high_prio_patch_day,
-      'in_high_prio_patch_window'    => in_high_prio_patch_window,
-      'high_prio_reboot'             => high_prio_reboot,
-      'in_prefetch_window'           => in_prefetch_window,
-      'in_high_prio_prefetch_window' => in_high_prio_prefetch_window,
+      'normal_patch' => {
+        'is_patch_day'    => bool_patch_day,
+        'reboot'          => reboot,
+        'active_pg'       => active_pg,
+        'window'          => {
+          'within' => in_patch_window,
+          'before' => 'todo',
+          'after'  => 'todo',
+        },
+        'prefetch_window' => {
+          'within' => in_prefetch_window,
+          'before' => 'todo',
+          'after'  => 'todo',
+        }
+      },
+      'high_prio_patch' => {
+        'is_patch_day'    => bool_high_prio_patch_day,
+        'window'          => {
+          'within' => in_high_prio_patch_window,
+          'before' => 'todo',
+          'after'  => 'todo',
+        },
+        'prefetch_window' => {
+          'within' => in_high_prio_prefetch_window,
+          'before' => 'todo',
+          'after'  => 'todo',
+        }
+      }
     }
   end
 
@@ -134,21 +162,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     }
   end
 
-#  def in_window(window, time_now)
-#    window_arr = window.split('-')
-#    window_start = window_arr[0].strip
-#    window_end = window_arr[1].strip
-#    start_arr = window_start.split(':')
-#    start_hour = start_arr[0]
-#    start_min = start_arr[1]
-#    end_arr = window_end.split(':')
-#    end_hour = end_arr[0]
-#    end_min = end_arr[1]
-#    cur_t = Time.new(time_now.year, time_now.month, time_now.day, time_now.hour, time_now.min)
-#    start_t = Time.new(time_now.year, time_now.month, time_now.day, start_hour, start_min)
-#    end_t = Time.new(time_now.year, time_now.month, time_now.day, end_hour, end_min)
-#    cur_t.between?(start_t, end_t)
-#  end
+  # determine if we are within the provided window
   def in_window(parsed_window)
     parsed_window['current_time'].between?(parsed_window['start_time'], parsed_window['end_time'])
   end

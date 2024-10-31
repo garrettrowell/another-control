@@ -53,12 +53,12 @@ class growell_patch (
 
   # Determine if we will actually be patching/prefetching
   $result = growell_patch::process_groups($patch_group, $_patch_schedule, $high_priority_patch_group, $windows_prefetch_before)
-  $_is_patchday                  = $result['is_patch_day']
-  $_in_patch_window              = $result['in_patch_window']
-  $_is_high_prio_patch_day       = $result['is_high_prio_patch_day']
-  $_in_high_prio_patch_window    = $result['in_high_prio_patch_window']
-  $_in_prefetch_window           = $result['in_prefetch_window']
-  $_in_high_prio_prefetch_window = $result['in_high_prio_prefetch_window']
+  $_is_patchday                  = $result['normal_patch']['is_patch_day']
+  $_in_patch_window              = $result['normal_patch']['window']['within']
+  $_is_high_prio_patch_day       = $result['high_prio_patch']['is_patch_day']
+  $_in_high_prio_patch_window    = $result['high_prio_patch']['window']['within']
+  $_in_prefetch_window           = $result['normal_patch']['prefetch_window']['within']
+  $_in_high_prio_prefetch_window = $result['high_prio_patch']['prefetch_window']['within']
 
   #  if ($_is_patchday or $_is_high_prio_patch_day) {
   #    if defined('puppet_agent') {
