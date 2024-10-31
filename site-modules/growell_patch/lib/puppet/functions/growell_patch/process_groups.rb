@@ -15,12 +15,14 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
       active_pg          = 'never'
       in_patch_window    = false
       in_prefetch_window = false
+      before_window      = false
     elsif patch_group.include? 'always'
       bool_patch_day     = true
       reboot             = 'ifneeded'
       active_pg          = 'always'
       in_patch_window    = true
       in_prefetch_window = true
+      before_window      = false
     else
       patch_group = patch_group.is_a?(String) ? [patch_group] : patch_group
       pg_info = patch_group.map do |pg|
@@ -50,22 +52,18 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         reboot             = patch_schedule[active_pg]['reboot']
         parsed_window      = parse_window(patch_schedule[active_pg]['hours'], time_now)
         in_patch_window    = in_window(parsed_window)
+        before_window      = is_before(parsed_window['start_time'], parsed_window['end_time'])
         if windows_prefetch_before.nil?
           in_prefetch_window = false
         else
           parsed_prefetch    = parse_prefetch(windows_prefetch_before, patch_schedule[active_pg]['hours'], time_now)
           in_prefetch_window = in_prefetch(parsed_prefetch, parsed_window)
         end
-#        in_prefetch_window = case windows_prefetch_before.nil?
-#                             when true
-#                               false
-#                             else
-#                               in_prefetch(windows_prefetch_before, patch_schedule[active_pg]['hours'], time_now)
-#                             end
       else
         reboot             = 'never'
         in_patch_window    = false
         in_prefetch_window = false
+        before_window      = false
       end
     end
 
@@ -95,12 +93,6 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
           parsed_high_prio_prefetch    = parse_prefetch(windows_prefetch_before, parsed_high_prio_patch_window, time_now)
           in_high_prio_prefetch_window = in_prefetch(parsed_high_prio_prefetch, parsed_high_prio_patch_window)
         end
-#        in_high_prio_prefetch_window = case windows_prefetch_before.nil?
-#                                    when true
-#                                      false
-#                                    else
-#                                      in_prefetch(windows_prefetch_before, patch_schedule[high_priority_patch_group]['hours'], time_now)
-#                                    end
       else
         high_prio_reboot             = 'never'
         in_high_prio_patch_window    = false
@@ -119,28 +111,32 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         'reboot'          => reboot,
         'active_pg'       => active_pg,
         'window'          => {
-          'within' => in_patch_window,
-          'before' => 'todo',
-          'after'  => 'todo',
+          'within'   => in_patch_window,
+          'before'   => before_window,
+          'after'    => 'todo',
+          'duration' => 'todo',
         },
         'prefetch_window' => {
-          'within' => in_prefetch_window,
-          'before' => 'todo',
-          'after'  => 'todo',
+          'within'   => in_prefetch_window,
+          'before'   => 'todo',
+          'after'    => 'todo',
+          'duration' => 'todo',
         }
       },
       'high_prio_patch' => {
         'is_patch_day'    => bool_high_prio_patch_day,
         'reboot'          => high_prio_reboot,
         'window'          => {
-          'within' => in_high_prio_patch_window,
-          'before' => 'todo',
-          'after'  => 'todo',
+          'within'   => in_high_prio_patch_window,
+          'before'   => 'todo',
+          'after'    => 'todo',
+          'duration' => 'todo',
         },
         'prefetch_window' => {
-          'within' => in_high_prio_prefetch_window,
-          'before' => 'todo',
-          'after'  => 'todo',
+          'within'   => in_high_prio_prefetch_window,
+          'before'   => 'todo',
+          'after'    => 'todo',
+          'duration' => 'todo',
         }
       }
     }
@@ -148,15 +144,15 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
 
   # parse a patch schedule and return the start/end time objects
   def parse_window(window, time_now)
-    window_arr = window.split('-')
+    window_arr   = window.split('-')
     window_start = window_arr[0].strip
-    window_end = window_arr[1].strip
-    start_arr = window_start.split(':')
-    start_hour = start_arr[0]
-    start_min = start_arr[1]
-    end_arr = window_end.split(':')
-    end_hour = end_arr[0]
-    end_min = end_arr[1]
+    window_end   = window_arr[1].strip
+    start_arr    = window_start.split(':')
+    start_hour   = start_arr[0]
+    start_min    = start_arr[1]
+    end_arr      = window_end.split(':')
+    end_hour     = end_arr[0]
+    end_min      = end_arr[1]
     {
       'start_time'   => Time.new(time_now.year, time_now.month, time_now.day, start_hour, start_min),
       'end_time'     => Time.new(time_now.year, time_now.month, time_now.day, end_hour, end_min),
@@ -171,14 +167,9 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
 
   # parse a prefetch time and return the time object
   def parse_prefetch(prefetch_time, parsed_window, time_now)
-    prefetch_arr = prefetch_time.split(':')
+    prefetch_arr  = prefetch_time.split(':')
     prefetch_hour = prefetch_arr[0].to_i * 60 * 60
-    prefetch_min = prefetch_arr[1].to_i * 60
-    window_arr = window.split('-')
-    window_start = window_arr[0].strip
-    start_arr = window_start.split(':')
-    start_hour = start_arr[0]
-    start_min = start_arr[1]
+    prefetch_min  = prefetch_arr[1].to_i * 60
     (parsed_window['start_time'] - prefetch_hour) - prefetch_min
   end
 
@@ -187,18 +178,18 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     parsed_window['current_time'].between?(parsed_prefetch, parsed_window['start_time'])
   end
 
-#  def in_prefetch(prefetch_time, window, time_now)
-#    prefetch_arr = prefetch_time.split(':')
-#    prefetch_hour = prefetch_arr[0].to_i * 60 * 60
-#    prefetch_min = prefetch_arr[1].to_i * 60
-#    window_arr = window.split('-')
-#    window_start = window_arr[0].strip
-#    start_arr = window_start.split(':')
-#    start_hour = start_arr[0]
-#    start_min = start_arr[1]
-#    cur_t = Time.new(time_now.year, time_now.month, time_now.day, time_now.hour, time_now.min)
-#    start_t = Time.new(time_now.year, time_now.month, time_now.day, start_hour, start_min)
-#    prefetch_t = (start_t - prefetch_hour) - prefetch_min
-#    cur_t.between?(prefetch_t, start_t)
-#  end
+  # determine if a given time object occurs before another
+  def is_before(start_time, end_time)
+    start_time < end_time
+  end
+
+  # determine if a given time object occurs after another
+  def is_after(start_time, end_time)
+    start_time > end_time
+  end
+
+  # return the number of seconds between two time objects
+  def duration(start_time, end_time)
+    end_time - start_time
+  end
 end
