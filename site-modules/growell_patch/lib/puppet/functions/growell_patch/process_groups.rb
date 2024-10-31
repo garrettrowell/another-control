@@ -10,23 +10,29 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     time_now = Time.now
 
     if patch_group.include? 'never'
-      bool_patch_day      = false
-      reboot              = 'never'
-      active_pg           = 'never'
-      in_patch_window     = false
-      in_prefetch_window  = false
-      before_patch_window = false
-      after_patch_window  = false
-      patch_duration      = 'n/a'
+      bool_patch_day         = false
+      reboot                 = 'never'
+      active_pg              = 'never'
+      in_patch_window        = false
+      in_prefetch_window     = false
+      before_patch_window    = false
+      after_patch_window     = false
+      patch_duration         = 'n/a'
+      before_prefetch_window = false
+      after_prefetch_window  = false
+      prefetch_duration      = 'n/a'
     elsif patch_group.include? 'always'
-      bool_patch_day      = true
-      reboot              = 'ifneeded'
-      active_pg           = 'always'
-      in_patch_window     = true
-      in_prefetch_window  = true
-      before_patch_window = false
-      after_patch_window  = false
-      patch_duration      = 'n/a'
+      bool_patch_day         = true
+      reboot                 = 'ifneeded'
+      active_pg              = 'always'
+      in_patch_window        = true
+      in_prefetch_window     = false
+      before_patch_window    = false
+      after_patch_window     = false
+      patch_duration         = 'n/a'
+      before_prefetch_window = false
+      after_prefetch_window  = false
+      prefetch_duration      = 'n/a'
     else
       patch_group = patch_group.is_a?(String) ? [patch_group] : patch_group
       pg_info = patch_group.map do |pg|
@@ -60,18 +66,27 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         after_patch_window  = is_after(parsed_window['start_time'], parsed_window['end_time'])
         patch_duration      = calc_duration(parsed_window['start_time'], parsed_window['end_time'])
         if windows_prefetch_before.nil?
-          in_prefetch_window = false
+          in_prefetch_window     = false
+          before_prefetch_window = false
+          after_prefetch_window  = false
+          prefetch_duration      = 'n/a'
         else
-          parsed_prefetch    = parse_prefetch(windows_prefetch_before, patch_schedule[active_pg]['hours'], time_now)
-          in_prefetch_window = in_prefetch(parsed_prefetch, parsed_window)
+          parsed_prefetch        = parse_prefetch(windows_prefetch_before, patch_schedule[active_pg]['hours'], time_now)
+          in_prefetch_window     = in_prefetch(parsed_prefetch, parsed_window)
+          before_prefetch_window = is_before(parsed_prefetch, parsed_window['start_time'])
+          after_prefetch_window  = is_after(parsed_prefetch, parsed_window['start_time'])
+          prefetch_duration      = clac_duration(parsed_prefetch, parsed_window['start_time'])
         end
       else
-        reboot              = 'never'
-        in_patch_window     = false
-        in_prefetch_window  = false
-        before_patch_window = false
-        after_patch_window  = false
-        patch_duration      = 'n/a'
+        reboot                 = 'never'
+        in_patch_window        = false
+        in_prefetch_window     = false
+        before_patch_window    = false
+        after_patch_window     = false
+        patch_duration         = 'n/a'
+        before_prefetch_window = false
+        after_prefetch_window  = false
+        prefetch_duration      = 'n/a'
       end
     end
 
@@ -126,9 +141,9 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         },
         'prefetch_window' => {
           'within'   => in_prefetch_window,
-          'before'   => 'todo',
-          'after'    => 'todo',
-          'duration' => 'todo',
+          'before'   => before_prefetch_window,
+          'after'    => after_prefetch_window,
+          'duration' => prefetch_duration,
         }
       },
       'high_prio_patch' => {
