@@ -91,15 +91,21 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     end
 
     if high_priority_patch_group == 'never'
-      bool_high_prio_patch_day     = false
-      in_high_prio_patch_window    = false
-      high_prio_reboot             = 'never'
-      in_high_prio_prefetch_window = false
+      bool_high_prio_patch_day      = false
+      in_high_prio_patch_window     = false
+      high_prio_reboot              = 'never'
+      in_high_prio_prefetch_window  = false
+      before_high_prio_patch_window = false
+      after_high_prio_patch_window  = false
+      high_prio_patch_duration      = 'n/a'
     elsif high_priority_patch_group == 'always'
-      bool_high_prio_patch_day     = true
-      in_high_prio_patch_window    = true
-      high_prio_reboot             = 'ifneeded'
-      in_high_prio_prefetch_window = true
+      bool_high_prio_patch_day      = true
+      in_high_prio_patch_window     = true
+      high_prio_reboot              = 'ifneeded'
+      in_high_prio_prefetch_window  = false
+      before_high_prio_patch_window = false
+      after_high_prio_patch_window  = false
+      high_prio_patch_duration      = 'n/a'
     elsif high_priority_patch_group != nil
       bool_high_prio_patch_day = call_function('patching_as_code::is_patchday',
                                                patch_schedule[high_priority_patch_group]['day_of_week'],
@@ -110,6 +116,9 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         high_prio_reboot              = patch_schedule[high_priority_patch_group]['reboot']
         parsed_high_prio_patch_window = parse_window(patch_schedule[high_priority_patch_group]['hours'], time_now)
         in_high_prio_patch_window     = in_window(parsed_high_prio_patch_window)
+        before_high_prio_patch_window = is_before(parsed_high_prio_patch_window['start_time'], parsed_high_prio_patch_window['end_time'])
+        after_high_prio_patch_window  = is_after(parsed_high_prio_patch_window['start_time'], parsed_high_prio_patch_window['end_time'])
+        high_prio_patch_duration      = calc_duration(parsed_high_prio_patch_window['start_time'], parsed_high_prio_patch_window['end_time'])
         if windows_prefetch_before.nil?
           in_high_prio_prefetch_window = false
         else
@@ -117,15 +126,21 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
           in_high_prio_prefetch_window = in_prefetch(parsed_high_prio_prefetch, parsed_high_prio_patch_window)
         end
       else
-        high_prio_reboot             = 'never'
-        in_high_prio_patch_window    = false
-        in_high_prio_prefetch_window = false
+        high_prio_reboot              = 'never'
+        in_high_prio_patch_window     = false
+        in_high_prio_prefetch_window  = false
+        before_high_prio_patch_window = false
+        after_high_prio_patch_window  = false
+        high_prio_patch_duration      = 'n/a'
       end
     else
-      bool_high_prio_patch_day     = false
-      in_high_prio_patch_window    = false
-      high_prio_reboot             = 'never'
-      in_high_prio_prefetch_window = false
+      bool_high_prio_patch_day      = false
+      in_high_prio_patch_window     = false
+      high_prio_reboot              = 'never'
+      in_high_prio_prefetch_window  = false
+      before_high_prio_patch_window = false
+      after_high_prio_patch_window  = false
+      high_prio_patch_duration      = 'n/a'
     end
 
     {
@@ -151,9 +166,9 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         'reboot'          => high_prio_reboot,
         'window'          => {
           'within'   => in_high_prio_patch_window,
-          'before'   => 'todo',
-          'after'    => 'todo',
-          'duration' => 'todo',
+          'before'   => before_high_prio_patch_window,
+          'after'    => after_high_prio_patch_window,
+          'duration' => high_prio_patch_duration,
         },
         'prefetch_window' => {
           'within'   => in_high_prio_prefetch_window,
