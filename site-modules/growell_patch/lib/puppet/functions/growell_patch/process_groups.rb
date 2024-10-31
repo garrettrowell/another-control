@@ -91,21 +91,27 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     end
 
     if high_priority_patch_group == 'never'
-      bool_high_prio_patch_day      = false
-      in_high_prio_patch_window     = false
-      high_prio_reboot              = 'never'
-      in_high_prio_prefetch_window  = false
-      before_high_prio_patch_window = false
-      after_high_prio_patch_window  = false
-      high_prio_patch_duration      = 0
+      bool_high_prio_patch_day         = false
+      in_high_prio_patch_window        = false
+      high_prio_reboot                 = 'never'
+      in_high_prio_prefetch_window     = false
+      before_high_prio_patch_window    = false
+      after_high_prio_patch_window     = false
+      high_prio_patch_duration         = 0
+      before_high_prio_prefetch_window = false
+      after_high_prio_prefetch_window  = false
+      high_prio_prefetch_duration      = 0
     elsif high_priority_patch_group == 'always'
-      bool_high_prio_patch_day      = true
-      in_high_prio_patch_window     = true
-      high_prio_reboot              = 'ifneeded'
-      in_high_prio_prefetch_window  = false
-      before_high_prio_patch_window = false
-      after_high_prio_patch_window  = false
-      high_prio_patch_duration      = 0
+      bool_high_prio_patch_day         = true
+      in_high_prio_patch_window        = true
+      high_prio_reboot                 = 'ifneeded'
+      in_high_prio_prefetch_window     = false
+      before_high_prio_patch_window    = false
+      after_high_prio_patch_window     = false
+      high_prio_patch_duration         = 0
+      before_high_prio_prefetch_window = false
+      after_high_prio_prefetch_window  = false
+      high_prio_prefetch_duration      = 0
     elsif high_priority_patch_group != nil
       bool_high_prio_patch_day = call_function('patching_as_code::is_patchday',
                                                patch_schedule[high_priority_patch_group]['day_of_week'],
@@ -132,21 +138,27 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
           high_prio_prefetch_duration      = calc_duration(parsed_high_prio_prefetch, parsed_high_prio_prefetch['start_time'])
         end
       else
-        high_prio_reboot              = 'never'
-        in_high_prio_patch_window     = false
-        in_high_prio_prefetch_window  = false
-        before_high_prio_patch_window = false
-        after_high_prio_patch_window  = false
-        high_prio_patch_duration      = 0
+        high_prio_reboot                 = 'never'
+        in_high_prio_patch_window        = false
+        in_high_prio_prefetch_window     = false
+        before_high_prio_patch_window    = false
+        after_high_prio_patch_window     = false
+        high_prio_patch_duration         = 0
+        before_high_prio_prefetch_window = false
+        after_high_prio_prefetch_window  = false
+        high_prio_prefetch_duration      = 0
       end
     else
-      bool_high_prio_patch_day      = false
-      in_high_prio_patch_window     = false
-      high_prio_reboot              = 'never'
-      in_high_prio_prefetch_window  = false
-      before_high_prio_patch_window = false
-      after_high_prio_patch_window  = false
-      high_prio_patch_duration      = 0
+      bool_high_prio_patch_day         = false
+      in_high_prio_patch_window        = false
+      high_prio_reboot                 = 'never'
+      in_high_prio_prefetch_window     = false
+      before_high_prio_patch_window    = false
+      after_high_prio_patch_window     = false
+      high_prio_patch_duration         = 0
+      before_high_prio_prefetch_window = false
+      after_high_prio_prefetch_window  = false
+      high_prio_prefetch_duration      = 0
     end
 
     {
