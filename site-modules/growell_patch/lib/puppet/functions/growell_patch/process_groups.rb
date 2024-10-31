@@ -10,29 +10,33 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     time_now = Time.now
 
     if patch_group.include? 'never'
-      bool_patch_day     = false
-      reboot             = 'never'
-      active_pg          = 'never'
-      in_patch_window    = false
-      in_prefetch_window = false
-      before_window      = false
+      bool_patch_day      = false
+      reboot              = 'never'
+      active_pg           = 'never'
+      in_patch_window     = false
+      in_prefetch_window  = false
+      before_patch_window = false
+      after_patch_window  = false
+      patch_duration      = 'n/a'
     elsif patch_group.include? 'always'
-      bool_patch_day     = true
-      reboot             = 'ifneeded'
-      active_pg          = 'always'
-      in_patch_window    = true
-      in_prefetch_window = true
-      before_window      = false
+      bool_patch_day      = true
+      reboot              = 'ifneeded'
+      active_pg           = 'always'
+      in_patch_window     = true
+      in_prefetch_window  = true
+      before_patch_window = false
+      after_patch_window  = false
+      patch_duration      = 'n/a'
     else
       patch_group = patch_group.is_a?(String) ? [patch_group] : patch_group
       pg_info = patch_group.map do |pg|
         {
-          'name'            => pg,
-          'is_patch_day'    => call_function('patching_as_code::is_patchday',
-                                             patch_schedule[pg]['day_of_week'],
-                                             patch_schedule[pg]['count_of_week'],
-                                             pg
-                                            ),
+          'name'         => pg,
+          'is_patch_day' => call_function('patching_as_code::is_patchday',
+                                          patch_schedule[pg]['day_of_week'],
+                                          patch_schedule[pg]['count_of_week'],
+                                          pg
+                                         ),
         }
       end
       active_pg = pg_info.reduce(nil) do |memo, value|
@@ -49,10 +53,12 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
                          false
                        end
       if bool_patch_day
-        reboot             = patch_schedule[active_pg]['reboot']
-        parsed_window      = parse_window(patch_schedule[active_pg]['hours'], time_now)
-        in_patch_window    = in_window(parsed_window)
-        before_window      = is_before(parsed_window['start_time'], parsed_window['end_time'])
+        reboot              = patch_schedule[active_pg]['reboot']
+        parsed_window       = parse_window(patch_schedule[active_pg]['hours'], time_now)
+        in_patch_window     = in_window(parsed_window)
+        before_patch_window = is_before(parsed_window['start_time'], parsed_window['end_time'])
+        after_patch_window  = is_after(parsed_window['start_time'], parsed_window['end_time'])
+        patch_duration      = calc_duration(parsed_window['start_time'], parsed_window['end_time'])
         if windows_prefetch_before.nil?
           in_prefetch_window = false
         else
@@ -60,10 +66,12 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
           in_prefetch_window = in_prefetch(parsed_prefetch, parsed_window)
         end
       else
-        reboot             = 'never'
-        in_patch_window    = false
-        in_prefetch_window = false
-        before_window      = false
+        reboot              = 'never'
+        in_patch_window     = false
+        in_prefetch_window  = false
+        before_patch_window = false
+        after_patch_window  = false
+        patch_duration      = 'n/a'
       end
     end
 
@@ -112,9 +120,9 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         'active_pg'       => active_pg,
         'window'          => {
           'within'   => in_patch_window,
-          'before'   => before_window,
-          'after'    => 'todo',
-          'duration' => 'todo',
+          'before'   => before_patch_window,
+          'after'    => after_patch_window,
+          'duration' => patch_duration,
         },
         'prefetch_window' => {
           'within'   => in_prefetch_window,
@@ -189,7 +197,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
   end
 
   # return the number of seconds between two time objects
-  def duration(start_time, end_time)
+  def calc_duration(start_time, end_time)
     end_time - start_time
   end
 end
