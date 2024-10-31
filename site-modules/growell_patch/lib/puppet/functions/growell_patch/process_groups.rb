@@ -75,7 +75,8 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
           in_prefetch_window     = in_prefetch(parsed_prefetch, parsed_window)
           before_prefetch_window = is_before(parsed_prefetch, parsed_window['start_time'])
           after_prefetch_window  = is_after(parsed_prefetch, parsed_window['start_time'])
-          prefetch_duration      = clac_duration(parsed_prefetch, parsed_window['start_time'])
+          prefetch_duration = "pre: #{parsed_prefetch}, start: #{parsed_window['start_time']}"
+#          prefetch_duration      = clac_duration(parsed_prefetch, parsed_window['start_time'])
         end
       else
         reboot                 = 'never'
