@@ -98,7 +98,7 @@ class growell_patch (
             ensure  => present,
             section => 'agent',
             setting => 'runtimeout',
-            value   => $_logest_duration,
+            value   => $_longest_duration,
             path    => $puppet_agent::params::config,
           }
         }
