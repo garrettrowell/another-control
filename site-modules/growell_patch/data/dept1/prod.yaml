@@ -20,10 +20,10 @@ growell_patch::patch_schedule:
     max_runs: '1'
     reboot: ifneeded
   dept1_other:
-    day: 'Sunday'
-    week: 4
+    day: 'Friday'
+    week: 1
 #    week: 2
-    offset: 5
+    offset: 0
     hours: 21:00 - 23:30
     max_runs: '1'
     reboot: ifneeded
