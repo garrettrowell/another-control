@@ -76,7 +76,7 @@ class growell_patch (
 
   # this is for testing
   class { 'puppet_agent':
-    config => [{ section => 'main', setting => 'runtimeout', value => '3600'}, { section => 'main', setting => 'splay', value => 'true' }]
+    config => [{ section => 'main', setting => 'splay', value => 'true' }]
   }
 
   # Configure the agents runtimeout accordingly
@@ -87,7 +87,6 @@ class growell_patch (
       if defined('puppet_agent') {
         $filt_cfg = $puppet_agent::config.filter |$cfg| { $cfg['setting'] == 'runtimeout' }
         if $filt_cfg.size > 0 {
-          notify { "test: ${filt_cfg}": }
           $filt_cfg.each |$hsh| {
             Ini_setting <| title == "puppet-${hsh['section']}-${hsh['setting']}" |> {
               ensure => present,
@@ -95,7 +94,13 @@ class growell_patch (
             }
           }
         } else {
-
+          ini_setting { "puppet-agent-runtimeout":
+            ensure  => present,
+            section => 'agent',
+            setting => 'runtimeout',
+            value   => $_logest_duration,
+            path    => $puppet_agent::params::config,
+          }
         }
       } else {
         class { 'puppet_agent':
