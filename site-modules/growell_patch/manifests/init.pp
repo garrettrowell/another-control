@@ -29,6 +29,7 @@ class growell_patch (
   Boolean                                        $enable_patching           = true,
   Boolean                                        $high_priority_only        = false,
   Boolean                                        $security_only             = false,
+  Boolean                                        $pin_blocklist             = false,
   Enum['strict', 'fuzzy']                        $blocklist_mode            = 'strict',
   Optional[String[1]]                            $pre_patch_script          = undef,
   Optional[String[1]]                            $post_patch_script         = undef,
@@ -259,6 +260,18 @@ class growell_patch (
       # override the fact generation file in order to support dnf for Redhat
       File <| title == "${_script_base}/${_fact_file}" |> {
         content => epp("${module_name}/${_fact_file}.epp", { 'environment' => $environment })
+      }
+
+      # Optionally pin the package if it occurs in the blocklist
+      if $pin_blocklist {
+        case $facts['package_provider'] {
+          'apt': {
+            apt::pin { $_blocklist: }
+          }
+          default: {
+            fail("${module_name} currently does not support pinning ${facts['package_provider']} packages")
+          }
+        }
       }
 
       # Determine whats needed for pre_patch_script
