@@ -267,7 +267,9 @@ class growell_patch (
         case $facts['package_provider'] {
           'apt': {
             unless defined(Class['apt']) { include 'apt' }
-            apt::pin { $_blocklist: }
+            apt::pin { $_blocklist:
+              priority => 5,
+            }
           }
           default: {
             fail("${module_name} currently does not support pinning ${facts['package_provider']} packages")
