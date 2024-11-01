@@ -75,6 +75,7 @@ class growell_patch (
   $_longest_duration = $result['longest_duration']
 
   # this is for testing
+  class { 'puppet_agent': }
   #  class { 'puppet_agent':
   #    config => [{ section => 'main', setting => 'splay', value => 'true' },{ section => 'main', setting => 'runtimeout', value => '1234' }]
   #  }
