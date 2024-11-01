@@ -24,7 +24,8 @@
 # @example
 #   include growell_patch
 class growell_patch (
-  Hash[String[1], Growell_patch::Patch_schedule] $patch_schedule, Variant[String[1], Array[String[1]]]           $patch_group,
+  Hash[String[1], Growell_patch::Patch_schedule] $patch_schedule,
+  Variant[String[1], Array[String[1]]]           $patch_group,
   Boolean                                        $enable_patching           = true,
   Boolean                                        $high_priority_only        = false,
   Boolean                                        $security_only             = false,
@@ -80,13 +81,8 @@ class growell_patch (
   # Determine the longest window (in seconds) that applies
   $_longest_duration = $result['longest_duration']
 
-  # this is for testing
-  class { 'puppet_agent': }
-  #  class { 'puppet_agent':
-  #    config => [{ section => 'main', setting => 'splay', value => 'true' },{ section => 'main', setting => 'runtimeout', value => '1234' }]
-  #  }
-
   # Configure the agents runtimeout accordingly
+  $runtimeout_cfg_section = 'agent'
   if ($_is_patchday or $_is_high_prio_patch_day) {
     # Here it is patchday
     if ($_before_patch_window or $_before_prefetch_window or $_before_high_prio_patch_window or $_before_high_prio_prefetch_window) {
@@ -103,9 +99,9 @@ class growell_patch (
           }
         } else {
           # Here the puppet_agent class is defined and the runtimeout is not being managed
-          ini_setting { 'puppet-agent-runtimeout':
+          ini_setting { "puppet-${runtimeout_cfg_section}-runtimeout":
             ensure  => present,
-            section => 'agent',
+            section => $runtimeout_cfg_section,
             setting => 'runtimeout',
             value   => $_longest_duration,
             path    => $puppet_agent::params::config,
@@ -114,7 +110,9 @@ class growell_patch (
       } else {
         # Here the puppet agent_class is not defined elsewhere
         class { 'puppet_agent':
-          config => [{ section => 'agent', setting => 'runtimeout', value => $_longest_duration }],
+          config => [
+            { section => $runtimeout_cfg_section, setting => 'runtimeout', value => $_longest_duration },
+          ],
         }
       }
     } elsif ($_after_patch_window or $_after_high_prio_patch_window) {
@@ -131,9 +129,9 @@ class growell_patch (
           }
         } else {
           # Here the puppet_agent class is defined but the runtimeout is not being managed
-          ini_setting { 'puppet-agent-runtimeout':
+          ini_setting { "puppet-${runtimeout_cfg_section}-runtimeout":
             ensure  => absent,
-            section => 'agent',
+            section => $runtimeout_cfg_section,
             setting => 'runtimeout',
             path    => $puppet_agent::params::config,
           }
@@ -141,16 +139,10 @@ class growell_patch (
       } else {
         # Here  the puppet_agent class is not defined
         class { 'puppet_agent':
-          config => [{ section => 'agent', setting => 'runtimeout', ensure => absent }],
+          config => [
+            { section => $runtimeout_cfg_section, setting => 'runtimeout', ensure => absent },
+          ],
         }
-      }
-    }
-  } else {
-    # Here it is not patchday
-    if defined(Class['puppet_agent']) {
-    } else {
-      class { 'puppet_agent':
-        config => [{ section => 'main', setting => 'runtimeout', ensure => absent }],
       }
     }
   }
