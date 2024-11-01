@@ -86,7 +86,17 @@ class growell_patch (
       # Before any patching or prefetching, set the runtimeout to the longest duration
       if defined('puppet_agent') {
         $filt_cfg = $puppet_agent::config.filter |$cfg| { $cfg['setting'] == 'runtimeout' }
-        notify { "test: ${filt_cfg}": }
+        if $filt_cfg.size > 0 {
+          notify { "test: ${filt_cfg}": }
+          $filt_cfg.each |$hsh| {
+            Ini_setting <| title == "puppet-${hsh['section']}-${hsh['setting']}" |> {
+              ensure => present,
+              value  => $_longest_duration,
+            }
+          }
+        } else {
+
+        }
       } else {
         class { 'puppet_agent':
           config => [{ section => 'main', setting => 'runtimeout', value => $_longest_duration }],
