@@ -11,7 +11,7 @@ describe 'growell_patch' do
             {
               'puppet_confdir' => 'C:/ProgramData/PuppetLabs/puppet/etc',
               'puppet_vardir'  => 'C:/ProgramData/PuppetLabs/puppet/cache',
-            }
+            },
           )
         end
       else
@@ -20,7 +20,7 @@ describe 'growell_patch' do
             {
               'puppet_confdir' => '/etc/puppetlabs/puppet',
               'puppet_vardir'  => '/opt/puppetlabs/puppet/cache',
-            }
+            },
           )
         end
       end

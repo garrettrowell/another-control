@@ -7,32 +7,34 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
   end
 
   def process_groups(patch_group, patch_schedule, high_priority_patch_group = nil, windows_prefetch_before = nil)
+    # Time object used throughout
     time_now = Time.now
+    # Normal Patch Defaults
+    bool_patch_day         = false
+    in_patch_window        = false
+    in_prefetch_window     = false
+    before_patch_window    = false
+    after_patch_window     = false
+    patch_duration         = 0
+    before_prefetch_window = false
+    after_prefetch_window  = false
+    prefetch_duration      = 0
+    # High Priority Patch Defaults
+    bool_high_prio_patch_day         = false
+    in_high_prio_patch_window        = false
+    in_high_prio_prefetch_window     = false
+    before_high_prio_patch_window    = false
+    after_high_prio_patch_window     = false
+    high_prio_patch_duration         = 0
+    before_high_prio_prefetch_window = false
+    after_high_prio_prefetch_window  = false
+    high_prio_prefetch_duration      = 0
 
     if patch_group.include? 'never'
-      bool_patch_day         = false
-      reboot                 = 'never'
       active_pg              = 'never'
-      in_patch_window        = false
-      in_prefetch_window     = false
-      before_patch_window    = false
-      after_patch_window     = false
-      patch_duration         = 0
-      before_prefetch_window = false
-      after_prefetch_window  = false
-      prefetch_duration      = 0
     elsif patch_group.include? 'always'
       bool_patch_day         = true
-      reboot                 = 'ifneeded'
       active_pg              = 'always'
-      in_patch_window        = true
-      in_prefetch_window     = false
-      before_patch_window    = false
-      after_patch_window     = false
-      patch_duration         = 0
-      before_prefetch_window = false
-      after_prefetch_window  = false
-      prefetch_duration      = 0
     else
       patch_group = patch_group.is_a?(String) ? [patch_group] : patch_group
       pg_info = patch_group.map do |pg|
@@ -41,8 +43,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
           'is_patch_day' => call_function('patching_as_code::is_patchday',
                                           patch_schedule[pg]['day_of_week'],
                                           patch_schedule[pg]['count_of_week'],
-                                          pg
-                                         ),
+                                          pg),
         }
       end
       active_pg = pg_info.reduce(nil) do |memo, value|
@@ -59,112 +60,50 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
                          false
                        end
       if bool_patch_day
-        reboot              = patch_schedule[active_pg]['reboot']
         parsed_window       = parse_window(patch_schedule[active_pg]['hours'], time_now)
         in_patch_window     = in_window(parsed_window)
-        before_patch_window = is_before(parsed_window['current_time'], parsed_window['start_time'])
-        after_patch_window  = is_after(parsed_window['current_time'], parsed_window['end_time'])
+        before_patch_window = before?(parsed_window['current_time'], parsed_window['start_time'])
+        after_patch_window  = after?(parsed_window['current_time'], parsed_window['end_time'])
         patch_duration      = calc_duration(parsed_window['start_time'], parsed_window['end_time'])
-        if windows_prefetch_before.nil?
-          in_prefetch_window     = false
-          before_prefetch_window = false
-          after_prefetch_window  = false
-          prefetch_duration      = 0
-        else
-          parsed_prefetch        = parse_prefetch(windows_prefetch_before, parsed_window, time_now)
+        unless windows_prefetch_before.nil?
+          parsed_prefetch        = parse_prefetch(windows_prefetch_before, parsed_window)
           in_prefetch_window     = in_prefetch(parsed_prefetch, parsed_window)
-          before_prefetch_window = is_before(parsed_window['current_time'], parsed_prefetch)
-          after_prefetch_window  = is_after(parsed_window['current_time'], parsed_prefetch)
+          before_prefetch_window = before?(parsed_window['current_time'], parsed_prefetch)
+          after_prefetch_window  = after?(parsed_window['current_time'], parsed_prefetch)
           prefetch_duration      = calc_duration(parsed_prefetch, parsed_window['start_time'])
         end
-      else
-        reboot                 = 'never'
-        in_patch_window        = false
-        in_prefetch_window     = false
-        before_patch_window    = false
-        after_patch_window     = false
-        patch_duration         = 0
-        before_prefetch_window = false
-        after_prefetch_window  = false
-        prefetch_duration      = 0
       end
     end
 
     if high_priority_patch_group == 'never'
-      bool_high_prio_patch_day         = false
-      in_high_prio_patch_window        = false
-      high_prio_reboot                 = 'never'
-      in_high_prio_prefetch_window     = false
-      before_high_prio_patch_window    = false
-      after_high_prio_patch_window     = false
-      high_prio_patch_duration         = 0
-      before_high_prio_prefetch_window = false
-      after_high_prio_prefetch_window  = false
-      high_prio_prefetch_duration      = 0
+      # Use defaults
     elsif high_priority_patch_group == 'always'
-      bool_high_prio_patch_day         = true
-      in_high_prio_patch_window        = true
-      high_prio_reboot                 = 'ifneeded'
-      in_high_prio_prefetch_window     = false
-      before_high_prio_patch_window    = false
-      after_high_prio_patch_window     = false
-      high_prio_patch_duration         = 0
-      before_high_prio_prefetch_window = false
-      after_high_prio_prefetch_window  = false
-      high_prio_prefetch_duration      = 0
-    elsif high_priority_patch_group != nil
+      bool_high_prio_patch_day  = true
+      in_high_prio_patch_window = true
+    elsif !high_priority_patch_group.nil?
       bool_high_prio_patch_day = call_function('patching_as_code::is_patchday',
                                                patch_schedule[high_priority_patch_group]['day_of_week'],
                                                patch_schedule[high_priority_patch_group]['count_of_week'],
-                                               high_priority_patch_group
-                                              )
+                                               high_priority_patch_group)
       if bool_high_prio_patch_day
-        high_prio_reboot              = patch_schedule[high_priority_patch_group]['reboot']
         parsed_high_prio_patch_window = parse_window(patch_schedule[high_priority_patch_group]['hours'], time_now)
         in_high_prio_patch_window     = in_window(parsed_high_prio_patch_window)
-        before_high_prio_patch_window = is_before(parsed_high_prio_patch_window['current_time'], parsed_high_prio_patch_window['start_time'])
-        after_high_prio_patch_window  = is_after(parsed_high_prio_patch_window['current_time'], parsed_high_prio_patch_window['end_time'])
+        before_high_prio_patch_window = before?(parsed_high_prio_patch_window['current_time'], parsed_high_prio_patch_window['start_time'])
+        after_high_prio_patch_window  = after?(parsed_high_prio_patch_window['current_time'], parsed_high_prio_patch_window['end_time'])
         high_prio_patch_duration      = calc_duration(parsed_high_prio_patch_window['start_time'], parsed_high_prio_patch_window['end_time'])
-        if windows_prefetch_before.nil?
-          in_high_prio_prefetch_window     = false
-          before_high_prio_prefetch_window = false
-          after_high_prio_prefetch_window  = false
-          high_prio_prefetch_duration      = 0
-        else
-          parsed_high_prio_prefetch        = parse_prefetch(windows_prefetch_before, parsed_high_prio_patch_window, time_now)
+        unless windows_prefetch_before.nil?
+          parsed_high_prio_prefetch        = parse_prefetch(windows_prefetch_before, parsed_high_prio_patch_window)
           in_high_prio_prefetch_window     = in_prefetch(parsed_high_prio_prefetch, parsed_high_prio_patch_window)
-          before_high_prio_prefetch_window = is_before(parsed_high_prio_prefetch, parsed_high_prio_prefetch['start_time'])
-          after_high_prio_prefetch_window  = is_after(parsed_high_prio_prefetch, parsed_high_prio_prefetch['start_time'])
-          high_prio_prefetch_duration      = calc_duration(parsed_high_prio_prefetch, parsed_high_prio_prefetch['start_time'])
+          before_high_prio_prefetch_window = before?(parsed_high_prio_patch_window['current_time'], parsed_high_prio_prefetch)
+          after_high_prio_prefetch_window  = after?(parsed_high_prio_patch_window['current_time'], parsed_high_prio_prefetch)
+          high_prio_prefetch_duration      = calc_duration(parsed_high_prio_prefetch, parsed_high_prio_patch_window['start_time'])
         end
-      else
-        high_prio_reboot                 = 'never'
-        in_high_prio_patch_window        = false
-        in_high_prio_prefetch_window     = false
-        before_high_prio_patch_window    = false
-        after_high_prio_patch_window     = false
-        high_prio_patch_duration         = 0
-        before_high_prio_prefetch_window = false
-        after_high_prio_prefetch_window  = false
-        high_prio_prefetch_duration      = 0
       end
-    else
-      bool_high_prio_patch_day         = false
-      in_high_prio_patch_window        = false
-      high_prio_reboot                 = 'never'
-      in_high_prio_prefetch_window     = false
-      before_high_prio_patch_window    = false
-      after_high_prio_patch_window     = false
-      high_prio_patch_duration         = 0
-      before_high_prio_prefetch_window = false
-      after_high_prio_prefetch_window  = false
-      high_prio_prefetch_duration      = 0
     end
 
     {
       'normal_patch' => {
         'is_patch_day'    => bool_patch_day,
-        'reboot'          => reboot,
         'active_pg'       => active_pg,
         'window'          => {
           'within'   => in_patch_window,
@@ -181,7 +120,6 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
       },
       'high_prio_patch' => {
         'is_patch_day'    => bool_high_prio_patch_day,
-        'reboot'          => high_prio_reboot,
         'window'          => {
           'within'   => in_high_prio_patch_window,
           'before'   => before_high_prio_patch_window,
@@ -226,7 +164,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
   end
 
   # parse a prefetch time and return the time object
-  def parse_prefetch(prefetch_time, parsed_window, time_now)
+  def parse_prefetch(prefetch_time, parsed_window)
     prefetch_arr  = prefetch_time.split(':')
     prefetch_hour = prefetch_arr[0].to_i * 60 * 60
     prefetch_min  = prefetch_arr[1].to_i * 60
@@ -239,12 +177,12 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
   end
 
   # determine if a given time object occurs before another
-  def is_before(start_time, end_time)
+  def before?(start_time, end_time)
     start_time < end_time
   end
 
   # determine if a given time object occurs after another
-  def is_after(start_time, end_time)
+  def after?(start_time, end_time)
     start_time > end_time
   end
 

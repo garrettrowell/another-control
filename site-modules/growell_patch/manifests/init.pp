@@ -14,6 +14,12 @@
 # @param pre_check_script
 # @param post_check_script
 # @param high_priority_patch_group
+# @param enable_patching
+# @param high_priority_only
+# @param security_only
+# @param allowlist
+# @param high_priority_list
+# @param windows_prefetch_before
 #
 # @example
 #   include growell_patch
@@ -97,7 +103,7 @@ class growell_patch (
           }
         } else {
           # Here the puppet_agent class is defined and the runtimeout is not being managed
-          ini_setting { "puppet-agent-runtimeout":
+          ini_setting { 'puppet-agent-runtimeout':
             ensure  => present,
             section => 'agent',
             setting => 'runtimeout',
@@ -125,7 +131,7 @@ class growell_patch (
           }
         } else {
           # Here the puppet_agent class is defined but the runtimeout is not being managed
-          ini_setting { "puppet-agent-runtimeout":
+          ini_setting { 'puppet-agent-runtimeout':
             ensure  => absent,
             section => 'agent',
             setting => 'runtimeout',
@@ -197,6 +203,9 @@ class growell_patch (
           $_updates_to_install          = growell_patch::fuzzy_filter($available_updates, $blocklist)
           $high_prio_updates_to_install = growell_patch::fuzzy_filter($high_prio_updates, $blocklist)
         }
+        default: {
+          fail("${blocklist_mode} is an unsupported blocklist_mode")
+        }
       }
       if ($_is_patchday and $_is_high_prio_patch_day) {
         $updates_to_install = $_updates_to_install.filter |$item| { !($item in $high_prio_updates_to_install) }
@@ -214,6 +223,9 @@ class growell_patch (
         'fuzzy': {
           $_updates_to_install          = growell_patch::fuzzy_filter($whitelisted_updates, $blocklist)
           $high_prio_updates_to_install = growell_patch::fuzzy_filter($high_prio_updates, $blocklist)
+        }
+        default: {
+          fail("${blocklist_mode} is an unsupported blocklist_mode")
         }
       }
       if ($_is_patchday and $_is_high_prio_patch_day) {
@@ -488,7 +500,6 @@ class growell_patch (
             require  => [File['post_check_script'], Class['patching_as_code']],
           }
         }
-
       }
     }
     default: { fail("Unsupported OS: ${facts['kernel']}") }
