@@ -76,17 +76,28 @@ class growell_patch (
 
   # this is for testing
   class { 'puppet_agent':
-    config => [{ section => 'main', setting => 'runtimeout', value => '3600'}]
+    config => [{ section => 'main', setting => 'runtimeout', value => '3600'}, { section => 'main', setting => 'splay', value => true }]
   }
 
   # Configure the agents runtimeout accordingly
   # Currently a WIP
   if ($_is_patchday or $_is_high_prio_patch_day) {
-    if defined('puppet_agent') {
-      notify { "test: ${puppet_agent::config}": }
-    } else {
-      class { 'puppet_agent':
-        config => [{ section => 'main', setting => 'runtimeout', value => $_longest_duration }],
+    if ($_before_patch_window or $_before_prefetch_window or $_before_high_prio_patch_window or $_before_high_prio_prefetch_window) {
+      # Before any patching or prefetching, set the runtimeout to the longest duration
+      if defined('puppet_agent') {
+        $filt_cfg = $puppet_agent::config.filter |$cfg| { $cfg['setting'] == 'runtimeout' }
+        notify { "test: ${filt_cfg}": }
+      } else {
+        class { 'puppet_agent':
+          config => [{ section => 'main', setting => 'runtimeout', value => $_longest_duration }],
+        }
+      }
+    } elsif ($_after_patch_window or $_after_high_prio_patch_window) {
+      # After patching the runtimeout should either be set to what it was previously set to, or back to the default
+      if defined('puppet_agent') {
+        notify { 'after and defined': }
+      } else {
+        notify { 'after not defined': }
       }
     }
   } else {
