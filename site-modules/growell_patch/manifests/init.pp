@@ -80,13 +80,14 @@ class growell_patch (
   }
 
   # Configure the agents runtimeout accordingly
-  # Currently a WIP
   if ($_is_patchday or $_is_high_prio_patch_day) {
+    # Here it is patchday
     if ($_before_patch_window or $_before_prefetch_window or $_before_high_prio_patch_window or $_before_high_prio_prefetch_window) {
       # Before any patching or prefetching, set the runtimeout to the longest duration
       if defined('puppet_agent') {
         $filt_cfg = $puppet_agent::config.filter |$cfg| { $cfg['setting'] == 'runtimeout' }
         if $filt_cfg.size > 0 {
+          # Here the puppet_agent class is defined and the runtimeout is being managed
           $filt_cfg.each |$hsh| {
             Ini_setting <| title == "puppet-${hsh['section']}-${hsh['setting']}" |> {
               ensure => present,
@@ -94,6 +95,7 @@ class growell_patch (
             }
           }
         } else {
+          # Here the puppet_agent class is defined and the runtimeout is not being managed
           ini_setting { "puppet-agent-runtimeout":
             ensure  => present,
             section => 'agent',
@@ -103,19 +105,41 @@ class growell_patch (
           }
         }
       } else {
+        # Here the puppet agent_class is not defined elsewhere
         class { 'puppet_agent':
-          config => [{ section => 'main', setting => 'runtimeout', value => $_longest_duration }],
+          config => [{ section => 'agent', setting => 'runtimeout', value => $_longest_duration }],
         }
       }
     } elsif ($_after_patch_window or $_after_high_prio_patch_window) {
       # After patching the runtimeout should either be set to what it was previously set to, or back to the default
       if defined('puppet_agent') {
-        notify { 'after and defined': }
+        $filt_cfg = $puppet_agent::config.filter |$cfg| { $cfg['setting'] == 'runtimeout' }
+        if $filt_cfg.size > 0 {
+          # Here the puppet_agent class is defined and the runtimeout is being managed
+          $filt_cfg.each |$hsh| {
+            Ini_setting <| title == "puppet-${hsh['section']}-${hsh['setting']}" |> {
+              ensure => present,
+              value  => $hsh['value'],
+            }
+          }
+        } else {
+          # Here the puppet_agent class is defined but the runtimeout is not being managed
+          ini_setting { "puppet-agent-runtimeout":
+            ensure  => absent,
+            section => 'agent',
+            setting => 'runtimeout',
+            path    => $puppet_agent::params::config,
+          }
+        }
       } else {
-        notify { 'after not defined': }
+        # Here  the puppet_agent class is not defined
+        class { 'puppet_agent':
+          config => [{ section => 'agent', setting => 'runtimeout', ensure => absent }],
+        }
       }
     }
   } else {
+    # Here it is not patchday
     if defined('puppet_agent') {
     } else {
       class { 'puppet_agent':
