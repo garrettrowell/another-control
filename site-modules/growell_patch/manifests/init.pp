@@ -76,7 +76,7 @@ class growell_patch (
 
   # this is for testing
   class { 'puppet_agent':
-    config => [{ section => 'main', setting => 'splay', value => 'true' }]
+    config => [{ section => 'main', setting => 'splay', value => 'true' },{ section => 'main', setting => 'runtimeout', value => '1234' }]
   }
 
   # Configure the agents runtimeout accordingly
