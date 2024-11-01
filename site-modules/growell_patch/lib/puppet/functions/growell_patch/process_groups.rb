@@ -62,8 +62,8 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         reboot              = patch_schedule[active_pg]['reboot']
         parsed_window       = parse_window(patch_schedule[active_pg]['hours'], time_now)
         in_patch_window     = in_window(parsed_window)
-        before_patch_window = is_before(parsed_window['start_time'], parsed_window['end_time'])
-        after_patch_window  = is_after(parsed_window['start_time'], parsed_window['end_time'])
+        before_patch_window = is_before(parsed_window['current_time'], parsed_window['start_time'])
+        after_patch_window  = is_after(parsed_window['current_time'], parsed_window['end_time'])
         patch_duration      = calc_duration(parsed_window['start_time'], parsed_window['end_time'])
         if windows_prefetch_before.nil?
           in_prefetch_window     = false
@@ -122,8 +122,8 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         high_prio_reboot              = patch_schedule[high_priority_patch_group]['reboot']
         parsed_high_prio_patch_window = parse_window(patch_schedule[high_priority_patch_group]['hours'], time_now)
         in_high_prio_patch_window     = in_window(parsed_high_prio_patch_window)
-        before_high_prio_patch_window = is_before(parsed_high_prio_patch_window['start_time'], parsed_high_prio_patch_window['end_time'])
-        after_high_prio_patch_window  = is_after(parsed_high_prio_patch_window['start_time'], parsed_high_prio_patch_window['end_time'])
+        before_high_prio_patch_window = is_before(parsed_high_prio_patch_window['current_time'], parsed_high_prio_patch_window['start_time'])
+        after_high_prio_patch_window  = is_after(parsed_high_prio_patch_window['current_time'], parsed_high_prio_patch_window['end_time'])
         high_prio_patch_duration      = calc_duration(parsed_high_prio_patch_window['start_time'], parsed_high_prio_patch_window['end_time'])
         if windows_prefetch_before.nil?
           in_high_prio_prefetch_window     = false
