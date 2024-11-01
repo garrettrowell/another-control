@@ -84,7 +84,7 @@ class growell_patch (
     # Here it is patchday
     if ($_before_patch_window or $_before_prefetch_window or $_before_high_prio_patch_window or $_before_high_prio_prefetch_window) {
       # Before any patching or prefetching, set the runtimeout to the longest duration
-      if defined('puppet_agent') {
+      if defined(Class['puppet_agent']) {
         $filt_cfg = $puppet_agent::config.filter |$cfg| { $cfg['setting'] == 'runtimeout' }
         if $filt_cfg.size > 0 {
           # Here the puppet_agent class is defined and the runtimeout is being managed
@@ -140,7 +140,7 @@ class growell_patch (
     }
   } else {
     # Here it is not patchday
-    if defined('puppet_agent') {
+    if defined(Class['puppet_agent']) {
     } else {
       class { 'puppet_agent':
         config => [{ section => 'main', setting => 'runtimeout', ensure => absent }],
