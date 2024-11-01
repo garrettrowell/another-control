@@ -27,6 +27,9 @@ fixtures:
     scheduled_task:
       repo: 'puppetlabs/scheduled_task'
       ref: '1.0.1'
+    apt:
+      repo: 'puppetlabs/apt'
+      ref: '9.4.0'
   repositories:
     patching_as_code:
       repo: 'https://github.com/garrettrowell/puppetlabs-patching_as_code.git'

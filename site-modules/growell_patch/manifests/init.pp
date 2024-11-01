@@ -266,6 +266,7 @@ class growell_patch (
       if $pin_blocklist {
         case $facts['package_provider'] {
           'apt': {
+            unless defined(Class['apt']) { include 'apt' }
             apt::pin { $_blocklist: }
           }
           default: {
