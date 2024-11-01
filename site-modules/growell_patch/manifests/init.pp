@@ -148,8 +148,6 @@ class growell_patch (
     }
   }
 
-  notify { "info: ${result}": }
-
   # Determine the available updates if any
   if $facts['pe_patch'] {
     $available_updates = $facts['kernel'] ? {
@@ -235,10 +233,16 @@ class growell_patch (
     default => $blocklist,
   }
 
-  notify { "available_updates  => ${available_updates}": }
-  notify { "high_prio_updates  => ${high_prio_updates}": }
+  ## Start of debug stuff
+  notify { "process_groups => ${result}": }
+  notify { "available_updates => ${available_updates}": }
+  notify { "high_prio_updates => ${high_prio_updates}": }
   notify { "updates_to_install => ${updates_to_install}": }
-  notify { "_blocklist          => ${_blocklist}": }
+  notify { "_blocklist => ${_blocklist}": }
+  File <| title == 'patching_configuration.json' |> {
+    show_diff => true,
+  }
+  ## End of debug stuff
 
   # Determine the states of the pre/post scripts based on operating system
   case $facts['kernel'] {
@@ -263,7 +267,7 @@ class growell_patch (
       }
 
       # Optionally pin the package if it occurs in the blocklist
-      if $pin_blocklist {
+      if $pin_blocklist and $_blocklist.size > 0 {
         case $facts['package_provider'] {
           'apt': {
             apt::mark { $_blocklist:
