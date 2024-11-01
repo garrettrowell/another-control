@@ -112,7 +112,7 @@ class growell_patch (
       }
     } elsif ($_after_patch_window or $_after_high_prio_patch_window) {
       # After patching the runtimeout should either be set to what it was previously set to, or back to the default
-      if defined('puppet_agent') {
+      if defined(Class['puppet_agent']) {
         $filt_cfg = $puppet_agent::config.filter |$cfg| { $cfg['setting'] == 'runtimeout' }
         if $filt_cfg.size > 0 {
           # Here the puppet_agent class is defined and the runtimeout is being managed
