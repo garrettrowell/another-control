@@ -170,13 +170,13 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
           'within'   => in_patch_window,
           'before'   => before_patch_window,
           'after'    => after_patch_window,
-          'duration' => patch_duration,
+          'duration' => patch_duration.floor,
         },
         'prefetch_window' => {
           'within'   => in_prefetch_window,
           'before'   => before_prefetch_window,
           'after'    => after_prefetch_window,
-          'duration' => prefetch_duration,
+          'duration' => prefetch_duration.floor,
         }
       },
       'high_prio_patch' => {
@@ -186,19 +186,19 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
           'within'   => in_high_prio_patch_window,
           'before'   => before_high_prio_patch_window,
           'after'    => after_high_prio_patch_window,
-          'duration' => high_prio_patch_duration,
+          'duration' => high_prio_patch_duration.floor,
         },
         'prefetch_window' => {
           'within'   => in_high_prio_prefetch_window,
           'before'   => before_high_prio_prefetch_window,
           'after'    => after_high_prio_prefetch_window,
-          'duration' => high_prio_prefetch_duration,
+          'duration' => high_prio_prefetch_duration.floor,
         }
       },
       'longest_duration' => [
         patch_duration, prefetch_duration,
         high_prio_patch_duration, high_prio_prefetch_duration
-      ].max
+      ].max.floor
     }
   end
 
