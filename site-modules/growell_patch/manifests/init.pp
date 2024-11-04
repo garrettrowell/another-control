@@ -278,6 +278,9 @@ class growell_patch (
                 true    => growell_patch::fuzzy_match($facts['pe_patch']['pinned_packages'], $blocklist),
                 default => $blocklist
               }
+              notify { "to_unpin: ${_to_unpin}": }
+              notify { "blocklist: ${blocklist}": }
+              notify { "pinned: ${facts['pe_patch']['pinned_packages']}": }
               apt::mark { $_to_unpin:
                 setting => 'unhold',
                 before  => Class['patching_as_code'],
