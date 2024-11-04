@@ -296,7 +296,6 @@ class growell_patch (
                 true    => growell_patch::fuzzy_match($facts['pe_patch']['pinned_packages'], $blocklist),
                 default => $blocklist
               }
-              notify { "to_unpin: ${_to_unpin}": }
               $_to_unpin.each |$pin| {
                 yum::versionlock { $pin.split(':')[0]:
                   ensure  => absent,
@@ -306,20 +305,34 @@ class growell_patch (
                   before  => Class['patching_as_code'],
                 }
               }
-
-              #              yum::versionlock { $_to_unpin:
-              #                ensure  => absent,
-              #                version => '*',
-              #                release => '*',
-              #                epoch   => 0,
-              #                before  => Class['patching_as_code'],
-              #              }
             } else {
               yum::versionlock { $_blocklist:
                 ensure  => present,
                 version => '*',
                 release => '*',
                 epoch   => 0,
+                before  => Class['patching_as_code'],
+              }
+            }
+          }
+          'zypper': {
+            if $_after_patch_window or $_after_high_prio_patch_window {
+              $_to_unpin = $blocklist_mode == 'fuzzy' ? {
+                true    => growell_patch::fuzzy_match($facts['pe_patch']['pinned_packages'], $blocklist),
+                default => $blocklist
+              }
+              $_to_unpin.each |$pin| {
+                notify { "should unpin: ${pin}": }
+                #                zypprepo::versionlock { $pin:
+                #                  ensure  => absent,
+                #                  version => '*',
+                #                  release => '*',
+                #                  epoch   => 0,
+                #                  before  => Class['patching_as_code'],
+                #                }
+              }
+            } else {
+              zypprepo::versionlock { $_blocklist:
                 before  => Class['patching_as_code'],
               }
             }
