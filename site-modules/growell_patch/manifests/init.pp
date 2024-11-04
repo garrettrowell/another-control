@@ -333,7 +333,6 @@ class growell_patch (
               }
             } else {
               zypprepo::versionlock { $_blocklist:
-                ensure => present,
                 before => Class['patching_as_code'],
               }
             }
