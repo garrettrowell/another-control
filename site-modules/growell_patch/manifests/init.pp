@@ -270,7 +270,7 @@ class growell_patch (
       }
 
       # Optionally pin the package if it occurs in the blocklist
-      if $pin_blocklist and $_blocklist.size > 0 {
+      if ($pin_blocklist and $_blocklist.size > 0) or ($pin_blocklist and $facts['pe_patch']['pinned_packages'].size > 0) {
         case $facts['package_provider'] {
           'apt': {
             if $_after_patch_window or $_after_high_prio_patch_window {
