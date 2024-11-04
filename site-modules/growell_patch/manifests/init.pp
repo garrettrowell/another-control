@@ -296,14 +296,15 @@ class growell_patch (
                 true    => growell_patch::fuzzy_match($facts['pe_patch']['pinned_packages'], $blocklist),
                 default => $blocklist
               }
+              notify { "to_unpin: ${_to_unpin}": }
 
-              yum::versionlock { $_to_unpin:
-                ensure  => absent,
-                version => '*',
-                release => '*',
-                epoch   => 0,
-                before  => Class['patching_as_code'],
-              }
+              #              yum::versionlock { $_to_unpin:
+              #                ensure  => absent,
+              #                version => '*',
+              #                release => '*',
+              #                epoch   => 0,
+              #                before  => Class['patching_as_code'],
+              #              }
             } else {
               yum::versionlock { $_blocklist:
                 ensure  => present,
