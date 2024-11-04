@@ -8,6 +8,7 @@ defaults:  # Used for any hierarchy level that omits these keys.
 hierarchy:
   - name: 'patching'
     paths:
+      - "nodes/%{trusted.certname}.yaml"
       - "%{cust.group}/%{cust.env}.yaml"
       - "%{cust.group}.yaml"
       - "%{kernel}.yaml"
