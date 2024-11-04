@@ -1,0 +1,4 @@
+---
+cust:
+  group: 'dept1'
+  env: 'prod'
