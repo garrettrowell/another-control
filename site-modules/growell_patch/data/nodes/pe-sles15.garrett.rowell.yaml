@@ -36,7 +36,7 @@ growell_patch::pre_patch_script: 'dept1/prod/pre_patch.sh'
 #  - '-t'
 #  - 'nonexist'
 growell_patch::blocklist:
-  - 'apache2'
+  - 'apache2*'
 growell_patch::blocklist_mode: 'fuzzy'
 
 growell_patch::pre_check_script: 'true.sh'
