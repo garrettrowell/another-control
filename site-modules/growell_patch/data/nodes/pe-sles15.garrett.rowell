@@ -16,7 +16,7 @@ growell_patch::patch_schedule:
 #    week: 4
     week: 1
     offset: 0
-    hours: 16:00 - 18:00
+    hours: 16:00 - 21:00
     max_runs: '1'
     reboot: ifneeded
   dept1_other:
