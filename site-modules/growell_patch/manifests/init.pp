@@ -278,9 +278,7 @@ class growell_patch (
                 true    => growell_patch::fuzzy_match($facts['pe_patch']['pinned_packages'], $blocklist),
                 default => $blocklist
               }
-              notify { "to_unpin: ${_to_unpin}": }
-              notify { "blocklist: ${blocklist}": }
-              notify { "pinned: ${facts['pe_patch']['pinned_packages']}": }
+
               apt::mark { $_to_unpin:
                 setting => 'unhold',
                 before  => Class['patching_as_code'],
@@ -292,6 +290,34 @@ class growell_patch (
               }
             }
           }
+          'yum', 'dnf': {
+            if $_after_patch_window or $_after_high_prio_patch_window {
+              $_to_unpin = $blocklist_mode == 'fuzzy' ? {
+                true    => growell_patch::fuzzy_match($facts['pe_patch']['pinned_packages'], $blocklist),
+                default => $blocklist
+              }
+
+              yum::versionlock { $_to_unpin:
+                ensure  => absent,
+                version => '*',
+                release => '*',
+                epoch   => 0,
+                before  => Class['patching_as_code'],
+              }
+            } else {
+              yum::versionlock { $_blocklist:
+                ensure  => present,
+                version => '*',
+                release => '*',
+                epoch   => 0,
+                before  => Class['patching_as_code'],
+              }
+            }
+          }
+            # yum
+            # dnf
+            # zypper
+
           default: {
             fail("${module_name} currently does not support pinning ${facts['package_provider']} packages")
           }
