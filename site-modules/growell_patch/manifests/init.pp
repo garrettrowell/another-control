@@ -297,9 +297,7 @@ class growell_patch (
                 default => $blocklist
               }
               notify { "to_unpin: ${_to_unpin}": }
-              $_to_unpin.each |$up| {
-                notify { "dedupe: ${patching_as_code::dedupe_arch($up)}": }
-              }
+              notify { "dedupe: ${patching_as_code::dedupe_arch($_to_unpin)}": }
 
               #              yum::versionlock { $_to_unpin:
               #                ensure  => absent,
