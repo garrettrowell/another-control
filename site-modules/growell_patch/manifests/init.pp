@@ -299,8 +299,11 @@ class growell_patch (
               notify { "to_unpin: ${_to_unpin}": }
               $_to_unpin.each |$pin| {
                 yum::versionlock { $pin.split(':')[0]:
-                  ensure => absent,
-                  before => Class['patching_as_code'],
+                  ensure  => absent,
+                  version => '*',
+                  release => '*',
+                  epoch   => 0,
+                  before  => Class['patching_as_code'],
                 }
               }
 
