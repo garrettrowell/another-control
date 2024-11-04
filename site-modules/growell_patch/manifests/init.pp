@@ -332,9 +332,10 @@ class growell_patch (
                 #                }
               }
             } else {
-              zypprepo::versionlock { $_blocklist:
-                before => Class['patching_as_code'],
-              }
+              notify { "_blocklist => ${_blocklist}": }
+              #   zypprepo::versionlock { $_blocklist:
+              #     before         => Class['patching_as_code'],
+              #   }
             }
           }
             # yum
