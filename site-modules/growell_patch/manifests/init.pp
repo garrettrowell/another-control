@@ -20,6 +20,8 @@
 # @param allowlist
 # @param high_priority_list
 # @param windows_prefetch_before
+# @param wsus_url
+# @param pin_blocklist
 #
 # @example
 #   include growell_patch
@@ -42,6 +44,7 @@ class growell_patch (
   Optional[String[1]]                            $post_check_script         = undef,
   Optional[String[1]]                            $high_priority_patch_group = undef,
   Optional[String[1]]                            $windows_prefetch_before   = undef,
+  Optional[Stdlib::HTTPUrl]                      $wsus_url                  = undef,
 ) {
   # Convert our custom schedule into the form expected by patching_as_code.
   #
@@ -391,6 +394,15 @@ class growell_patch (
       $_common_present_args = {
         ensure => present,
         mode   => '0770',
+      }
+
+      $_wsus_base_reg = 'HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate'
+      unless $wsus_url == undef {
+        registry_value { "${_wsus_base_reg}\\WUServer":
+          ensure => present,
+          type   => 'string',
+          data   => $wsus_url,
+        }
       }
 
       unless ($windows_prefetch_before == undef) {
