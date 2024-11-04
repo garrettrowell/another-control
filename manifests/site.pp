@@ -34,20 +34,32 @@ node default {
   $factpathtree = dirtree($factpath)
   $cust = lookup('cust', undef, undef, undef)
 
-  file {
-    default:
-      ensure => directory,
-    ;
-    $factpathtree:
-    ;
-    "${factpath}/my_org.yaml":
+  if $facts['os']['family'] == 'Suse' {
+    file { "${factpath}/my_org.yaml":
       ensure  => file,
       content => stdlib::to_yaml({
         'cust'       => {
           'group' => $cust['group'],
           'env'   => $cust['env']
         }
-      })
-    ;
+        })
+    }
+  } else {
+    file {
+      default:
+        ensure => directory,
+        ;
+      $factpathtree:
+        ;
+      "${factpath}/my_org.yaml":
+        ensure  => file,
+        content => stdlib::to_yaml({
+          'cust'       => {
+            'group' => $cust['group'],
+            'env'   => $cust['env']
+          }
+          })
+          ;
+    }
   }
 }
