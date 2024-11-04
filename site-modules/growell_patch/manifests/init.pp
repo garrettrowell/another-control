@@ -271,32 +271,22 @@ class growell_patch (
 
       # Optionally pin the package if it occurs in the blocklist
       if ($pin_blocklist and $_blocklist.size > 0) or ($pin_blocklist and $facts['pe_patch']['pinned_packages'].size > 0) {
-        case $facts['package_provider'] {
-          'apt': {
-            # uses puppetlabs/apt
-            if $_after_patch_window or $_after_high_prio_patch_window {
-              $_to_unpin = $blocklist_mode == 'fuzzy' ? {
-                true    => growell_patch::fuzzy_match($facts['pe_patch']['pinned_packages'], $blocklist),
-                default => $blocklist
-              }
+        if $_after_patch_window or $_after_high_prio_patch_window {
+          # locks should be removed after the patch window
+          $_to_unpin = $blocklist_mode == 'fuzzy' ? {
+            true    => growell_patch::fuzzy_match($facts['pe_patch']['pinned_packages'], $blocklist),
+            default => $blocklist
+          }
+
+          case $facts['package_provider'] {
+            'apt': {
               apt::mark { $_to_unpin:
                 setting => 'unhold',
                 before  => Class['patching_as_code'],
-              }
-            } else {
-              apt::mark { $_blocklist:
-                setting => 'hold',
-                before  => Class['patching_as_code'],
+                notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
               }
             }
-          }
-          'dnf', 'yum': {
-            # uses puppet/yum which also knows how to handle dnf
-            if $_after_patch_window or $_after_high_prio_patch_window {
-              $_to_unpin = $blocklist_mode == 'fuzzy' ? {
-                true    => growell_patch::fuzzy_match($facts['pe_patch']['pinned_packages'], $blocklist),
-                default => $blocklist
-              }
+            'dnf', 'yum': {
               $_to_unpin.each |$pin| {
                 yum::versionlock { $pin.split(':')[0]:
                   ensure  => absent,
@@ -304,44 +294,57 @@ class growell_patch (
                   release => '*',
                   epoch   => 0,
                   before  => Class['patching_as_code'],
+                  notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
                 }
               }
-            } else {
+            }
+            'zypper': {
+              $_to_unpin.each |$pin| {
+                exec { "${module_name}-removelock-${pin}":
+                  command => "zypper removelock ${pin}",
+                  path    => $facts['path'],
+                  before  => Class['patching_as_code'],
+                  notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
+                }
+              }
+            }
+            default: {
+              fail("${module_name} currently does not support pinning ${facts['package_provider']} packages")
+            }
+          }
+        } else {
+          # locks should be created before the patch window
+          case $facts['package_provider'] {
+            'apt': {
+              apt::mark { $_blocklist:
+                setting => 'hold',
+                before  => Class['patching_as_code'],
+                notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
+              }
+            }
+            'dnf', 'yum': {
               yum::versionlock { $_blocklist:
                 ensure  => present,
                 version => '*',
                 release => '*',
                 epoch   => 0,
                 before  => Class['patching_as_code'],
+                notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
               }
             }
-          }
-          'zypper': {
-            # unfortunately puppet/zypprepo didn't help so we just use execs
-            if $_after_patch_window or $_after_high_prio_patch_window {
-              $_to_unpin = $blocklist_mode == 'fuzzy' ? {
-                true    => growell_patch::fuzzy_match($facts['pe_patch']['pinned_packages'], $blocklist),
-                default => $blocklist
-              }
-              $_to_unpin.each |$pin| {
-                exec { "${module_name}-removelock-${pin}":
-                  command => "zypper removelock ${pin}",
-                  path    => $facts['path'],
-                  before  => Class['patching_as_code'],
-                }
-              }
-            } else {
+            'zypper': {
               $_blocklist.each |$pin| {
                 exec { "${module_name}-addlock-${pin}":
                   command => "zypper addlock ${pin}",
                   path    => $facts['path'],
                   before  => Class['patching_as_code'],
+                  notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
                 }
               }
             }
-          }
-          default: {
-            fail("${module_name} currently does not support pinning ${facts['package_provider']} packages")
+            default: {
+              fail("${module_name} currently does not support pinning ${facts['package_provider']} packages")
+            }
           }
         }
       }
