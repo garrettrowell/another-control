@@ -42,7 +42,7 @@ node default {
           'group' => $cust['group'],
           'env'   => $cust['env']
         }
-        })
+        }),
     }
   } else {
     file {
