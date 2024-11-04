@@ -273,9 +273,20 @@ class growell_patch (
       if $pin_blocklist and $_blocklist.size > 0 {
         case $facts['package_provider'] {
           'apt': {
-            apt::mark { $_blocklist:
-              setting => 'hold',
-              before  => Class['patching_as_code'],
+            if $_after_patch_window or $_after_high_prio_patch_window {
+              $_to_unpin = $blocklist_mode == 'fuzzy' ? {
+                true    => growell_patch::fuzzy_match($facts['pe_patch']['pinned_packages'], $blocklist),
+                default => $blocklist
+              }
+              apt::mark { $_to_unpin:
+                setting => 'unhold',
+                before  => Class['patching_as_code'],
+              }
+            } else {
+              apt::mark { $_blocklist:
+                setting => 'hold',
+                before  => Class['patching_as_code'],
+              }
             }
           }
           default: {
