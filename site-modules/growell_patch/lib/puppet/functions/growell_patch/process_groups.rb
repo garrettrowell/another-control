@@ -200,7 +200,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
 
   def patchday?(patch_group, patch_schedule, time_now)
     parsed_window = parse_window(patch_schedule['hours'], time_now)
-    before_1_day = before?(parsed_window['current_time'], (parsed_window['start_time'] -(60*60*24)))
+    before_1_day = before?((parsed_window['start_time'] -(60*60*24)), parsed_window['current_time'])
     { 'group' => patch_group, 'schedule' => patch_schedule, 'parsed' => parsed_window, 'before' => before_1_day}
   end
 end
