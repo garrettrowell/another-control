@@ -139,7 +139,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
       'longest_duration' => [
         patch_duration, prefetch_duration,
         high_prio_patch_duration, high_prio_prefetch_duration
-      ].max.floor,
+      ].max.floor.to_s,
       'parsed_window' => parsed_window, # this is debug only and should get removed
       'time_now' => time_now, # this is debug only and should get removed
       'pg_info'  => pg_info,  # this is debug only and should get removed
