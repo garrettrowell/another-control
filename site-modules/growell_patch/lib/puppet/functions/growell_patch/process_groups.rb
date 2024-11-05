@@ -63,7 +63,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
                          false
                        end
       if bool_patch_day
-        parsed_window       = parse_window(patch_schedule[active_pg]['hours'], time_now)
+        parsed_window       = parse_window(patch_schedule[active_pg], time_now)
         in_patch_window     = in_window(parsed_window)
         before_patch_window = before?(parsed_window['current_time'], parsed_window['start_time'])
         after_patch_window  = after?(parsed_window['current_time'], parsed_window['end_time'])
@@ -89,7 +89,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
                                                patch_schedule[high_priority_patch_group]['count_of_week'],
                                                high_priority_patch_group)
       if bool_high_prio_patch_day
-        parsed_high_prio_patch_window = parse_window(patch_schedule[high_priority_patch_group]['hours'], time_now)
+        parsed_high_prio_patch_window = parse_window(patch_schedule[high_priority_patch_group], time_now)
         in_high_prio_patch_window     = in_window(parsed_high_prio_patch_window)
         before_high_prio_patch_window = before?(parsed_high_prio_patch_window['current_time'], parsed_high_prio_patch_window['start_time'])
         after_high_prio_patch_window  = after?(parsed_high_prio_patch_window['current_time'], parsed_high_prio_patch_window['end_time'])
