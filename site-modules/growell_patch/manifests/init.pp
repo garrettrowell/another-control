@@ -84,72 +84,73 @@ class growell_patch (
   $_after_high_prio_prefetch_window  = $result['high_prio_patch']['prefetch_window']['after']
   # Determine the longest window (in seconds) that applies
   $_longest_duration = $result['longest_duration']
+  notify { "_longest_duration: ${_longest_duration}": }
 
   # Configure the agents runtimeout accordingly
-  $runtimeout_cfg_section = 'agent'
-  if ($_is_patchday or $_is_high_prio_patch_day) {
-    # Here it is patchday
-    if ($_before_patch_window or $_before_prefetch_window or $_before_high_prio_patch_window or $_before_high_prio_prefetch_window) {
-      # Before any patching or prefetching, set the runtimeout to the longest duration
-      if defined(Class['puppet_agent']) {
-        $filt_cfg = $puppet_agent::config.filter |$cfg| { $cfg['setting'] == 'runtimeout' }
-        if $filt_cfg.size > 0 {
-          # Here the puppet_agent class is defined and the runtimeout is being managed
-          $filt_cfg.each |$hsh| {
-            Ini_setting <| title == "puppet-${hsh['section']}-${hsh['setting']}" |> {
-              ensure => present,
-              value  => $_longest_duration,
-            }
-          }
-        } else {
-          # Here the puppet_agent class is defined and the runtimeout is not being managed
-          ini_setting { "puppet-${runtimeout_cfg_section}-runtimeout":
-            ensure  => present,
-            section => $runtimeout_cfg_section,
-            setting => 'runtimeout',
-            value   => $_longest_duration,
-            path    => $puppet_agent::params::config,
-          }
-        }
-      } else {
-        # Here the puppet agent_class is not defined elsewhere
-        class { 'puppet_agent':
-          config => [
-            { section => $runtimeout_cfg_section, setting => 'runtimeout', value => $_longest_duration },
-          ],
-        }
-      }
-    } elsif ($_after_patch_window or $_after_high_prio_patch_window) {
-      # After patching the runtimeout should either be set to what it was previously set to, or back to the default
-      if defined(Class['puppet_agent']) {
-        $filt_cfg = $puppet_agent::config.filter |$cfg| { $cfg['setting'] == 'runtimeout' }
-        if $filt_cfg.size > 0 {
-          # Here the puppet_agent class is defined and the runtimeout is being managed
-          $filt_cfg.each |$hsh| {
-            Ini_setting <| title == "puppet-${hsh['section']}-${hsh['setting']}" |> {
-              ensure => present,
-              value  => $hsh['value'],
-            }
-          }
-        } else {
-          # Here the puppet_agent class is defined but the runtimeout is not being managed
-          ini_setting { "puppet-${runtimeout_cfg_section}-runtimeout":
-            ensure  => absent,
-            section => $runtimeout_cfg_section,
-            setting => 'runtimeout',
-            path    => $puppet_agent::params::config,
-          }
-        }
-      } else {
-        # Here  the puppet_agent class is not defined
-        class { 'puppet_agent':
-          config => [
-            { section => $runtimeout_cfg_section, setting => 'runtimeout', ensure => absent },
-          ],
-        }
-      }
-    }
-  }
+  #  $runtimeout_cfg_section = 'agent'
+  #  if ($_is_patchday or $_is_high_prio_patch_day) {
+  #    # Here it is patchday
+  #    if ($_before_patch_window or $_before_prefetch_window or $_before_high_prio_patch_window or $_before_high_prio_prefetch_window) {
+  #      # Before any patching or prefetching, set the runtimeout to the longest duration
+  #      if defined(Class['puppet_agent']) {
+  #        $filt_cfg = $puppet_agent::config.filter |$cfg| { $cfg['setting'] == 'runtimeout' }
+  #        if $filt_cfg.size > 0 {
+  #          # Here the puppet_agent class is defined and the runtimeout is being managed
+  #          $filt_cfg.each |$hsh| {
+  #            Ini_setting <| title == "puppet-${hsh['section']}-${hsh['setting']}" |> {
+  #              ensure => present,
+  #              value  => $_longest_duration,
+  #            }
+  #          }
+  #        } else {
+  #          # Here the puppet_agent class is defined and the runtimeout is not being managed
+  #          ini_setting { "puppet-${runtimeout_cfg_section}-runtimeout":
+  #            ensure  => present,
+  #            section => $runtimeout_cfg_section,
+  #            setting => 'runtimeout',
+  #            value   => $_longest_duration,
+  #            path    => $puppet_agent::params::config,
+  #          }
+  #        }
+  #      } else {
+  #        # Here the puppet agent_class is not defined elsewhere
+  #        class { 'puppet_agent':
+  #          config => [
+  #            { section => $runtimeout_cfg_section, setting => 'runtimeout', value => $_longest_duration },
+  #          ],
+  #        }
+  #      }
+  #    } elsif ($_after_patch_window or $_after_high_prio_patch_window) {
+  #      # After patching the runtimeout should either be set to what it was previously set to, or back to the default
+  #      if defined(Class['puppet_agent']) {
+  #        $filt_cfg = $puppet_agent::config.filter |$cfg| { $cfg['setting'] == 'runtimeout' }
+  #        if $filt_cfg.size > 0 {
+  #          # Here the puppet_agent class is defined and the runtimeout is being managed
+  #          $filt_cfg.each |$hsh| {
+  #            Ini_setting <| title == "puppet-${hsh['section']}-${hsh['setting']}" |> {
+  #              ensure => present,
+  #              value  => $hsh['value'],
+  #            }
+  #          }
+  #        } else {
+  #          # Here the puppet_agent class is defined but the runtimeout is not being managed
+  #          ini_setting { "puppet-${runtimeout_cfg_section}-runtimeout":
+  #            ensure  => absent,
+  #            section => $runtimeout_cfg_section,
+  #            setting => 'runtimeout',
+  #            path    => $puppet_agent::params::config,
+  #          }
+  #        }
+  #      } else {
+  #        # Here  the puppet_agent class is not defined
+  #        class { 'puppet_agent':
+  #          config => [
+  #            { section => $runtimeout_cfg_section, setting => 'runtimeout', ensure => absent },
+  #          ],
+  #        }
+  #      }
+  #    }
+  #  }
 
   # Determine the available updates if any
   if $facts['pe_patch'] {
