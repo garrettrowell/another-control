@@ -1,13 +1,13 @@
 ---
 growell_patch::patch_schedule:
   win:
-    day: 'Friday'
+    day: 'Wednesday'
 #    week: 4
     week: 1
     offset: 0
-    hours: 21:00 - 22:00
+    hours: 02:00 - 03:00
     max_runs: '1'
     reboot: ifneeded
 growell_patch::patch_group: win
-growell_patch::windows_prefetch_before: '02:00'
+growell_patch::windows_prefetch_before: '03:00'
 # common data for windows nodes
