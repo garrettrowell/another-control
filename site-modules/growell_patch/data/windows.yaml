@@ -10,4 +10,5 @@ growell_patch::patch_schedule:
     reboot: ifneeded
 growell_patch::patch_group: win
 growell_patch::windows_prefetch_before: '03:00'
+growell_patch::enable_patching: false
 # common data for windows nodes

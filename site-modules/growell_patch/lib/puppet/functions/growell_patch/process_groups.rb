@@ -9,8 +9,8 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
   def process_groups(patch_group, patch_schedule, high_priority_patch_group = nil, windows_prefetch_before = nil)
     # Time object used throughout
     time_now = Time.now
-    parsed_window = 0 # this is debug only and should get removed
-    pg_info = 'blah' # this is debug only and should get removed
+    # Currently only used in debugging
+    parsed_window = 0
     # Normal Patch Defaults
     bool_patch_day         = false
     in_patch_window        = false
@@ -43,10 +43,6 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         {
           'name'         => pg,
           'is_patch_day' => patchday?(pg, patch_schedule[pg], time_now),
-          #          'is_patch_day' => call_function('patching_as_code::is_patchday',
-          #                                          patch_schedule[pg]['day_of_week'],
-          #                                          patch_schedule[pg]['count_of_week'],
-          #                                          pg),
         }
       end
       active_pg = pg_info.reduce(nil) do |memo, value|
@@ -85,10 +81,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
       in_high_prio_patch_window = true
     elsif !high_priority_patch_group.nil?
       bool_high_prio_patch_day = patchday?(high_priority_patch_group, patch_schedule[high_priority_patch_group], time_now)
-#      bool_high_prio_patch_day = call_function('patching_as_code::is_patchday',
-#                                               patch_schedule[high_priority_patch_group]['day_of_week'],
-#                                               patch_schedule[high_priority_patch_group]['count_of_week'],
-#                                               high_priority_patch_group)
+
       if bool_high_prio_patch_day
         parsed_high_prio_patch_window = parse_window(patch_schedule[high_priority_patch_group], time_now)
         in_high_prio_patch_window     = in_window(parsed_high_prio_patch_window)
@@ -141,9 +134,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         patch_duration, prefetch_duration,
         high_prio_patch_duration, high_prio_prefetch_duration
       ].max.floor.to_s,
-      'parsed_window' => parsed_window, # this is debug only and should get removed
-      'time_now' => time_now, # this is debug only and should get removed
-      'pg_info'  => pg_info,  # this is debug only and should get removed
+      'parsed_window'    => parsed_window,
     }
   end
 
@@ -159,13 +150,13 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     end_hour     = end_arr[0]
     end_min      = end_arr[1]
     day_map = {
-      'Sunday' => 0,
-      'Monday' => 1,
-      'Tuesday' => 2,
+      'Sunday'    => 0,
+      'Monday'    => 1,
+      'Tuesday'   => 2,
       'Wednesday' => 3,
-      'Thursday' => 4,
-      'Friday' => 5,
-      'Saturday' => 6
+      'Thursday'  => 4,
+      'Friday'    => 5,
+      'Saturday'  => 6
     }
     week_day_to_patch = (day_map[patch_schedule['day_of_week']] - Date.new(time_now.year, time_now.month, 1).wday) % 7 + (patch_schedule['count_of_week'] -1) * 7 + 1
     {
@@ -208,17 +199,17 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     end_time - start_time
   end
 
-  # it is patchday if:
-  #   - it is 12hrs before your patch window starts
-  #   - within your patch window
-  #   - it is 12hrs after your patch window ends
+  # determine if it is patchday
+  #
+  # it is patchday if any of the following are true:
+  #   - it is 12hrs before when the patch window starts
+  #   - within the patch window
+  #   - it is 12hrs after when the patch window ends
   def patchday?(patch_group, patch_schedule, time_now)
     parsed_window = parse_window(patch_schedule, time_now)
-    is_before = before?((parsed_window['start_time'] - (60*60*12)), parsed_window['current_time'])
-    is_after = after?(parsed_window['current_time'], (parsed_window['end_time'] + (60*60*12)))
-    is_between = in_window(parsed_window)
+    is_before     = before?((parsed_window['start_time'] - (60*60*12)), parsed_window['current_time'])
+    is_after      = after?(parsed_window['current_time'], (parsed_window['end_time'] + (60*60*12)))
+    is_between    = in_window(parsed_window)
     is_before || is_after || is_between
   end
-
-
 end
