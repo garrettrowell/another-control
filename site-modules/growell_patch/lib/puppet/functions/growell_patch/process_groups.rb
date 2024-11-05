@@ -168,8 +168,8 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     }
     week_day_to_patch = (day_map[patch_schedule['day_of_week']] - Date.new(time_now.year, time_now.month, 1).wday) % 7 + (patch_schedule['count_of_week'] -1) * 7 + 1
     {
-      'start_time'   => Time.new(time_now.year, time_now.month, week_day_to_patch, start_hour, start_min),
-      'end_time'     => Time.new(time_now.year, time_now.month, week_day_to_patch, end_hour, end_min),
+      'start_time'   => Time.new(time_now.year, time_now.month, week_day_to_patch.to_s, start_hour, start_min),
+      'end_time'     => Time.new(time_now.year, time_now.month, week_day_to_patch.to_s, end_hour, end_min),
       'current_time' => Time.new(time_now.year, time_now.month, time_now.day, time_now.hour, time_now.min),
     }
   end
