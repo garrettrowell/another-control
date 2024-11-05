@@ -139,7 +139,8 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         patch_duration, prefetch_duration,
         high_prio_patch_duration, high_prio_prefetch_duration
       ].max.floor,
-      'cur_time' => cur_time # this is debug only and should get removed
+      'cur_time' => cur_time, # this is debug only and should get removed
+      'time_now' => time_now, # this is debug only and should get removed
     }
   end
 
