@@ -12,7 +12,7 @@
 #    reboot: ifneeded
 growell_patch::patch_schedule:
   dept1_prod:
-    day: 'Monday'
+    day: 'Tuesday'
 #    week: 4
     week: 1
     offset: 0
