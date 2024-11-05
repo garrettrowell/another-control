@@ -42,7 +42,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
       pg_info = patch_group.map do |pg|
         {
           'name'         => pg,
-          'is_patch_day' => patchday?(pg),
+          'is_patch_day' => patchday?(pg, patch_schedule[pg]),
 #          'is_patch_day' => call_function('patching_as_code::is_patchday',
 #                                          patch_schedule[pg]['day_of_week'],
 #                                          patch_schedule[pg]['count_of_week'],
@@ -198,7 +198,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     end_time - start_time
   end
 
-  def patchday?(patch_group)
-    patch_group
+  def patchday?(patch_group, patch_schedule)
+    { 'group' => patch_group, 'schedule' => patch_schedule }
   end
 end
