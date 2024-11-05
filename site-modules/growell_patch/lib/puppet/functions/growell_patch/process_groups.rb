@@ -212,7 +212,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     parsed_window = parse_window(patch_schedule, time_now)
     is_before = before?((parsed_window['start_time'] - (60*60*12)), parsed_window['current_time'])
     is_after = after?(parsed_window['current_time'], (parsed_window['end_time'] + (60*60*12)))
-    is_before or is_after
+    is_before || is_after
 
 #    { 'ps' => patch_schedule, 'is_before' => is_before }
   end
