@@ -1,11 +1,11 @@
-Puppet::Functions.create_function(:'growell_patch::patchday') do
-  dispatch :patchday do
+Puppet::Functions.create_function(:'growell_patch::calc_patchday') do
+  dispatch :calc_patchday do
     required_param 'Growell_patch::Weekday', :day
     required_param 'Integer', :week
     required_param 'Integer', :offset
   end
 
-  def patchday(day, week, offset)
+  def calc_patchday(day, week, offset)
     cond = condition_date(day, week)
     outdate = desired_date(cond, offset)
     {
