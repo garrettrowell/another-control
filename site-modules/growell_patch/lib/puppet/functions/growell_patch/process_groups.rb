@@ -41,10 +41,11 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
       pg_info = patch_group.map do |pg|
         {
           'name'         => pg,
-          'is_patch_day' => call_function('patching_as_code::is_patchday',
-                                          patch_schedule[pg]['day_of_week'],
-                                          patch_schedule[pg]['count_of_week'],
-                                          pg),
+          'is_patch_day' => patchday?(pg),
+#          'is_patch_day' => call_function('patching_as_code::is_patchday',
+#                                          patch_schedule[pg]['day_of_week'],
+#                                          patch_schedule[pg]['count_of_week'],
+#                                          pg),
         }
       end
       active_pg = pg_info.reduce(nil) do |memo, value|
@@ -193,5 +194,9 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
   # return the number of seconds between two time objects
   def calc_duration(start_time, end_time)
     end_time - start_time
+  end
+
+  def patchday?(patch_group)
+    patch_group
   end
 end
