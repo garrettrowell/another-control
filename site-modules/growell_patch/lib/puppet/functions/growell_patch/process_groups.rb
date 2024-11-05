@@ -157,7 +157,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     end_arr      = window_end.split(':')
     end_hour     = end_arr[0]
     end_min      = end_arr[1]
-    DAYS_MAPPING = {
+    day_map = {
     'Sunday' => 0,
     'Monday' => 1,
     'Tuesday' => 2,
@@ -170,7 +170,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
       'start_time'   => Time.new(time_now.year, time_now.month, time_now.day, start_hour, start_min),
       'end_time'     => Time.new(time_now.year, time_now.month, time_now.day, end_hour, end_min),
       'current_time' => Time.new(time_now.year, time_now.month, time_now.day, time_now.hour, time_now.min),
-      'patch week day' => (DAYS_MAPPING[patch_schedule['day_of_week']] - Date.new(time_now.year, time_now.month, 1).wday) % 7 + (patch_schedule['count_of_week'] -1) * 7 + 1
+      'patch week day' => (day_map[patch_schedule['day_of_week']] - Date.new(time_now.year, time_now.month, 1).wday) % 7 + (patch_schedule['count_of_week'] -1) * 7 + 1
     }
   end
 
