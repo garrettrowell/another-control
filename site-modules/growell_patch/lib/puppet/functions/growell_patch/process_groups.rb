@@ -10,6 +10,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     # Time object used throughout
     time_now = Time.now
     cur_time = 0 # this is debug only and should get removed
+    pg_info = 'blah' # this is debug only and should get removed
     # Normal Patch Defaults
     bool_patch_day         = false
     in_patch_window        = false
@@ -142,6 +143,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
       ].max.floor,
       'cur_time' => cur_time, # this is debug only and should get removed
       'time_now' => time_now, # this is debug only and should get removed
+      'pg_info'  => pg_info,  # this is debug only and should get removed
     }
   end
 
