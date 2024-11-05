@@ -210,6 +210,6 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     is_before     = before?((parsed_window['start_time'] - (60*60*12)), parsed_window['current_time'])
     is_after      = after?(parsed_window['current_time'], (parsed_window['end_time'] + (60*60*12)))
     is_between    = in_window(parsed_window)
-    is_before || is_after || is_between
+    is_before || is_after # || is_between
   end
 end
