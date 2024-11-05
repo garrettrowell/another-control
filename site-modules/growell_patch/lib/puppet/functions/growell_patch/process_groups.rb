@@ -166,11 +166,11 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     'Friday' => 5,
     'Saturday' => 6
     }
+    week_day_to_patch = (day_map[patch_schedule['day_of_week']] - Date.new(time_now.year, time_now.month, 1).wday) % 7 + (patch_schedule['count_of_week'] -1) * 7 + 1
     {
-      'start_time'   => Time.new(time_now.year, time_now.month, time_now.day, start_hour, start_min),
-      'end_time'     => Time.new(time_now.year, time_now.month, time_now.day, end_hour, end_min),
+      'start_time'   => Time.new(time_now.year, time_now.month, week_day_to_patch, start_hour, start_min),
+      'end_time'     => Time.new(time_now.year, time_now.month, week_day_to_patch, end_hour, end_min),
       'current_time' => Time.new(time_now.year, time_now.month, time_now.day, time_now.hour, time_now.min),
-      'patch week day' => (day_map[patch_schedule['day_of_week']] - Date.new(time_now.year, time_now.month, 1).wday) % 7 + (patch_schedule['count_of_week'] -1) * 7 + 1
     }
   end
 
@@ -210,7 +210,10 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
   def patchday?(patch_group, patch_schedule, time_now)
 #    {'pg' => patch_group, 'ps' => patch_schedule, 'tn' => time_now }
     parsed_window = parse_window(patch_schedule, time_now)
-    is_before = before?((parsed_window['start_time'] -(60*60*24)), parsed_window['current_time'])
+    is_before = before?((parsed_window['start_time'] - (60*60*12)), parsed_window['current_time'])
+    is_after = after?(parsed_window['current_time'], (parsed_window['end_time'] + (60*60*12)))
+    is_before or is_after
+
 #    { 'ps' => patch_schedule, 'is_before' => is_before }
   end
 
