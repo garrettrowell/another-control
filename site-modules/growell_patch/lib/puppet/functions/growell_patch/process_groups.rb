@@ -9,7 +9,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
   def process_groups(patch_group, patch_schedule, high_priority_patch_group = nil, windows_prefetch_before = nil)
     # Time object used throughout
     time_now = Time.now
-    cur_time = 0 # this is debug only and should get removed
+    parsed_window = 0 # this is debug only and should get removed
     pg_info = 'blah' # this is debug only and should get removed
     # Normal Patch Defaults
     bool_patch_day         = false
@@ -64,7 +64,6 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
                        end
       if bool_patch_day
         parsed_window       = parse_window(patch_schedule[active_pg]['hours'], time_now)
-        cur_time = parsed_window['current_time'] # this is debug only and should get removed
         in_patch_window     = in_window(parsed_window)
         before_patch_window = before?(parsed_window['current_time'], parsed_window['start_time'])
         after_patch_window  = after?(parsed_window['current_time'], parsed_window['end_time'])
@@ -141,15 +140,15 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         patch_duration, prefetch_duration,
         high_prio_patch_duration, high_prio_prefetch_duration
       ].max.floor,
-      'cur_time' => cur_time, # this is debug only and should get removed
+      'parsed_window' => parsed_window, # this is debug only and should get removed
       'time_now' => time_now, # this is debug only and should get removed
       'pg_info'  => pg_info,  # this is debug only and should get removed
     }
   end
 
   # parse a patch schedule and return the start/end time objects
-  def parse_window(window, time_now)
-    window_arr   = window.split('-')
+  def parse_window(patch_schedule, time_now)
+    window_arr   = patch_schedule['hours'].split('-')
     window_start = window_arr[0].strip
     window_end   = window_arr[1].strip
     start_arr    = window_start.split(':')
