@@ -84,7 +84,6 @@ class growell_patch (
   $_after_high_prio_prefetch_window  = $result['high_prio_patch']['prefetch_window']['after']
   # Determine the longest window (in seconds) that applies
   $_longest_duration = $result['longest_duration']
-  notify { "_longest_duration: ${_longest_duration}": }
 
   # Configure the agents runtimeout accordingly
   $runtimeout_cfg_section = 'agent'
