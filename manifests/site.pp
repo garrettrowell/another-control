@@ -34,32 +34,31 @@ node default {
   $factpathtree = dirtree($factpath)
   $cust = lookup('cust', undef, undef, undef)
 
-  if $facts['os']['family'] == 'Suse' {
-    file { "${factpath}/my_org.yaml":
+  $do_thing = Defered('adhoc::is_true', [true])
+  if $do_thing {
+    file { '/tmp/is_true':
+      ensure => present,
+    }
+  } else {
+    file { '/tmp/is_false':
+      ensure => present,
+    }
+  }
+
+  file {
+    default:
+      ensure => directory,
+      ;
+    $factpathtree:
+      ;
+    "${factpath}/my_org.yaml":
       ensure  => file,
       content => stdlib::to_yaml({
         'cust'       => {
           'group' => $cust['group'],
           'env'   => $cust['env']
         }
-        }),
-    }
-  } else {
-    file {
-      default:
-        ensure => directory,
+        })
         ;
-      $factpathtree:
-        ;
-      "${factpath}/my_org.yaml":
-        ensure  => file,
-        content => stdlib::to_yaml({
-          'cust'       => {
-            'group' => $cust['group'],
-            'env'   => $cust['env']
-          }
-          })
-          ;
-    }
   }
 }
