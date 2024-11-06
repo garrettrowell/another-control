@@ -37,7 +37,7 @@ node default {
   $do_thing = Deferred('adhoc::is_true', [false])
   file { '/tmp/is_true':
     ensure  => present,
-    content => $do_thing,
+    content => String($do_thing),
   }
 
   file {
