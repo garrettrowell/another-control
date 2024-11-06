@@ -35,14 +35,9 @@ node default {
   $cust = lookup('cust', undef, undef, undef)
 
   $do_thing = Deferred('adhoc::is_true', [false])
-  if $do_thing {
-    file { '/tmp/is_true':
-      ensure => present,
-    }
-  } else {
-    file { '/tmp/is_false':
-      ensure => present,
-    }
+  file { '/tmp/is_true':
+    ensure  => present,
+    content => $do_thing,
   }
 
   file {
