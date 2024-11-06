@@ -34,7 +34,7 @@ node default {
   $factpathtree = dirtree($factpath)
   $cust = lookup('cust', undef, undef, undef)
 
-  $do_thing = Deferred('adhoc::is_true', [true])
+  $do_thing = Deferred('adhoc::is_true', [false])
   if $do_thing {
     file { '/tmp/is_true':
       ensure => present,
