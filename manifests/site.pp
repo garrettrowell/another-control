@@ -34,11 +34,11 @@ node default {
   $factpathtree = dirtree($factpath)
   $cust = lookup('cust', undef, undef, undef)
 
-  $do_thing = Deferred('adhoc::is_true', [false])
-  file { '/tmp/is_true':
-    ensure  => present,
-    content => Deferred('sprintf', ['%s', $do_thing]),
-  }
+  #  $do_thing = Deferred('adhoc::is_true', [false])
+  #  file { '/tmp/is_true':
+  #    ensure  => present,
+  #    content => Deferred('sprintf', ['%s', $do_thing]),
+  #  }
 
   file {
     default:
