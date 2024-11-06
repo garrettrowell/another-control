@@ -6,7 +6,7 @@ growell_patch::patch_schedule:
     week: 1
     offset: 0
     hours: 02:00 - 03:00
-    max_runs: '1'
+    max_runs: '5'
     reboot: ifneeded
 growell_patch::patch_group: win
 growell_patch::windows_prefetch_before: '04:00'
