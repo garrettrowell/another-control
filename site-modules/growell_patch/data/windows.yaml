@@ -5,7 +5,7 @@ growell_patch::patch_schedule:
 #    week: 4
     week: 1
     offset: 0
-    hours: 23:40 - 23:59
+    hours: 18:40 - 18:59
     max_runs: '1'
     reboot: ifneeded
 growell_patch::patch_group: win
