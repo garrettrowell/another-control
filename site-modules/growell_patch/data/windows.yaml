@@ -5,11 +5,11 @@ growell_patch::patch_schedule:
 #    week: 4
     week: 1
     offset: 0
-    hours: 20:30 - 22:30
+    hours: 18:30 - 20:30
     max_runs: '1'
     reboot: ifneeded
 growell_patch::patch_group: win
 growell_patch::windows_prefetch_before: '02:00'
 growell_patch::enable_patching: true
-#growell_patch::wsus_url: 'https://my-wsus-server.corp.int:1234'
+growell_patch::wsus_url: 'https://my-wsus-server.corp.int:1234'
 # common data for windows nodes
