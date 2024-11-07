@@ -41,7 +41,8 @@ node default {
   #  }
 
   if $facts['kernel'] == 'windows' {
-    registry_value { 'HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\AU\UseWUServer':
+    registry_value { 'UseWUServer':
+      path   => 'HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\AU\UseWUServer',
       ensure => present,
       type   => dword,
       data   => 0,
