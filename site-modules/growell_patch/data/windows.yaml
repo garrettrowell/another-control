@@ -11,4 +11,5 @@ growell_patch::patch_schedule:
 growell_patch::patch_group: win
 growell_patch::windows_prefetch_before: '02:00'
 growell_patch::enable_patching: true
+growell_patch::wsus_url: 'https://my-wsus-server.corp.int:1234'
 # common data for windows nodes
