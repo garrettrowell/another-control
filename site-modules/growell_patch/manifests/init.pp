@@ -479,6 +479,7 @@ class growell_patch (
             exec { "prefetch ${kb}":
               command  => "Get-WindowsUpdate -KBArticleID ${kb} -Download -AcceptAll",
               provider => 'powershell',
+              unless   => epp("${module_name}/kb_is_prefetched.ps1.epp", { 'kb' => $kb}),
               timeout  => 14400,
             }
           }
