@@ -473,6 +473,7 @@ class growell_patch (
           data   => $wsus_url,
           tag    => ["${module_name}-WUServer", "${module_name}_reg"],
           before => Class['patching_as_code'],
+          notify => Service['wuauserv'],
         }
 
         if (defined(Registry_value['UseWUServer']) or defined(Registry_value["${_au_base_reg}\\UseWUServer"])) {
@@ -480,6 +481,7 @@ class growell_patch (
             data   => 1,
             tag    => ["${module_name}-UseWUServer", "${module_name}_reg"],
             before => Class['patching_as_code'],
+            notify => Service['wuauserv'],
           }
         } else {
           registry_value { "${_au_base_reg}\\UseWUServer":
@@ -488,6 +490,14 @@ class growell_patch (
             data   => 1,
             tag    => ["${module_name}-UseWUServer", "${module_name}_reg"],
             before => Class['patching_as_code'],
+            notify => Service['wuauserv'],
+          }
+        }
+
+        unless defined(Service['wuauserv']) {
+          service { 'wuauserv':
+            enable => true,
+            ensure => running,
           }
         }
 
