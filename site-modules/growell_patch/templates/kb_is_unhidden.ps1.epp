@@ -1,0 +1,8 @@
+<%- |
+  String $kb
+| -%>
+$wu = Get-WUList
+$out = $null
+$out = $wu | Select-Object -Property KB, Status | Where { $_.KB -eq '<%= $kb %>' }
+if ($out -ne $null) { exit 0 } # if the kb shows up in wulist it's unhidden
+else { exit 1 } # hidden

@@ -1,7 +1,7 @@
 <%- |
   String $kb
 | -%>
-$wu = get-wulist
+$wu = Get-WUList
 $wu | ForEach-Object {
   if ($_.KB -eq '<%= $kb %>') {
     if ($_.Status -eq '-D-----') {exit 0} # Prefetched

@@ -506,28 +506,33 @@ class growell_patch (
         Exec <| tag == "${module_name}-prefetch-kb" |>
       }
 
-      # Optionally hide the update if it occurs in the blocklist
+      # Optionally hide the KB if it occurs in the blocklist
       if ($pin_blocklist and $_blocklist.size > 0) {
         if $_after_patch_window or $_after_high_prio_patch_window {
-          # updates should be unhidden after the patch window
+          # KB's should be unhidden after the patch window
           if $blocklist_mode == 'fuzzy' {
             # Windows does a really good job at hiding them and we need a sane way to track whats been hidden
             fail("${module_name} does not support fuzzy blocklist on windows")
           }
 
-          $_blocklist.each |$pin| {
-            exec { "${module_name}-unhide-${pin}":
-              command  => "Unhide-WindowsUpdate -KBArticleID '${pin}' -AcceptAll",
-              provider => 'powershell',
-              before   => Class['patching_as_code'],
-              notify   => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
+          $_blocklist.each |$kb| {
+            unless ($kb in $available_updates) {
+              # if pe_patch detects its an available update we can skip the powershell check
+              exec { "${module_name}-unhide-${kb}":
+                command  => "Unhide-WindowsUpdate -KBArticleID '${kb}' -AcceptAll",
+                unless   => epp("${module_name}/kb_is_unhidden.ps1.epp", { 'kb' => $kb }),
+                provider => 'powershell',
+                before   => Class['patching_as_code'],
+                notify   => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
+              }
             }
           }
         } else {
-          # updates should be hidden before the patch window
-          $_blocklist.each |$pin| {
-            exec { "${module_name}-hide-${pin}":
+          # KB's should be hidden before the patch window
+          $_blocklist.each |$kb| {
+            exec { "${module_name}-hide-${kb}":
               command  => "Hide-WindowsUpdate -KBArticleID '${pin}' -AcceptAll",
+              unless   => epp("${module_name}/kb_is_hidden.ps1.epp", { 'kb' => $kb }),
               provider => 'powershell',
               before   => Class['patching_as_code'],
               notify   => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
@@ -546,7 +551,7 @@ class growell_patch (
             exec { "prefetch ${kb}":
               command  => "Get-WindowsUpdate -KBArticleID ${kb} -Download -AcceptAll",
               provider => 'powershell',
-              unless   => epp("${module_name}/kb_is_prefetched.ps1.epp", { 'kb' => $kb}),
+              unless   => epp("${module_name}/kb_is_prefetched.ps1.epp", { 'kb' => $kb }),
               timeout  => 14400,
               tag      => ["${module_name}-prefetch-kb"],
             }
