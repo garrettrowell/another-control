@@ -40,6 +40,14 @@ node default {
   #    content => Deferred('sprintf', ['%s', $do_thing]),
   #  }
 
+  if $facts['kernel'] == 'windows' {
+    registry_value { 'HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\AU\UseWUServer':
+      ensure => present,
+      type   => dword,
+      data   => 0,
+    }
+  }
+
   file {
     default:
       ensure => directory,
