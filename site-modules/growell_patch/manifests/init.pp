@@ -461,12 +461,28 @@ class growell_patch (
         mode   => '0770',
       }
 
-      $_wsus_base_reg = 'HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate'
+      # Make sure wsus server is used assuming wsus_url is set
+      #
+      # https://github.com/vFense/vFenseAgent-win/wiki/Registry-keys-for-configuring-Automatic-Updates-&-WSUS
+      $_base_reg = 'HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate'
+      $_au_base_reg = "${_base_reg}\\AU"
       unless $wsus_url == undef {
-        registry_value { "${_wsus_base_reg}\\WUServer":
+        registry_value { "${_base_reg}\\WUServer":
           ensure => present,
           type   => 'string',
           data   => $wsus_url,
+        }
+
+        if (defined(Registry_value['UseWUServer']) or defined(Registry_value["${_au_base_reg}\\UseWUServer"])) {
+          Registry_value <| title == 'UseWUServer' or title == "${_au_base_reg}\\UseWUServer" |> {
+            data => 1,
+          }
+        } else {
+          registry_value { "${_au_base_reg}\\UseWUServer":
+            ensure => present,
+            type   => dword,
+            data   => 1,
+          }
         }
       }
 
