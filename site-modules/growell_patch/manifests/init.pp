@@ -506,6 +506,37 @@ class growell_patch (
         Exec <| tag == "${module_name}-prefetch-kb" |>
       }
 
+      # Optionally hide the update if it occurs in the blocklist
+      if ($pin_blocklist and $_blocklist.size > 0) {
+        if $_after_patch_window or $_after_high_prio_patch_window {
+          # updates should be unhidden after the patch window
+          if $blocklist_mode == 'fuzzy' {
+            # Windows does a really good job at hiding them and we need a sane way to track whats been hidden
+            fail("${module_name} does not support fuzzy blocklist on windows")
+          }
+
+          $_blocklist.each |$pin| {
+            exec { "${module_name}-unhide-${pin}":
+              command  => "Unhide-WindowsUpdate -KBArticleID ${pin}",
+              provider => 'powershell',
+              before   => Class['patching_as_code'],
+              notify   => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
+            }
+          }
+        }
+      } else {
+        # updates should be hidden before the patch window
+        $_blocklist.each |$pin| {
+          exec { "${module_name}-hide-${pin}":
+            command  => "Hide-WindowsUpdate -KBArticleID ${pin}",
+            provider => 'powershell',
+            before   => Class['patching_as_code'],
+            notify   => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
+          }
+        }
+      }
+
+      # Prefetch update(s) if a prefetch window is defined and we are within said window
       unless ($windows_prefetch_before == undef) {
         if ($_in_prefetch_window or $_in_high_prio_prefetch_window) {
           # Need to determine what patches need to be downloaded and passed to Get-WindowsUpdate
