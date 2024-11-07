@@ -471,19 +471,29 @@ class growell_patch (
           ensure => present,
           type   => 'string',
           data   => $wsus_url,
+          tag    => ["${module_name}-WUServer", "${module_name}_reg"],
+          before => Class['patching_as_code'],
         }
 
         if (defined(Registry_value['UseWUServer']) or defined(Registry_value["${_au_base_reg}\\UseWUServer"])) {
           Registry_value <| title == 'UseWUServer' or title == "${_au_base_reg}\\UseWUServer" |> {
-            data => 1,
+            data   => 1,
+            tag    => ["${module_name}-UseWUServer", "${module_name}_reg"],
+            before => Class['patching_as_code'],
           }
         } else {
           registry_value { "${_au_base_reg}\\UseWUServer":
             ensure => present,
             type   => dword,
             data   => 1,
+            tag    => ["${module_name}-UseWUServer", "${module_name}_reg"],
+            before => Class['patching_as_code'],
           }
         }
+
+        # Ensure wsus settings get applied before any prefetch
+        Registry_value <| tag == "${module_name}_reg" |> ->
+        Exec <| tag == "${module_name}-prefetch-kb" |>
       }
 
       unless ($windows_prefetch_before == undef) {
@@ -497,6 +507,7 @@ class growell_patch (
               provider => 'powershell',
               unless   => epp("${module_name}/kb_is_prefetched.ps1.epp", { 'kb' => $kb}),
               timeout  => 14400,
+              tag      => ["${module_name}-prefetch-kb"],
             }
           }
         }
