@@ -36,6 +36,9 @@ fixtures:
     yum:
       repo: 'puppet/yum'
       ref: '7.1.0'
+    registry:
+      repo: 'puppetlabs/registry'
+      ref: '5.0.1'
   repositories:
     patching_as_code:
       repo: 'https://github.com/garrettrowell/puppetlabs-patching_as_code.git'
