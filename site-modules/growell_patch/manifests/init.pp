@@ -691,6 +691,9 @@ class growell_patch (
       ;
   }
 
+  # Make sure if the fact gets refreshed, it happens before upload
+  Exec['pe_patch::exec::fact'] -> Exec['pe_patch::exec::fact_upload']
+
   # Finally we have the information to pass to 'patching_as_code'
   class { 'patching_as_code':
     classify_pe_patch         => true,
