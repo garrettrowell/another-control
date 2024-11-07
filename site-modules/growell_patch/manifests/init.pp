@@ -517,7 +517,7 @@ class growell_patch (
 
           $_blocklist.each |$pin| {
             exec { "${module_name}-unhide-${pin}":
-              command  => "Unhide-WindowsUpdate -KBArticleID '${pin}'",
+              command  => "Unhide-WindowsUpdate -KBArticleID '${pin}' -AcceptAll",
               provider => 'powershell',
               before   => Class['patching_as_code'],
               notify   => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
@@ -527,7 +527,7 @@ class growell_patch (
           # updates should be hidden before the patch window
           $_blocklist.each |$pin| {
             exec { "${module_name}-hide-${pin}":
-              command  => "Hide-WindowsUpdate -KBArticleID '${pin}'",
+              command  => "Hide-WindowsUpdate -KBArticleID '${pin}' -AcceptAll",
               provider => 'powershell',
               before   => Class['patching_as_code'],
               notify   => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
