@@ -63,18 +63,12 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         in_patch_window     = parsed_window['current_time'].between?(parsed_window['start_time'], parsed_window['end_time'])
         before_patch_window = parsed_window['current_time'] < parsed_window['start_time']
         after_patch_window  = parsed_window['current_time'] >= parsed_window['end_time']
-#        in_patch_window     = in_window(parsed_window)
-#        before_patch_window = before?(parsed_window['current_time'], parsed_window['start_time'])
-#        after_patch_window  = after?(parsed_window['current_time'], parsed_window['end_time'])
         patch_duration      = calc_duration(parsed_window['start_time'], parsed_window['end_time'])
         unless windows_prefetch_before.nil?
           parsed_prefetch        = parse_prefetch(windows_prefetch_before, parsed_window)
           in_prefetch_window     = parsed_window['current_time'].between?(parsed_prefetch, parsed_window['start_time'])
           before_prefetch_window = parsed_window['current_time'] < parsed_prefetch
           after_prefetch_window  = parsed_window['current_time'] >= parsed_window['start_time']
-#          in_prefetch_window     = in_prefetch(parsed_prefetch, parsed_window)
-#          before_prefetch_window = before?(parsed_window['current_time'], parsed_prefetch)
-#          after_prefetch_window  = after?(parsed_window['current_time'], parsed_prefetch)
           prefetch_duration      = calc_duration(parsed_prefetch, parsed_window['start_time'])
         end
       end
@@ -93,18 +87,12 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         in_high_prio_patch_window     = parsed_high_prio_patch_window['current_time'].between?(parsed_high_prio_patch_window['start_time'], parsed_high_prio_patch_window['end_time'])
         before_high_prio_patch_window = parsed_high_prio_patch_window['current_time'] < parsed_high_prio_patch_window['start_time']
         after_high_prio_patch_window  = parsed_high_prio_patch_window['current_time'] >= parsed_high_prio_patch_window['end_time']
-#        in_high_prio_patch_window     = in_window(parsed_high_prio_patch_window)
-#        before_high_prio_patch_window = before?(parsed_high_prio_patch_window['current_time'], parsed_high_prio_patch_window['start_time'])
-#        after_high_prio_patch_window  = after?(parsed_high_prio_patch_window['current_time'], parsed_high_prio_patch_window['end_time'])
         high_prio_patch_duration      = calc_duration(parsed_high_prio_patch_window['start_time'], parsed_high_prio_patch_window['end_time'])
         unless windows_prefetch_before.nil?
           parsed_high_prio_prefetch        = parse_prefetch(windows_prefetch_before, parsed_high_prio_patch_window)
           in_high_prio_prefetch_window     = parsed_high_prio_patch_window['current_time'].between?(parsed_high_prio_prefetch, parsed_high_prio_patch_window['start_time'])
           before_high_prio_prefetch_window = parsed_high_prio_patch_window['current_time'] < parsed_high_prio_prefetch
           after_high_prio_prefetch_window  = parsed_high_prio_patch_window['current_time'] >= parsed_window['start_time']
-#          in_high_prio_prefetch_window     = in_prefetch(parsed_high_prio_prefetch, parsed_high_prio_patch_window)
-#          before_high_prio_prefetch_window = before?(parsed_high_prio_patch_window['current_time'], parsed_high_prio_prefetch)
-#          after_high_prio_prefetch_window  = after?(parsed_high_prio_patch_window['current_time'], parsed_high_prio_prefetch)
           high_prio_prefetch_duration      = calc_duration(parsed_high_prio_prefetch, parsed_high_prio_patch_window['start_time'])
         end
       end
@@ -174,14 +162,9 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     {
       'start_time'   => Time.new(time_now.year, time_now.month, week_day_to_patch.to_s, start_hour, start_min),
       'end_time'     => Time.new(time_now.year, time_now.month, week_day_to_patch.to_s, end_hour, end_min),
-      'current_time' => Time.new(time_now.year, time_now.month, time_now.day, time_now.hour, time_now.min),
+      'current_time' => Time.new(time_now.year, time_now.month, time_now.day, time_now.hour, time_now.min, time_now.sec),
     }
   end
-
-#  # determine if we are within the provided window
-#  def in_window(parsed_window)
-#    parsed_window['current_time'].between?(parsed_window['start_time'], parsed_window['end_time'])
-#  end
 
   # parse a prefetch time and return the time object
   def parse_prefetch(prefetch_time, parsed_window)
@@ -190,21 +173,6 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     prefetch_min  = prefetch_arr[1].to_i * 60
     (parsed_window['start_time'] - prefetch_hour) - prefetch_min
   end
-
-#  # determine if we are within the provided prefetch window
-#  def in_prefetch(parsed_prefetch, parsed_window)
-#    parsed_window['current_time'].between?(parsed_prefetch, parsed_window['start_time'])
-#  end
-#
-#  # determine if a given time object occurs before another
-#  def before?(start_time, end_time)
-#    start_time < end_time
-#  end
-#
-#  # determine if a given time object occurs after another
-#  def after?(start_time, end_time)
-#    start_time > end_time
-#  end
 
   # return the number of seconds between two time objects
   def calc_duration(start_time, end_time)
@@ -222,7 +190,6 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     is_before     = parsed_window['current_time'].between?((parsed_window['start_time'] - (60*60*12)), parsed_window['start_time'])
     is_after      = parsed_window['current_time'].between?(parsed_window['end_time'], (parsed_window['end_time'] + (60*60*12)))
     is_between    = parsed_window['current_time'].between?(parsed_window['start_time'], parsed_window['end_time'])
-#    is_between    = in_window(parsed_window)
     is_before || is_after  || is_between
   end
 end
