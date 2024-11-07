@@ -531,7 +531,7 @@ class growell_patch (
           # KB's should be hidden before the patch window
           $_blocklist.each |$kb| {
             exec { "${module_name}-hide-${kb}":
-              command  => "Hide-WindowsUpdate -KBArticleID '${pin}' -AcceptAll",
+              command  => "Hide-WindowsUpdate -KBArticleID '${kb}' -AcceptAll",
               unless   => epp("${module_name}/kb_is_hidden.ps1.epp", { 'kb' => $kb }),
               provider => 'powershell',
               before   => Class['patching_as_code'],
