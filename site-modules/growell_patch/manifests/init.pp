@@ -523,15 +523,15 @@ class growell_patch (
               notify   => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
             }
           }
-        }
-      } else {
-        # updates should be hidden before the patch window
-        $_blocklist.each |$pin| {
-          exec { "${module_name}-hide-${pin}":
-            command  => "Hide-WindowsUpdate -KBArticleID ${pin}",
-            provider => 'powershell',
-            before   => Class['patching_as_code'],
-            notify   => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
+        } else {
+          # updates should be hidden before the patch window
+          $_blocklist.each |$pin| {
+            exec { "${module_name}-hide-${pin}":
+              command  => "Hide-WindowsUpdate -KBArticleID ${pin}",
+              provider => 'powershell',
+              before   => Class['patching_as_code'],
+              notify   => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
+            }
           }
         }
       }
