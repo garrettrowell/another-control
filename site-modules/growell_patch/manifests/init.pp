@@ -495,6 +495,8 @@ class growell_patch (
         }
 
         unless defined(Service['wuauserv']) {
+          # The windows update service needs be restarted in the event of registry changes
+          # Thus it needs to be in the catalog for our registry_value's to notify
           service { 'wuauserv':
             enable => true,
             ensure => running,
@@ -508,13 +510,13 @@ class growell_patch (
 
       # Optionally hide the KB if it occurs in the blocklist
       if ($pin_blocklist and $_blocklist.size > 0) {
+        if $blocklist_mode == 'fuzzy' {
+          # Windows does a really good job at hiding them and we need a sane way to track whats been hidden
+          fail("${module_name} does not support fuzzy blocklist on windows when ${module_name}::pin_blocklist = true")
+        }
+
         if $_after_patch_window or $_after_high_prio_patch_window {
           # KB's should be unhidden after the patch window
-          if $blocklist_mode == 'fuzzy' {
-            # Windows does a really good job at hiding them and we need a sane way to track whats been hidden
-            fail("${module_name} does not support fuzzy blocklist on windows")
-          }
-
           $_blocklist.each |$kb| {
             unless ($kb in $available_updates) {
               # if pe_patch detects its an available update we can skip the powershell check
