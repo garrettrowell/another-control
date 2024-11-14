@@ -10,8 +10,8 @@ hierarchy:
     paths:
       - "nodes/%{trusted.certname}.yaml"
       - "common.yaml"
-  - name: "compliance"
-    data_hash: yaml_data
-    paths:
-      - "compliance/%{kernel}/%{os.family}/%{os.release.major}.yaml"
-      - "compliance/%{kernel}/%{os.release.major}.yaml"
+- name: "compliance"
+  data_hash: yaml_data
+  paths:
+  - "compliance/%{kernel}/%{os.family}/%{os.release.major}.yaml"
+  - "compliance/%{kernel}/%{os.release.major}.yaml"
