@@ -25,6 +25,10 @@ mod 'patching_as_code',
   git: 'git@github.com:garrettrowell/puppetlabs-patching_as_code.git',
   branch: 'modify'
 
+mod 'sce_windows',
+  git: 'git@github.com:puppetlabs/puppetlabs-sce_windows.git',
+  ref: 'v2.0.0'
+
 mod 'puppetlabs-stdlib', '9.6.0'
 #mod 'puppetlabs-patching_as_code', '2.0.0'
 mod 'puppetlabs-puppet_agent', '4.21.0'
@@ -37,5 +41,8 @@ mod 'puppetlabs-apt', '9.4.0'
 mod 'puppet-yum', '7.1.0'
 mod 'puppetlabs-concat', '9.0.2'
 mod 'puppetlabs-registry', '5.0.1'
+mod 'dsc-networkingdsc', '9.0.0-0-8'
+mod 'dsc-auditpolicydsc', '1.4.0-0-9'
+mod 'dsc-securitypolicydsc', '2.10.0-0-9'
 
 #mod 'puppet-zypprepo', '5.0.0'
