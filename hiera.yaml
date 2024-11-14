@@ -5,11 +5,11 @@ defaults:
   datadir: "data"
 
 hierarchy:
-  - name: "Yaml backend"
-    data_hash: yaml_data
-    paths:
-      - "nodes/%{trusted.certname}.yaml"
-      - "common.yaml"
+#  - name: "Yaml backend"
+#    data_hash: yaml_data
+#    paths:
+#      - "nodes/%{trusted.certname}.yaml"
+#      - "common.yaml"
 - name: "compliance"
   data_hash: yaml_data
   paths:

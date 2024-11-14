@@ -25,44 +25,44 @@ File { backup => false }
 #
 # For more on node definitions, see: https://puppet.com/docs/puppet/latest/lang_node_definitions.html
 node default {
-  $factpath = $facts['kernel'] ? {
-    'windows' => 'C:\\ProgramData\\PuppetLabs\\facter\\facts.d',
-    'Linux'   => '/etc/puppetlabs/facter/facts.d',
-    default   => fail('Unsuported Kernel')
-  }
-
-  $factpathtree = dirtree($factpath)
-  $cust = lookup('cust', undef, undef, undef)
-
-  #  $do_thing = Deferred('adhoc::is_true', [false])
-  #  file { '/tmp/is_true':
-  #    ensure  => present,
-  #    content => Deferred('sprintf', ['%s', $do_thing]),
+  #  $factpath = $facts['kernel'] ? {
+  #    'windows' => 'C:\\ProgramData\\PuppetLabs\\facter\\facts.d',
+  #    'Linux'   => '/etc/puppetlabs/facter/facts.d',
+  #    default   => fail('Unsuported Kernel')
   #  }
-
-  if $facts['kernel'] == 'windows' {
-    registry_value { 'UseWUServer':
-      path   => 'HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\AU\UseWUServer',
-      ensure => present,
-      type   => dword,
-      data   => 0,
-    }
-  }
-
-  file {
-    default:
-      ensure => directory,
-      ;
-    $factpathtree:
-      ;
-    "${factpath}/my_org.yaml":
-      ensure  => file,
-      content => stdlib::to_yaml({
-        'cust'       => {
-          'group' => $cust['group'],
-          'env'   => $cust['env']
-        }
-        })
-        ;
-  }
+  #
+  #  $factpathtree = dirtree($factpath)
+  #  $cust = lookup('cust', undef, undef, undef)
+  #
+  #  #  $do_thing = Deferred('adhoc::is_true', [false])
+  #  #  file { '/tmp/is_true':
+  #  #    ensure  => present,
+  #  #    content => Deferred('sprintf', ['%s', $do_thing]),
+  #  #  }
+  #
+  #  if $facts['kernel'] == 'windows' {
+  #    registry_value { 'UseWUServer':
+  #      path   => 'HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\AU\UseWUServer',
+  #      ensure => present,
+  #      type   => dword,
+  #      data   => 0,
+  #    }
+  #  }
+  #
+  #  file {
+  #    default:
+  #      ensure => directory,
+  #      ;
+  #    $factpathtree:
+  #      ;
+  #    "${factpath}/my_org.yaml":
+  #      ensure  => file,
+  #      content => stdlib::to_yaml({
+  #        'cust'       => {
+  #          'group' => $cust['group'],
+  #          'env'   => $cust['env']
+  #        }
+  #        })
+  #        ;
+  #  }
 }
