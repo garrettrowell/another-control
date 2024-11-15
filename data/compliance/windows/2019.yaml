@@ -1,7 +1,7 @@
 sce_windows::framework: 'cis'
 sce_windows::config:
-  profile: 'member_server'
-  level: '1'
-  only:
-  - 'ensure_enforce_password_history_is_set_to_24_or_more_passwords'
-  - 'ensure_audit_mpssvc_rule_level_policy_change_is_set_to_success_and_failure'
+	profile: 'member_server'
+	level: '1'
+	only:
+	- 'ensure_enforce_password_history_is_set_to_24_or_more_passwords'
+	- 'ensure_audit_mpssvc_rule_level_policy_change_is_set_to_success_and_failure'
