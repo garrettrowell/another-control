@@ -12,7 +12,7 @@ plan growell_patch::schedule_selfservice(
   run_plan('facts', 'targets' => $targets)
 
   # custom fact name
-  $cust_fact = 'growell_patch_override'
+  $_override_fact = 'growell_patch_override'
 
   # manage fact file
   $results = apply($targets) {
@@ -21,12 +21,12 @@ plan growell_patch::schedule_selfservice(
       'permanent' => 'permanent',
       'temporary' => Timestamp.new(),
     }
-    $fpath = join([$fdir, "${cust_fact}.json"], '/')
+    $fpath = join([$fdir, "${_override_fact}.json"], '/')
     file { $fpath:
       ensure  => present,
       content => to_json_pretty(
         {
-          $cust_fact => {
+          $_override_fact => {
             'day'             => $day,
             'week'            => $week,
             'offset'          => $offset,
