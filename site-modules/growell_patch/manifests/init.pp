@@ -49,7 +49,7 @@ class growell_patch (
   # Allow self service overrides
   if $facts['growell_patch_override'] {
     notify { "using custom override: ${facts['growell_patch_override']}": }
-    $_patch__group = 'override'
+    $_patch_group = 'override'
 
     $_patch_schedule = {
       $_patch_group =>  {
