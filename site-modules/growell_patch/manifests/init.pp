@@ -46,18 +46,23 @@ class growell_patch (
   Optional[String[1]]                            $windows_prefetch_before   = undef,
   Optional[Stdlib::HTTPUrl]                      $wsus_url                  = undef,
 ) {
-  # Convert our custom schedule into the form expected by patching_as_code.
-  #
-  # Using the growell_patch::calc_patchday function we are able to determine the 'day_of_week'
-  #   and 'count_of_week' based off of our 'day', 'week', and 'offset' params.
-  $_patch_schedule = $patch_schedule.reduce({}) |$memo, $x| {
-    $memo + {
-      $x[0] => {
-        'day_of_week'   => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['day_of_week'],
-        'count_of_week' => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['count_of_week'],
-        'hours'         => $x[1]['hours'],
-        'max_runs'      => $x[1]['max_runs'],
-        'reboot'        => $x[1]['reboot'],
+  # Allow self service overrides
+  if $facts['growell_patch_override'] {
+    notify { "using custom override: ${facts['growell_patch_override']}": }
+  } else {
+    # Convert our custom schedule into the form expected by patching_as_code.
+    #
+    # Using the growell_patch::calc_patchday function we are able to determine the 'day_of_week'
+    #   and 'count_of_week' based off of our 'day', 'week', and 'offset' params.
+    $_patch_schedule = $patch_schedule.reduce({}) |$memo, $x| {
+      $memo + {
+        $x[0] => {
+          'day_of_week'   => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['day_of_week'],
+          'count_of_week' => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['count_of_week'],
+          'hours'         => $x[1]['hours'],
+          'max_runs'      => $x[1]['max_runs'],
+          'reboot'        => $x[1]['reboot'],
+        }
       }
     }
   }
