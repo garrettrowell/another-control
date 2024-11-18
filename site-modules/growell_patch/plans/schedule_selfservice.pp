@@ -1,8 +1,8 @@
 plan growell_patch::schedule_selfservice(
   TargetSpec $targets,
 ) {
-  # install agent if needed, collect facts
-  apply_prep($targets)
+  # collect facts
+  run_plan('facts', 'targets' => $targets)
 
   # manage fact file
   $results = apply($targets) {
