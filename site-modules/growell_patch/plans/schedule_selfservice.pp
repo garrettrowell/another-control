@@ -6,6 +6,7 @@ plan growell_patch::schedule_selfservice(
   String[1] $hours,
   Optional[Integer] $max_runs = 1,
   Optional[String[1]] $reboot = 'ifneeded',
+  Enum['permanent','temporary'] $valid_for,
 ) {
   # collect facts
   run_plan('facts', 'targets' => $targets)
@@ -13,22 +14,23 @@ plan growell_patch::schedule_selfservice(
   # manage fact file
   $results = apply($targets) {
     $fdir = "${facts['puppet_vardir']}/../../facter/facts.d"
-    #    $fdir = $facts['kernel'] ? {
-    #      'Linux'   => ${facts['puppet_vardir']}/../../facter/facts.d",
-    #      'windows' => 'C:/ProgramData/PuppetLabs/facter/facts.d'
-    #    }
+    $_valid = $valid_for ? {
+      'permanent' => 'permanent',
+      'temporary' => Timestamp.new(),
+    }
     $fpath = join([$fdir, 'growell_patch_override.json'], '/')
     file { $fpath:
       ensure  => present,
       content => to_json_pretty(
         {
           'growell_patch_override' => {
-            'day'      => $day,
-            'week'     => $week,
-            'offset'   => $offset,
-            'hours'    => $hours,
-            'max_runs' => $max_runs,
-            'reboot'   => $reboot,
+            'day'       => $day,
+            'week'      => $week,
+            'offset'    => $offset,
+            'hours'     => $hours,
+            'max_runs'  => $max_runs,
+            'reboot'    => $reboot,
+            'valid_for' => $_valid,
           }
         }
       ),
