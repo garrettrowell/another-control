@@ -1,3 +1,5 @@
+#!/opt/puppetlabs/puppet/bin/ruby
+
 require_relative "../../ruby_task_helper/files/task_helper.rb"
 
 class MyClass < TaskHelper
