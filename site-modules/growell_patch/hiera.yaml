@@ -12,3 +12,10 @@ hierarchy:
       - "%{cust.group}/%{cust.env}.yaml"
       - "%{cust.group}.yaml"
       - "%{kernel}.yaml"
+  - name: 'proposed patching'
+    paths:
+      - "nodes/%{trusted.certname}.yaml"
+      - "environments/%{environment}/%{az_metadata.compute.zone}.yaml"
+      - "environments/%{environment}/0.yaml"
+      - "environments/%{environment}/%{os.name}.yaml"
+      - "environments/%{environment}.yaml"
