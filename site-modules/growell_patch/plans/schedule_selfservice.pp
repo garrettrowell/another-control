@@ -8,6 +8,7 @@ plan growell_patch::schedule_selfservice(
   Optional[Integer] $max_runs = 1,
   Optional[String[1]] $reboot = 'ifneeded',
 ) {
+  $m_name = $module_name
   # collect facts
   run_plan('facts', 'targets' => $targets)
 
@@ -18,12 +19,12 @@ plan growell_patch::schedule_selfservice(
       'permanent' => 'permanent',
       'temporary' => Timestamp.new(),
     }
-    $fpath = join([$fdir, "${module_name}_override.json"], '/')
+    $fpath = join([$fdir, "${m_name}_override.json"], '/')
     file { $fpath:
       ensure  => present,
       content => to_json_pretty(
         {
-          "${module_name}_override" => {
+          "${m_name}_override" => {
             'day'             => $day,
             'week'            => $week,
             'offset'          => $offset,
