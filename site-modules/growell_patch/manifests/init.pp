@@ -70,6 +70,8 @@ class growell_patch (
       }
     } else {
       # If temporary, check to see if it's applicable to the current month
+      $_temp_test = growell_patch::within_cur_month($facts['growell_patch_override']['valid_for_month'])
+      notify { "within month?: ${_temp_test}": }
     }
   } else {
     $_patch_group = $patch_group
