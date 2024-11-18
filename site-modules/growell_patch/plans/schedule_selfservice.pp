@@ -18,12 +18,12 @@ plan growell_patch::schedule_selfservice(
       'permanent' => 'permanent',
       'temporary' => Timestamp.new(),
     }
-    $fpath = join([$fdir, 'growell_patch_override.json'], '/')
+    $fpath = join([$fdir, "${module_name}_override.json"], '/')
     file { $fpath:
       ensure  => present,
       content => to_json_pretty(
         {
-          'growell_patch_override' => {
+          "${module_name}_override" => {
             'day'             => $day,
             'week'            => $week,
             'offset'          => $offset,
