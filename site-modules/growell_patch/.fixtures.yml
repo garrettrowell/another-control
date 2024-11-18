@@ -39,6 +39,9 @@ fixtures:
     registry:
       repo: 'puppetlabs/registry'
       ref: '5.0.1'
+    ruby_task_helper:
+      repo: 'puppetlabs/ruby_task_helper'
+      ref: '1.0.0'
   repositories:
     patching_as_code:
       repo: 'https://github.com/garrettrowell/puppetlabs-patching_as_code.git'

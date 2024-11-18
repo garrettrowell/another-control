@@ -44,5 +44,6 @@ mod 'puppetlabs-registry', '5.0.1'
 mod 'dsc-networkingdsc', '9.0.0-0-8'
 mod 'dsc-auditpolicydsc', '1.4.0-0-9'
 mod 'dsc-securitypolicydsc', '2.10.0-0-9'
+mod 'puppetlabs-ruby_task_helper', '1.0.0'
 
 #mod 'puppet-zypprepo', '5.0.0'

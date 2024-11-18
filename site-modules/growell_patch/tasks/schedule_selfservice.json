@@ -1,0 +1,11 @@
+{
+  "description": "Override configured schedule",
+  "input_method": "stdin",
+  "files": ["ruby_task_helper/files/task_helper.rb"],
+  "parameters": {
+    "name": {
+      "description": "simple test",
+      "type": "Optional[String[1]]"
+    }
+  }
+}
