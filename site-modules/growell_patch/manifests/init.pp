@@ -60,6 +60,13 @@ class growell_patch (
         'reboot'        => $facts['growell_patch_override']['reboot'],
       }
     }
+
+    $testing = Timestamp.new()
+    if $facts['growell_patch_override']['valid_for'] > $testing {
+      notify { "valid_for > ${testing}": }
+    } else {
+      notify { "valid_for < ${testing}": }
+    }
   } else {
     $_patch_group = $patch_group
     # Convert our custom schedule into the form expected by patching_as_code.
