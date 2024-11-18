@@ -6,3 +6,4 @@ growell_patch::post_check_script: 'growell_nonprod/Ubuntu/true.sh'
 growell_patch::pin_blocklist: true
 growell_patch::blocklist:
   - 'apache2*'
+growell_patch::blocklist_mode: 'fuzzy'
