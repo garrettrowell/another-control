@@ -6,12 +6,12 @@ defaults:  # Used for any hierarchy level that omits these keys.
   data_hash: yaml_data  # Use the built-in YAML backend.
 
 hierarchy:
-  - name: 'patching'
-    paths:
-      - "nodes/%{trusted.certname}.yaml"
-      - "%{cust.group}/%{cust.env}.yaml"
-      - "%{cust.group}.yaml"
-      - "%{kernel}.yaml"
+#  - name: 'patching'
+#    paths:
+#      - "nodes/%{trusted.certname}.yaml"
+#      - "%{cust.group}/%{cust.env}.yaml"
+#      - "%{cust.group}.yaml"
+#      - "%{kernel}.yaml"
   - name: 'proposed patching'
     paths:
       - "nodes/%{trusted.certname}.yaml"
