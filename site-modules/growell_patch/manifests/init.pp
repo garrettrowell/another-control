@@ -72,6 +72,23 @@ class growell_patch (
       # If temporary, check to see if it's applicable to the current month
       $_temp_test = growell_patch::within_cur_month($facts['growell_patch_override']['valid_for_month'])
       notify { "within month?: ${_temp_test}": }
+      $_patch_group = 'permanent_override'
+      $_patch_day = growell_patch::calc_patchday(
+        $facts['growell_patch_override']['day'],
+        $facts['growell_patch_override']['week'],
+        $facts['growell_patch_override']['offset']
+      )
+
+      $_patch_schedule = {
+        $_patch_group =>  {
+          'day_of_week'   => $_patch_day['day_of_week'],
+          'count_of_week' => $_patch_day['count_of_week'],
+          'hours'         => $facts['growell_patch_override']['hours'],
+          'max_runs'      => String($facts['growell_patch_override']['max_runs']),
+          'reboot'        => $facts['growell_patch_override']['reboot'],
+        }
+      }
+
     }
   } else {
     $_patch_group = $patch_group
