@@ -5,12 +5,16 @@ plan growell_patch::schedule_selfservice(
   apply_prep($targets)
 
   # manage fact file
-  apply($targets) {
+  $results = apply($targets) {
     notify { "factpath: ${facts['factpath']}": }
     #    $fpath = join([split($facts['factpath'], ':')[0], 'growell_patch_override.json'], '/')
     #    file { $fpath:
     #      ensure  => present,
     #      content => {'thing1' => 'imatest'},
     #    }
+  }
+
+  $results.each |$result| {
+    notice($result.report)
   }
 }
