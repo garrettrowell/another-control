@@ -1,10 +1,10 @@
 plan growell_patch::schedule_selfservice(
   TargetSpec $targets,
   String[1] $day,
-  String[1] $week,
-  String[1] $offset,
+  Integer $week,
+  Integer $offset,
   String[1] $hours,
-  Optional[String[1]] $max_runs = 1,
+  Optional[Integer] $max_runs = 1,
   Optional[String[1]] $reboot = 'ifneeded',
 ) {
   # collect facts
