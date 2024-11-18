@@ -1,0 +1,10 @@
+---
+
+growell_patch::patch_schedule:
+  mydept_custom_wave0:
+    day: 'Tuesday'
+    week: 2
+    offset: 0
+    hours: 16:00 - 17:00
+    max_runs: '1'
+    reboot: ifneeded

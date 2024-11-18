@@ -1,0 +1,9 @@
+---
+growell_patch::patch_schedule:
+  corp_ent_nonprod_01:
+    day: 'Wednesday'
+    week: 1
+    offset: 1
+    hours: 15:00 - 16:00
+    max_runs: 2
+    reboot: always

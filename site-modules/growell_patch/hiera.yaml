@@ -6,9 +6,37 @@ defaults:  # Used for any hierarchy level that omits these keys.
   data_hash: yaml_data  # Use the built-in YAML backend.
 
 hierarchy:
-  - name: 'patching'
+#  - name: 'patching'
+#    paths:
+#      - "nodes/%{trusted.certname}.yaml"
+#      - "%{cust.group}/%{cust.env}.yaml"
+#      - "%{cust.group}.yaml"
+#      - "%{kernel}.yaml"
+  - name: 'patch-policies'
     paths:
-      - "nodes/%{trusted.certname}.yaml"
-      - "%{cust.group}/%{cust.env}.yaml"
-      - "%{cust.group}.yaml"
-      - "%{kernel}.yaml"
+      - "policy/nodes/%{trusted.certname}.yaml"
+      - "policy/%{kernel}/%{patching.group}.yaml"
+      - "policy/%{kernel}/${os.family}/%{patching.group}.yaml"
+      - "policy/%{kernel}/std_general.yaml"
+      - "policy/%{kernel}/%{os.family}/std_general.yaml"
+      - "policy/%{patching.group}.yaml"
+  - name: 'patch-schedules'
+    paths:
+      - "schedule/%{environment}/%{patching.group}/%{patching.wave}.yaml"
+      - "schedule/%{environment/%{patching.group.yaml"
+      - "schedule/%{environment}/%{azure.resource_group}.yaml"
+      - "schedule/%{environment}/std_general/%{azure.availability-zone}.yaml"
+  - name: 'patch-groups'
+    paths:
+      - "groups/%{patching.group}/%{trusted.certname}.yaml"
+      - "groups/%{azure.resource_group}/%{os.family}.yaml"
+
+
+# policy's
+# win-std-general-(no)reboot
+# lnx-rhel-std-general-(no)reboot
+# lnx-ubu-std-general-(no)reboot
+#
+# sched
+# nonprod-std-general-wave0-3
+# prod-std-general-wave0-3

@@ -1,0 +1,17 @@
+---
+
+# Patching policy for mydept RHEL nodes
+
+# things to run before patching
+growell_patch::pre_patch_script: 'mydept/rhel/pre_patch.sh'
+# things to run after patching
+growell_patch::post_patch_script: 'mydept/rhel/post_patch.sh'
+# check if we are healthy before/after
+growell_patch::pre_check_script: 'mydept/rhel/pre_check.sh'
+growell_patch::post_check_script: 'mydept/rhel/post_check_script.sh'
+# We want to pin packages during patch window
+growell_patch::pin_blocklist: true
+# packages mydept does not want to patch
+growell_patch::blocklist:
+  - 'apache2*'
+growell_patch::blocklist_mode: 'fuzzy'

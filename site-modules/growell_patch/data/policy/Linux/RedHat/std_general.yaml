@@ -1,0 +1,8 @@
+---
+
+# Patching policy for standard RHEL nodes
+
+growell_patch::pre_patch_script: 'rhel/pre_patch.sh'
+growell_patch::pre_check_script: 'rhel/pre_check.sh'
+growell_patch::post_check_script: 'rhel/post_check_script.sh'
+growell_patch::pin_blocklist: true
