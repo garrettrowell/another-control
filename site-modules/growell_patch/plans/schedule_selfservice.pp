@@ -6,10 +6,11 @@ plan growell_patch::schedule_selfservice(
 
   # manage fact file
   apply($targets) {
-    $fpath = join([split($facts['factpath'], ':')[0], 'growell_patch_override.json'], '/')
-    file { $fpath:
-      ensure  => present,
-      content => {'thing1' => 'imatest'},
-    }
+    notify { "factpath: ${facts['factpath']}": }
+    #    $fpath = join([split($facts['factpath'], ':')[0], 'growell_patch_override.json'], '/')
+    #    file { $fpath:
+    #      ensure  => present,
+    #      content => {'thing1' => 'imatest'},
+    #    }
   }
 }
