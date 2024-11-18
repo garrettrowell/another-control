@@ -4,7 +4,7 @@ plan growell_patch::schedule_selfservice(
   Integer $week,
   Integer $offset,
   String[1] $hours,
-  Enum['permanent','temporary'] $valid_for,
+  Optional[Enum['permanent','temporary']] $valid_for = 'temporary',
   Optional[Integer] $max_runs = 1,
   Optional[String[1]] $reboot = 'ifneeded',
 ) {
