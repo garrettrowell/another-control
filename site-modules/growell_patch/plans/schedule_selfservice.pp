@@ -13,7 +13,7 @@ plan growell_patch::schedule_selfservice(
     $fpath = join([$fdir, 'growell_patch_override.json'], '/')
     file { $fpath:
       ensure  => present,
-      content => {'thing1' => 'imatest'},
+      content => "{'thing1' => 'imatest'}",
     }
   }
 
