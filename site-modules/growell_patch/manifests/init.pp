@@ -49,23 +49,27 @@ class growell_patch (
   # Allow self service overrides
   if $facts['growell_patch_override'] {
     notify { "using custom override: ${facts['growell_patch_override']}": }
-    $_patch_group = 'override'
 
-    $_patch_schedule = {
-      $_patch_group =>  {
-        'day_of_week'   => growell_patch::calc_patchday($facts['growell_patch_override']['day'], $facts['growell_patch_override']['week'], $facts['growell_patch_override']['offset'])['day_of_week'],
-        'count_of_week' => growell_patch::calc_patchday($facts['growell_patch_override']['day'], $facts['growell_patch_override']['week'], $facts['growell_patch_override']['offset'])['count_of_week'],
-        'hours'         => $facts['growell_patch_override']['hours'],
-        'max_runs'      => String($facts['growell_patch_override']['max_runs']),
-        'reboot'        => $facts['growell_patch_override']['reboot'],
+    if $facts['growell_patch_override']['valid_for_month'] == 'permanent' {
+      # Permanent override should always win
+      $_patch_group = 'permanent_override'
+      $_patch_day = growell_patch::calc_patchday(
+        $facts['growell_patch_override']['day'],
+        $facts['growell_patch_override']['week'],
+        $facts['growell_patch_override']['offset']
+      )
+
+      $_patch_schedule = {
+        $_patch_group =>  {
+          'day_of_week'   => $_patch_day['day_of_week'],
+          'count_of_week' => $_patch_day['count_of_week'],
+          'hours'         => $facts['growell_patch_override']['hours'],
+          'max_runs'      => String($facts['growell_patch_override']['max_runs']),
+          'reboot'        => $facts['growell_patch_override']['reboot'],
+        }
       }
-    }
-
-    $testing = Timestamp.new()
-    if Timestamp($facts['growell_patch_override']['valid_for']) > $testing {
-      notify { "valid_for > ${testing}": }
     } else {
-      notify { "valid_for < ${testing}": }
+      # If temporary, check to see if it's applicable to the current month
     }
   } else {
     $_patch_group = $patch_group

@@ -24,13 +24,13 @@ plan growell_patch::schedule_selfservice(
       content => to_json_pretty(
         {
           'growell_patch_override' => {
-            'day'       => $day,
-            'week'      => $week,
-            'offset'    => $offset,
-            'hours'     => $hours,
-            'max_runs'  => $max_runs,
-            'reboot'    => $reboot,
-            'valid_for' => $_valid,
+            'day'             => $day,
+            'week'            => $week,
+            'offset'          => $offset,
+            'hours'           => $hours,
+            'max_runs'        => $max_runs,
+            'reboot'          => $reboot,
+            'valid_for_month' => $_valid,
           }
         }
       ),
