@@ -49,14 +49,19 @@ class growell_patch (
   # Allow self service overrides
   if $facts['growell_patch_override'] {
     notify { "using custom override: ${facts['growell_patch_override']}": }
+    $_patch__group = 'override'
+
     $_patch_schedule = {
-      'day_of_week'   => growell_patch::calc_patchday($facts['growell_patch_override']['day'], $facts['growell_patch_override']['week'], $facts['growell_patch_override']['offset'])['day_of_week'],
-      'count_of_week' => growell_patch::calc_patchday($facts['growell_patch_override']['day'], $facts['growell_patch_override']['week'], $facts['growell_patch_override']['offset'])['count_of_week'],
-      'hours'         => $facts['growell_patch_override']['hours'],
-      'max_runs'      => $facts['growell_patch_override']['max_runs'],
-      'reboot'        => $facts['growell_patch_override']['reboot'],
+      $_patch_group =>  {
+        'day_of_week'   => growell_patch::calc_patchday($facts['growell_patch_override']['day'], $facts['growell_patch_override']['week'], $facts['growell_patch_override']['offset'])['day_of_week'],
+        'count_of_week' => growell_patch::calc_patchday($facts['growell_patch_override']['day'], $facts['growell_patch_override']['week'], $facts['growell_patch_override']['offset'])['count_of_week'],
+        'hours'         => $facts['growell_patch_override']['hours'],
+        'max_runs'      => $facts['growell_patch_override']['max_runs'],
+        'reboot'        => $facts['growell_patch_override']['reboot'],
+      }
     }
   } else {
+    $_patch_group = $patch_group
     # Convert our custom schedule into the form expected by patching_as_code.
     #
     # Using the growell_patch::calc_patchday function we are able to determine the 'day_of_week'
@@ -75,7 +80,7 @@ class growell_patch (
   }
 
   # Process the configured groups so we can determine the proper outcome
-  $result = growell_patch::process_groups($patch_group, $_patch_schedule, $high_priority_patch_group, $windows_prefetch_before)
+  $result = growell_patch::process_groups($_patch_group, $_patch_schedule, $high_priority_patch_group, $windows_prefetch_before)
   # Determine if we will be patching
   $_is_patchday               = $result['normal_patch']['is_patch_day']
   $_is_high_prio_patch_day    = $result['high_prio_patch']['is_patch_day']
