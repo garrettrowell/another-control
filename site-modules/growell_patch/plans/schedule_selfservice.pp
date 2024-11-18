@@ -7,8 +7,8 @@ plan growell_patch::schedule_selfservice(
   # manage fact file
   $results = apply($targets) {
     $fdir = $facts['kernel'] ? {
-      'Linux'   => '/opt/puppetlabs/puppet/cache/lib/facter',
-      'windows' => 'C:/ProgramData/PuppetLabs/puppet/cache/lib/facter'
+      'Linux'   => '/opt/puppetlabs/facter/facts.d',
+      'windows' => 'C:/ProgramData/PuppetLabs/facter/facts.d'
     }
     $fpath = join([$fdir, 'growell_patch_override.json'], '/')
     file { $fpath:
