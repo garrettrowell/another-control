@@ -56,7 +56,7 @@ class growell_patch (
         'day_of_week'   => growell_patch::calc_patchday($facts['growell_patch_override']['day'], $facts['growell_patch_override']['week'], $facts['growell_patch_override']['offset'])['day_of_week'],
         'count_of_week' => growell_patch::calc_patchday($facts['growell_patch_override']['day'], $facts['growell_patch_override']['week'], $facts['growell_patch_override']['offset'])['count_of_week'],
         'hours'         => $facts['growell_patch_override']['hours'],
-        'max_runs'      => $facts['growell_patch_override']['max_runs'],
+        'max_runs'      => String($facts['growell_patch_override']['max_runs']),
         'reboot'        => $facts['growell_patch_override']['reboot'],
       }
     }
