@@ -1,4 +1,4 @@
-plan growell_patch::schedule_selfservice.pp(
+plan growell_patch::schedule_selfservice(
   TargetSpec $targets,
 ) {
   # install agent if needed, collect facts
