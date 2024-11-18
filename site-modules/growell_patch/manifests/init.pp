@@ -724,7 +724,7 @@ class growell_patch (
     enable_patching           => $enable_patching,
     security_only             => $security_only,
     high_priority_only        => $high_priority_only,
-    patch_group               => $patch_group,
+    patch_group               => $_patch_group,
     pre_patch_commands        => $_pre_patch_commands,
     post_patch_commands       => $_post_patch_commands,
     pre_reboot_commands       => $_pre_reboot_commands,
