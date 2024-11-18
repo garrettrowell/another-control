@@ -15,6 +15,6 @@ plan growell_patch::schedule_selfservice(
   }
 
   $results.each |$result| {
-    notice($result.report)
+    out::message($result.report)
   }
 }
