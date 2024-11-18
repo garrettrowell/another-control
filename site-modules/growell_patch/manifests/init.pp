@@ -62,7 +62,7 @@ class growell_patch (
     }
 
     $testing = Timestamp.new()
-    if $facts['growell_patch_override']['valid_for'] > $testing {
+    if Timestamp($facts['growell_patch_override']['valid_for']) > $testing {
       notify { "valid_for > ${testing}": }
     } else {
       notify { "valid_for < ${testing}": }
