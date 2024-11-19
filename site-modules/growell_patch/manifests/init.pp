@@ -61,7 +61,7 @@ class growell_patch (
 
     if $_has_temp_override {
       # if we have a temporary override consider it first, assuming it's applicable to the current month
-      $_within_cur_month = growell_patch::within_cur_month($facts[$_override_fact]['timestamp'])
+      $_within_cur_month = growell_patch::within_cur_month($facts[$_override_fact]['temporary']['timestamp'])
       if $_within_cur_month {
         # If the temporary override is for the current month honor it
         $_patch_group = 'temporary_override'
