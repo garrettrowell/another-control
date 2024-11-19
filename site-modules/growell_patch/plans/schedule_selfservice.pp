@@ -23,7 +23,7 @@ plan growell_patch::schedule_selfservice(
     #    }
     $fpath = join([$fdir, "${_override_fact}.json"], '/')
     $cur_override = $facts[$_override_fact]
-    $has_permanent = $cur_override.dig('permanent')
+    $has_permanent = $cur_override.dig('permanent') != Undef
     $has_temporary = $cur_override.dig('temporary')
     file { $fpath:
       ensure  => present,
