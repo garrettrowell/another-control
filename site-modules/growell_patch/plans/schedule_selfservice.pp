@@ -97,7 +97,7 @@ plan growell_patch::schedule_selfservice(
           }
         } else {
           $fact_content = {
-            $_override_fact => $cur_override.filter |$k,$v| { $keys != 'exclusion' }
+            $_override_fact => $cur_override.filter |$k,$v| { $k != 'exclusion' }
           }
         }
       }
