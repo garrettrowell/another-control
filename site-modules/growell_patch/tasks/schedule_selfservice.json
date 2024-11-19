@@ -9,7 +9,8 @@
     },
     "type": {
       "description": "what kind of override",
-      "type": "Enum['permanent', 'temporary']"
+      "type": "Enum['permanent', 'temporary']",
+      "default": "temporary"
     },
     "week": {
       "description": "what occurance",
@@ -25,11 +26,13 @@
     },
     "max_runs": {
       "description": "how many time you can patch",
-      "type": "Optional[Integer]"
+      "type": "Optional[Integer]",
+      "default": "1"
     },
     "reboot": {
       "description": "to reboot?",
-      "type": "Optional[String[1]]"
+      "type": "Optional[String[1]]",
+      "default": "ifneeded"
     }
   }
 }
