@@ -1,12 +1,13 @@
 plan growell_patch::schedule_selfservice(
   TargetSpec $targets,
-  String[1] $day,
-  Integer $week,
-  Integer $offset,
-  String[1] $hours,
+  Optional[String[1]] $day = undef,
+  Optional[Integer] $week = undef,
+  Optional[Integer] $offset = undef,
+  Optional[String[1]] $hours = undef,
   Optional[Enum['permanent','temporary','exclusion']] $type = 'temporary',
   Optional[Integer] $max_runs = 1,
   Optional[String[1]] $reboot = 'ifneeded',
+  Optional[Enum['add', 'remove']] $action = 'add',
 ) {
   # collect facts
   run_plan('facts', 'targets' => $targets)
@@ -90,8 +91,14 @@ plan growell_patch::schedule_selfservice(
         }
       }
       'exclusion': {
-        $fact_content = {
-          $_override_fact => deep_merge($cur_override, {'exclusion' => true})
+        if $action == 'add' {
+          $fact_content = {
+            $_override_fact => deep_merge($cur_override, {'exclusion' => true})
+          }
+        } else {
+          $fact_content = {
+            $_override_fact => $cur_override.filter |$k,$v| { $keys != 'exclusion' }
+          }
         }
       }
     }
