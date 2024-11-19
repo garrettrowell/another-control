@@ -91,11 +91,7 @@ plan growell_patch::schedule_selfservice(
       }
       'exclusion': {
         $fact_content = {
-          $_override_fact => {
-            'temporary' => $cur_override['temporary'],
-            'permanent' => $cur_override['permanent'],
-            'exclusion' => true
-          }
+          $_override_fact => deep_merge($cur_override, {'exclusion' => true})
         }
       }
     }
