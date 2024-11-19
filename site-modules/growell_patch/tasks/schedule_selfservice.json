@@ -3,8 +3,32 @@
   "input_method": "stdin",
   "files": ["ruby_task_helper/files/task_helper.rb"],
   "parameters": {
-    "name": {
-      "description": "simple test",
+    "day": {
+      "description": "day of week to schedule override",
+      "type": "String[1]"
+    },
+    "type": {
+      "description": "what kind of override",
+      "type": "Enum['permanent', 'temporary']"
+    },
+    "week": {
+      "description": "what occurance",
+      "type": "Integer"
+    },
+    "offset": {
+      "description": "the offset",
+      "type": "Integer"
+    },
+    "hours": {
+      "description": "when to patch",
+      "type": "String[1]"
+    },
+    "max_runs": {
+      "description": "how many time you can patch",
+      "type": "Optional[Integer]"
+    },
+    "reboot": {
+      "description": "to reboot?",
       "type": "Optional[String[1]]"
     }
   }

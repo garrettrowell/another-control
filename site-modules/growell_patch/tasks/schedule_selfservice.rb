@@ -3,8 +3,9 @@
 require_relative "../../ruby_task_helper/files/task_helper.rb"
 
 class MyClass < TaskHelper
-  def task(name: nil, **kwargs)
-    {greeting: "Hi, my name is #{name}"}
+  def task(type: 'temporary', reboot: 'ifneeded', **kwargs)
+    { testing: offset}
+#    {greeting: "Hi, my name is #{name}"}
   end
 end
 
