@@ -25,25 +25,75 @@ plan growell_patch::schedule_selfservice(
     $cur_override = $facts[$_override_fact]
     $has_permanent = 'permanent' in $cur_override
     $has_temporary = 'temporary' in $cur_override
-    file { $fpath:
-      ensure  => present,
-      content => to_json_pretty(
-        {
-          $_override_fact => {
-            'temporary' => {
-              'day'             => $day,
-              'week'            => $week,
-              'offset'          => $offset,
-              'hours'           => $hours,
-              'max_runs'        => $max_runs,
-              'reboot'          => $reboot,
-              #              'valid_for_month' => $_valid,
-            },
-            'has_perm'  => $has_permanent,
-            'has_temp'  => $has_temporary
+
+    case $type {
+      'temporary': {
+        if $has_permanent {
+          $fact_content = {
+            $_override_fact => {
+              'temporary' => {
+                'day'       => $day,
+                'week'      => $week,
+                'offset'    => $offset,
+                'hours'     => $hours,
+                'max_runs'  => $max_runs,
+                'reboot'    => $reboot,
+                'timestamp' => Timestamp.new()
+              },
+              'permanent' => $cur_override['permanent'],
+            }
+          }
+        } else {
+          $fact_content = {
+            $_override_fact => {
+              'temporary' => {
+                'day'       => $day,
+                'week'      => $week,
+                'offset'    => $offset,
+                'hours'     => $hours,
+                'max_runs'  => $max_runs,
+                'reboot'    => $reboot,
+                'timestamp' => Timestamp.new()
+              },
+            }
           }
         }
-      ),
+      }
+      'permanent': {
+        if $has_temporary {
+          $fact_content = {
+            $_override_fact => {
+              'temporary' => $cur_override['temporary'],
+              'permanent' => {
+                'day'       => $day,
+                'week'      => $week,
+                'offset'    => $offset,
+                'hours'     => $hours,
+                'max_runs'  => $max_runs,
+                'reboot'    => $reboot,
+              }
+            }
+          }
+        } else {
+          $fact_content = {
+            $_override_fact => {
+              'permanent' => {
+                'day'       => $day,
+                'week'      => $week,
+                'offset'    => $offset,
+                'hours'     => $hours,
+                'max_runs'  => $max_runs,
+                'reboot'    => $reboot,
+              }
+            }
+          }
+        }
+      }
+    }
+
+    file { $fpath:
+      ensure  => present,
+      content => to_json_pretty($fact_content),
     }
   }
 
