@@ -27,7 +27,7 @@
     "max_runs": {
       "description": "how many time you can patch",
       "type": "Optional[Integer]",
-      "default": "1"
+      "default": 1
     },
     "reboot": {
       "description": "to reboot?",
