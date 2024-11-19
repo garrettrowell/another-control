@@ -4,7 +4,7 @@ plan growell_patch::schedule_selfservice(
   Integer $week,
   Integer $offset,
   String[1] $hours,
-  Optional[Enum['permanent','temporary']] $type = 'temporary',
+  Optional[Enum['permanent','temporary','exclusion']] $type = 'temporary',
   Optional[Integer] $max_runs = 1,
   Optional[String[1]] $reboot = 'ifneeded',
 ) {
@@ -86,6 +86,13 @@ plan growell_patch::schedule_selfservice(
                 'reboot'    => $reboot,
               }
             }
+          }
+        }
+      }
+      'exclusion': {
+        $fact_content = {
+          $_override_fact => {
+            $cur_override + { 'exclusion' => true }
           }
         }
       }
