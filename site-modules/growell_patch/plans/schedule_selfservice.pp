@@ -92,7 +92,7 @@ plan growell_patch::schedule_selfservice(
       'exclusion': {
         $fact_content = {
           $_override_fact => {
-            $cur_override + { 'exclusion' => true }
+            deep_merge($cur_override,{ 'exclusion' => true })
           }
         }
       }
