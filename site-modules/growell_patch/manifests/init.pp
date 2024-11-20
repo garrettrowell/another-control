@@ -430,6 +430,47 @@ class growell_patch (
               fail("${module_name} currently does not support pinning ${facts['package_provider']} packages")
             }
           }
+        } elsif ($run_as_plan) {
+          # We need to unpin after running as a plan
+          $_to_unpin = $blocklist_mode == 'fuzzy' ? {
+            true    => growell_patch::fuzzy_match($facts['pe_patch']['pinned_packages'], $blocklist),
+            default => $blocklist
+          }
+
+          case $facts['package_provider'] {
+            'apt': {
+              apt::mark { $_to_unpin:
+                setting => 'unhold',
+                require  => Class['patching_as_code'],
+                notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
+              }
+            }
+            'dnf', 'yum': {
+              $_to_unpin.each |$pin| {
+                yum::versionlock { $pin.split(':')[0]:
+                  ensure  => absent,
+                  version => '*',
+                  release => '*',
+                  epoch   => 0,
+                  require  => Class['patching_as_code'],
+                  notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
+                }
+              }
+            }
+            'zypper': {
+              $_to_unpin.each |$pin| {
+                exec { "${module_name}-removelock-${pin}":
+                  command => "zypper removelock ${pin}",
+                  path    => $facts['path'],
+                  require  => Class['patching_as_code'],
+                  notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
+                }
+              }
+            }
+            default: {
+              fail("${module_name} currently does not support pinning ${facts['package_provider']} packages")
+            }
+          }
         } elsif ($_is_patchday or $_is_high_prio_patch_day) {
           # locks should be created before the patch window
           case $facts['package_provider'] {
