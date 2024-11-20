@@ -876,7 +876,7 @@ class growell_patch (
     pre_patch_commands        => $_pre_patch_commands,
     post_patch_commands       => $_post_patch_commands,
     pre_reboot_commands       => $_pre_reboot_commands,
-    install_options           => $install_options,
+    #    install_options           => $install_options,
     allowlist                 => $allowlist,
     blocklist                 => $_blocklist,
     patch_schedule            => $_patch_schedule,
