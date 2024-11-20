@@ -1,16 +1,36 @@
 plan growell_patch::self_service_overrides(
   TargetSpec $targets,
+  Enum['permanent','temporary','exclusion','blocklist'] $type,
+  Enum['add', 'remove'] $action,
   Optional[String[1]] $day = undef,
   Optional[Integer] $week = undef,
   Optional[Integer] $offset = undef,
   Optional[String[1]] $hours = undef,
-  Optional[Enum['permanent','temporary','exclusion','blocklist']] $type = 'temporary',
   Optional[Enum['strict','fuzzy']] $blocklist_mode = 'strict',
   Optional[Array] $blocklist = [],
   Optional[Integer] $max_runs = 1,
   Optional[String[1]] $reboot = 'ifneeded',
-  Optional[Enum['add', 'remove']] $action = 'add',
 ) {
+  # Validate the required Parameters are passed for the given override 'type'
+  if $action == 'add' {
+    case $type {
+      'blocklist': {
+        unless ($blocklist != [] or $blocklist_mode != undef) {
+          fail_plan('$blocklist and $blocklist_mode are required parameters when $type = blocklist and $action = add')
+        }
+      }
+      'permanent': {
+        unless ($day != undef and $week != undef and $offset != undef and $hours != undef) {
+          fail_plan('$day, $week, $offset and $hours are required parameters when $type = permanent and $action = add')
+        }
+      }
+      'temporary': {
+        unless ($day != undef and $week != undef and $offset != undef and $hours != undef) {
+          fail_plan('$day, $week, $offset and $hours are required parameters when $type = temporary and $action = add')
+        }
+      }
+    }
+  }
   # collect facts
   run_plan('facts', 'targets' => $targets)
 
