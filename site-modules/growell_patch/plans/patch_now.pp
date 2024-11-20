@@ -13,7 +13,7 @@ plan growell_patch::patch_now(
   }
 
   # run the agent after patching
-  run_task('enterprise_tasks::run_puppet', $targets)
+  #  run_task('enterprise_tasks::run_puppet', $targets)
 
   # basic output
   $results.each |$result| {
