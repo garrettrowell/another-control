@@ -424,7 +424,7 @@ class growell_patch (
               fail("${module_name} currently does not support pinning ${facts['package_provider']} packages")
             }
           }
-        } else {
+        } elsif ($_is_patchday or $_is_high_prio_patch_day) {
           # locks should be created before the patch window
           case $facts['package_provider'] {
             'apt': {
