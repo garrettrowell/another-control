@@ -65,6 +65,14 @@ class growell_patch (
       File <| title == 'patching_configuration.json' |> {
         noop => true,
       }
+      # pe_patch's 'patch_group' file also should not get updated
+      $_pe_patch_cachedir = $facts['kernel'] ? {
+        'windows' => 'C:/ProgramData/PuppetLabs/pe_patch',
+        'Linux'   => '/opt/puppetlabs/pe_patch',
+      }
+      File <| title == "${_pe_patch_cachedir}/patch_group" |> {
+        noop => true,
+      }
     } else {
       # Self-service override was detected
       $_has_perm_override      = 'permanent' in $facts[$_override_fact]
