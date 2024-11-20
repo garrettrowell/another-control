@@ -48,7 +48,7 @@ class growell_patch (
   Optional[Stdlib::HTTPUrl]                      $wsus_url                  = undef,
 ) {
   if $install_options {
-    Package <| tags == 'patching_as_code' |> {
+    Package <| tag == 'patching_as_code' |> {
       install_options => $install_options
     }
   }
