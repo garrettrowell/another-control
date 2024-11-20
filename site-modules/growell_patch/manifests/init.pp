@@ -312,8 +312,8 @@ class growell_patch (
   # Allow self-service to override the configured blocklist
   if ($facts[$_override_fact]) {
     if ('blocklist' in $facts[$_override_fact]) {
-      $selected_blocklist      = $facts[$_override_fact]['list']
-      $selected_blocklist_mode = $facts[$_override_fact]['mode']
+      $selected_blocklist      = $facts[$_override_fact]['blocklist']['list']
+      $selected_blocklist_mode = $facts[$_override_fact]['blocklist']['mode']
     } else {
       $selected_blocklist      = $blocklist
       $selected_blocklist_mode = $blocklist_mode
