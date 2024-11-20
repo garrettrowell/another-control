@@ -24,71 +24,112 @@ plan growell_patch::schedule_selfservice(
     #    }
     $fpath = join([$fdir, "${_override_fact}.json"], '/')
     $cur_override = $facts[$_override_fact]
-    $has_permanent = 'permanent' in $cur_override
-    $has_temporary = 'temporary' in $cur_override
+    #    $has_permanent = 'permanent' in $cur_override
+    #    $has_temporary = 'temporary' in $cur_override
 
     case $type {
       'temporary': {
-        if $has_permanent {
+        if $action == 'add' {
           $fact_content = {
-            $_override_fact => {
-              'temporary' => {
-                'day'       => $day,
-                'week'      => $week,
-                'offset'    => $offset,
-                'hours'     => $hours,
-                'max_runs'  => $max_runs,
-                'reboot'    => $reboot,
-                'timestamp' => Timestamp.new()
-              },
-              'permanent' => $cur_override['permanent'],
-            }
+            $_override_fact => deep_merge(
+              $cur_override, {
+                'permanent' => {
+                  'day'       => $day,
+                  'week'      => $week,
+                  'offset'    => $offset,
+                  'hours'     => $hours,
+                  'max_runs'  => $max_runs,
+                  'reboot'    => $reboot,
+                  'timestamp' => Timestamp.new(),
+                }
+              }
+            )
           }
         } else {
           $fact_content = {
-            $_override_fact => {
-              'temporary' => {
-                'day'       => $day,
-                'week'      => $week,
-                'offset'    => $offset,
-                'hours'     => $hours,
-                'max_runs'  => $max_runs,
-                'reboot'    => $reboot,
-                'timestamp' => Timestamp.new()
-              },
-            }
+            $_override_fact => $cur_override.filter |$k,$v| { $k != 'temporary' }
           }
         }
+        #if $has_permanent {
+        #  $fact_content = {
+        #    $_override_fact => {
+        #      'temporary' => {
+        #        'day'       => $day,
+        #        'week'      => $week,
+        #        'offset'    => $offset,
+        #        'hours'     => $hours,
+        #        'max_runs'  => $max_runs,
+        #        'reboot'    => $reboot,
+        #        'timestamp' => Timestamp.new()
+        #      },
+        #      'permanent' => $cur_override['permanent'],
+        #    }
+        #  }
+        #} else {
+        #  $fact_content = {
+        #    $_override_fact => {
+        #      'temporary' => {
+        #        'day'       => $day,
+        #        'week'      => $week,
+        #        'offset'    => $offset,
+        #        'hours'     => $hours,
+        #        'max_runs'  => $max_runs,
+        #        'reboot'    => $reboot,
+        #        'timestamp' => Timestamp.new()
+        #      },
+        #    }
+        #  }
+        #}
       }
       'permanent': {
-        if $has_temporary {
+        if $action == 'add' {
           $fact_content = {
-            $_override_fact => {
-              'temporary' => $cur_override['temporary'],
-              'permanent' => {
-                'day'       => $day,
-                'week'      => $week,
-                'offset'    => $offset,
-                'hours'     => $hours,
-                'max_runs'  => $max_runs,
-                'reboot'    => $reboot,
+            $_override_fact => deep_merge(
+              $cur_override, {
+                'permanent' => {
+                  'day'      => $day,
+                  'week'     => $week,
+                  'offset'   => $offset,
+                  'hours'    => $hours,
+                  'max_runs' => $max_runs,
+                  'reboot'   => $reboot,
+                }
               }
-            }
+            )
           }
         } else {
           $fact_content = {
-            $_override_fact => {
-              'permanent' => {
-                'day'       => $day,
-                'week'      => $week,
-                'offset'    => $offset,
-                'hours'     => $hours,
-                'max_runs'  => $max_runs,
-                'reboot'    => $reboot,
-              }
-            }
+            $_override_fact => $cur_override.filter |$k,$v| { $k != 'permanent' }
           }
         }
+        #if $has_temporary {
+        #  $fact_content = {
+        #    $_override_fact => {
+        #      'temporary' => $cur_override['temporary'],
+        #      'permanent' => {
+        #        'day'       => $day,
+        #        'week'      => $week,
+        #        'offset'    => $offset,
+        #        'hours'     => $hours,
+        #        'max_runs'  => $max_runs,
+        #        'reboot'    => $reboot,
+        #      }
+        #    }
+        #  }
+        #} else {
+        #  $fact_content = {
+        #    $_override_fact => {
+        #      'permanent' => {
+        #        'day'       => $day,
+        #        'week'      => $week,
+        #        'offset'    => $offset,
+        #        'hours'     => $hours,
+        #        'max_runs'  => $max_runs,
+        #        'reboot'    => $reboot,
+        #      }
+        #    }
+        #  }
+        #}
       }
       'exclusion': {
         if $action == 'add' {

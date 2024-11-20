@@ -582,6 +582,7 @@ class growell_patch (
           notify => Service['wuauserv'],
         }
 
+        # We need to not conflict with other modules that manage wsus, for example 'puppetlabs/wsus_client'
         if (defined(Registry_value['UseWUServer']) or defined(Registry_value["${_au_base_reg}\\UseWUServer"])) {
           Registry_value <| title == 'UseWUServer' or title == "${_au_base_reg}\\UseWUServer" |> {
             data   => 1,
