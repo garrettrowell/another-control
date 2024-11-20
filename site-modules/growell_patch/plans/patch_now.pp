@@ -10,14 +10,6 @@ plan growell_patch::patch_now(
       patch_group => 'always',
       run_as_plan => true,
     }
-    # patching_as_code uses deferred functions to write these file contents,
-    # which does not play nicely within apply blocks
-    #    File <| title == 'Patching as Code - Save Patch Run Info' |> {
-    #      content => undef,
-    #    }
-    #    File <| title == 'Patching as Code - Save High Priority Patch Run Info' |> {
-    #      contentn => undef,
-    #    }
   }
 
   # run the agent after patching
