@@ -431,22 +431,32 @@ class growell_patch (
             }
           }
         } elsif ($run_as_plan) {
-          # We need to unpin after running as a plan
-          $_to_unpin = $blocklist_mode == 'fuzzy' ? {
-            true    => growell_patch::fuzzy_match($facts['pe_patch']['pinned_packages'], $blocklist),
-            default => $blocklist
-          }
-
+          # When running as a plan we should first pin, do patching, then unpin
           case $facts['package_provider'] {
             'apt': {
-              apt::mark { $_to_unpin:
+              apt::mark { $_blocklist:
+                setting => 'hold',
+                before  => Class['patching_as_code'],
+                notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
+              }
+
+              apt::mark { $_blocklist:
                 setting => 'unhold',
                 require  => Class['patching_as_code'],
                 notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
               }
             }
             'dnf', 'yum': {
-              $_to_unpin.each |$pin| {
+              yum::versionlock { $_blocklist:
+                ensure  => present,
+                version => '*',
+                release => '*',
+                epoch   => 0,
+                before  => Class['patching_as_code'],
+                notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
+              }
+
+              $_blocklist.each |$pin| {
                 yum::versionlock { $pin.split(':')[0]:
                   ensure  => absent,
                   version => '*',
@@ -458,7 +468,16 @@ class growell_patch (
               }
             }
             'zypper': {
-              $_to_unpin.each |$pin| {
+              $_blocklist.each |$pin| {
+                exec { "${module_name}-addlock-${pin}":
+                  command => "zypper addlock ${pin}",
+                  path    => $facts['path'],
+                  before  => Class['patching_as_code'],
+                  notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
+                }
+              }
+
+              $_blocklist.each |$pin| {
                 exec { "${module_name}-removelock-${pin}":
                   command => "zypper removelock ${pin}",
                   path    => $facts['path'],
