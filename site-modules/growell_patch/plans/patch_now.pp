@@ -9,6 +9,9 @@ plan growell_patch::patch_now(
     class { 'growell_patch':
       patch_group => 'always',
     }
+    File <| title == 'Patching as Code - Save Patch Run Info' |> {
+      content => undef,
+    }
   }
 
   $results.each |$result| {
