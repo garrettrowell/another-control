@@ -47,6 +47,11 @@ class growell_patch (
   Optional[String[1]]                            $windows_prefetch_before   = undef,
   Optional[Stdlib::HTTPUrl]                      $wsus_url                  = undef,
 ) {
+  if $install_options {
+    Package <| tags == 'patching_as_code' |> {
+      install_options => $install_options
+    }
+  }
   # Convert our custom schedule into the form expected by patching_as_code.
   #
   # Using the growell_patch::calc_patchday function we are able to determine the 'day_of_week'
