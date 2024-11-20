@@ -431,65 +431,8 @@ class growell_patch (
             }
           }
         } elsif ($run_as_plan) {
-          # When running as a plan we should first pin, do patching, then unpin
-          case $facts['package_provider'] {
-            'apt': {
-              apt::mark { $_blocklist:
-                setting => 'hold',
-                before  => Class['patching_as_code'],
-                notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
-              }
-
-              apt::mark { $_blocklist:
-                setting => 'unhold',
-                require  => Class['patching_as_code'],
-                notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
-              }
-            }
-            'dnf', 'yum': {
-              yum::versionlock { $_blocklist:
-                ensure  => present,
-                version => '*',
-                release => '*',
-                epoch   => 0,
-                before  => Class['patching_as_code'],
-                notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
-              }
-
-              $_blocklist.each |$pin| {
-                yum::versionlock { $pin.split(':')[0]:
-                  ensure  => absent,
-                  version => '*',
-                  release => '*',
-                  epoch   => 0,
-                  require  => Class['patching_as_code'],
-                  notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
-                }
-              }
-            }
-            'zypper': {
-              $_blocklist.each |$pin| {
-                exec { "${module_name}-addlock-${pin}":
-                  command => "zypper addlock ${pin}",
-                  path    => $facts['path'],
-                  before  => Class['patching_as_code'],
-                  notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
-                }
-              }
-
-              $_blocklist.each |$pin| {
-                exec { "${module_name}-removelock-${pin}":
-                  command => "zypper removelock ${pin}",
-                  path    => $facts['path'],
-                  require  => Class['patching_as_code'],
-                  notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
-                }
-              }
-            }
-            default: {
-              fail("${module_name} currently does not support pinning ${facts['package_provider']} packages")
-            }
-          }
+          # When running as a plan don't pin/unpin the blocklist
+          notify { 'pinning the packages is not supported when running as a plan': }
         } elsif ($_is_patchday or $_is_high_prio_patch_day) {
           # locks should be created before the patch window
           case $facts['package_provider'] {
@@ -694,7 +637,7 @@ class growell_patch (
           fail("${module_name} does not support fuzzy blocklist on windows when ${module_name}::pin_blocklist = true")
         }
 
-        if $_after_patch_window or $_after_high_prio_patch_window {
+        if ($_after_patch_window or $_after_high_prio_patch_window) {
           # KB's should be unhidden after the patch window
           $_blocklist.each |$kb| {
             unless ($kb in $available_updates) {
@@ -708,7 +651,9 @@ class growell_patch (
               }
             }
           }
-        } else {
+        } elsif ($run_as_plan) {
+          # When running as a plan don't hide KB's
+        } elsif ($_is_patchday or $_is_high_prio_patch_day) {
           # KB's should be hidden before the patch window
           $_blocklist.each |$kb| {
             exec { "${module_name}-hide-${kb}":
