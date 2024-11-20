@@ -7,7 +7,7 @@ plan growell_patch::patch_now(
   # patch now
   $results = apply($targets) {
     class { 'growell_patch':
-      $patch_group => 'always',
+      patch_group => 'always',
     }
   }
 
