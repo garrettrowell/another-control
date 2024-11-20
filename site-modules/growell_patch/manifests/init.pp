@@ -402,6 +402,7 @@ class growell_patch (
       $_pre_check_script_path  = "${_script_base}/pre_check_script.sh"
       $_post_check_script_path = "${_script_base}/post_check_script.sh"
       $_fact_file              = 'pe_patch_fact_generation.sh'
+      $_cmd_path               = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/puppetlabs/bin'
       $_common_present_args = {
         ensure => present,
         mode   => '0700',
@@ -447,7 +448,7 @@ class growell_patch (
               $_to_unpin.each |$pin| {
                 exec { "${module_name}-removelock-${pin}":
                   command => "zypper removelock ${pin}",
-                  path    => $facts['path'],
+                  path    => $_cmd_path,
                   before  => Class['patching_as_code'],
                   notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
                 }
@@ -484,7 +485,7 @@ class growell_patch (
               $_blocklist.each |$pin| {
                 exec { "${module_name}-addlock-${pin}":
                   command => "zypper addlock ${pin}",
-                  path    => $facts['path'],
+                  path    => $_cmd_path,
                   before  => Class['patching_as_code'],
                   notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
                 }
@@ -507,7 +508,7 @@ class growell_patch (
         $_pre_patch_commands = {
           'pre_patch_script' => {
             'command' => $_pre_patch_script_path,
-            'path'    => $facts['path'],
+            'path'    => $_cmd_path,
           },
         }
         $_pre_patch_file_args = stdlib::merge(
@@ -526,7 +527,7 @@ class growell_patch (
         $_post_patch_commands = {
           'post_patch_script' => {
             'command' => $_post_patch_script_path,
-            'path'    => $facts['path'],
+            'path'    => $_cmd_path,
           },
         }
         $_post_patch_file_args = stdlib::merge(
@@ -545,7 +546,7 @@ class growell_patch (
         $_pre_reboot_commands = {
           'pre_reboot_script' => {
             'command' => $_pre_reboot_script_path,
-            'path'    => $facts['path'],
+            'path'    => $_cmd_path,
           },
         }
         $_pre_reboot_file_args = stdlib::merge(
@@ -569,7 +570,7 @@ class growell_patch (
         if (($_is_patchday or $_is_high_prio_patch_day) and ($_in_patch_window or $_in_high_prio_patch_window)) {
           exec { 'pre_check_script':
             command => $_pre_check_script_path,
-            path    => $facts['path'],
+            path    => $_cmd_path,
             require => File['pre_check_script'],
             before  => Class['patching_as_code'],
           }
@@ -591,7 +592,7 @@ class growell_patch (
         if (($_is_patchday or $_is_high_prio_patch_day) and ($_in_patch_window or $_in_high_prio_patch_window)) {
           exec { 'post_check_script':
             command => $_post_check_script_path,
-            path    => $facts['path'],
+            path    => $_cmd_path,
             require => [File['post_check_script'], Class['patching_as_code']],
           }
         }
