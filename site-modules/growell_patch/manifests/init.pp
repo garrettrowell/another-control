@@ -365,6 +365,16 @@ class growell_patch (
   }
   ## End of debug stuff
 
+  if ($run_as_plan) {
+    # These file resources use Deferred functions normally, which do not play nicely in apply blocks
+    File <| title == 'Patching as Code - Save Patch Run Info' |> {
+      content => patching_as_code::last_run($updates_to_install.unique, []),
+    }
+    File <| title == 'Patching as Code - Save High Priority Patch Run Info' |> {
+      content => patching_as_code::high_prio_last_run($high_prio_updates_to_install.unique, []),
+    }
+  }
+
   # Determine the states of the pre/post scripts based on operating system
   case $facts['kernel'] {
     'Linux': {
