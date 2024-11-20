@@ -56,14 +56,17 @@ class growell_patch (
   #
   $_override_fact = 'growell_patch_override'
   if $facts[$_override_fact] {
-    unless ($run_as_plan and 'always' in $patch_group) {
+    if ($run_as_plan and 'always' in $patch_group) {
+      $_patch_group    = 'always'
+      $_patch_schedule = {}
+    } else {
       # Self-service override was detected
       $_has_perm_override      = 'permanent' in $facts[$_override_fact]
       $_has_temp_override      = 'temporary' in $facts[$_override_fact]
       $_has_exclusion_override = 'exclusion' in $facts[$_override_fact]
 
       if $_has_exclusion_override {
-        $_patch_group = 'never'
+        $_patch_group    = 'never'
         $_patch_schedule = {}
       } else {
         if $_has_temp_override {
