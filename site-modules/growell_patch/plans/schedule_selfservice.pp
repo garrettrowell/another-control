@@ -18,14 +18,8 @@ plan growell_patch::schedule_selfservice(
   # manage fact file
   $results = apply($targets) {
     $fdir = "${facts['puppet_vardir']}/../../facter/facts.d"
-    #    $_valid = $valid_for ? {
-    #      'permanent' => 'permanent',
-    #      'temporary' => Timestamp.new(),
-    #    }
     $fpath = join([$fdir, "${_override_fact}.json"], '/')
     $cur_override = $facts[$_override_fact]
-    #    $has_permanent = 'permanent' in $cur_override
-    #    $has_temporary = 'temporary' in $cur_override
 
     case $type {
       'temporary': {
@@ -50,36 +44,6 @@ plan growell_patch::schedule_selfservice(
             $_override_fact => $cur_override.filter |$k,$v| { $k != 'temporary' }
           }
         }
-        #if $has_permanent {
-        #  $fact_content = {
-        #    $_override_fact => {
-        #      'temporary' => {
-        #        'day'       => $day,
-        #        'week'      => $week,
-        #        'offset'    => $offset,
-        #        'hours'     => $hours,
-        #        'max_runs'  => $max_runs,
-        #        'reboot'    => $reboot,
-        #        'timestamp' => Timestamp.new()
-        #      },
-        #      'permanent' => $cur_override['permanent'],
-        #    }
-        #  }
-        #} else {
-        #  $fact_content = {
-        #    $_override_fact => {
-        #      'temporary' => {
-        #        'day'       => $day,
-        #        'week'      => $week,
-        #        'offset'    => $offset,
-        #        'hours'     => $hours,
-        #        'max_runs'  => $max_runs,
-        #        'reboot'    => $reboot,
-        #        'timestamp' => Timestamp.new()
-        #      },
-        #    }
-        #  }
-        #}
       }
       'permanent': {
         if $action == 'add' {
@@ -102,34 +66,6 @@ plan growell_patch::schedule_selfservice(
             $_override_fact => $cur_override.filter |$k,$v| { $k != 'permanent' }
           }
         }
-        #if $has_temporary {
-        #  $fact_content = {
-        #    $_override_fact => {
-        #      'temporary' => $cur_override['temporary'],
-        #      'permanent' => {
-        #        'day'       => $day,
-        #        'week'      => $week,
-        #        'offset'    => $offset,
-        #        'hours'     => $hours,
-        #        'max_runs'  => $max_runs,
-        #        'reboot'    => $reboot,
-        #      }
-        #    }
-        #  }
-        #} else {
-        #  $fact_content = {
-        #    $_override_fact => {
-        #      'permanent' => {
-        #        'day'       => $day,
-        #        'week'      => $week,
-        #        'offset'    => $offset,
-        #        'hours'     => $hours,
-        #        'max_runs'  => $max_runs,
-        #        'reboot'    => $reboot,
-        #      }
-        #    }
-        #  }
-        #}
       }
       'exclusion': {
         if $action == 'add' {
