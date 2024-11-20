@@ -21,10 +21,10 @@ mod 'dirtree',
   git: 'git@github.com:garrettrowell/pltraining-dirtree.git',
   branch: 'update'
 
-mod 'puppetlabs-patching_as_code', '2.0.0'
-#mod 'patching_as_code',
-#  git: 'git@github.com:garrettrowell/puppetlabs-patching_as_code.git',
-#  branch: 'modify'
+#mod 'puppetlabs-patching_as_code', '2.0.0'
+mod 'patching_as_code',
+  git: 'git@github.com:garrettrowell/puppetlabs-patching_as_code.git',
+  branch: 'modify'
 
 mod 'sce_windows',
   git: 'git@github.com:puppetlabs/puppetlabs-sce_windows.git',
