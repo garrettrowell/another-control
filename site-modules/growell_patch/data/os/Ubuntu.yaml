@@ -1,0 +1,4 @@
+---
+growell_patch::blocklist:
+  - 'python2*'
+growell_patch::blocklist_mode: 'fuzzy'

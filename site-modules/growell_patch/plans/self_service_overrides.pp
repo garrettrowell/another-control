@@ -1,10 +1,12 @@
-plan growell_patch::schedule_selfservice(
+plan growell_patch::self_service_overrides(
   TargetSpec $targets,
   Optional[String[1]] $day = undef,
   Optional[Integer] $week = undef,
   Optional[Integer] $offset = undef,
   Optional[String[1]] $hours = undef,
-  Optional[Enum['permanent','temporary','exclusion']] $type = 'temporary',
+  Optional[Enum['permanent','temporary','exclusion','blocklist']] $type = 'temporary',
+  Optional[Enum['strict','fuzzy']] $blocklist_mode = 'strict',
+  Optional[Array] $blocklist = [],
   Optional[Integer] $max_runs = 1,
   Optional[String[1]] $reboot = 'ifneeded',
   Optional[Enum['add', 'remove']] $action = 'add',
@@ -22,6 +24,24 @@ plan growell_patch::schedule_selfservice(
     $cur_override = $facts[$_override_fact]
 
     case $type {
+      'blocklist': {
+        if $action == 'add' {
+          $fact_content = {
+            $_override_fact => deep_merge(
+              $cur_override, {
+                'blocklist' => {
+                  'mode' => $blocklist_mode,
+                  'list' => $blocklist,
+                }
+              }
+            )
+          }
+        } else {
+          $fact_content = {
+            $_override_fact => $cur_override.filter |$k,$v| { $k != 'blocklist' }
+          }
+        }
+      }
       'temporary': {
         if $action == 'add' {
           $fact_content = {

@@ -52,13 +52,19 @@ class growell_patch (
   # Using the growell_patch::calc_patchday function we are able to determine the 'day_of_week'
   #   and 'count_of_week' based off of our 'day', 'week', and 'offset' params.
   #
-  # The growell_patch::schedule_selfservice Plan can be used to create patching overrides for desired nodes
+  # The growell_patch::self_service_overrides Plan can be used to create patching overrides for desired nodes
   #
   $_override_fact = 'growell_patch_override'
   if $facts[$_override_fact] {
     if ($run_as_plan and 'always' in $patch_group) {
+      # When running the growell_patch::patch_now plan, we need to set the group to 'always'
       $_patch_group    = 'always'
       $_patch_schedule = {}
+      # Override the patching_as_code configuration file so that it won't actually get updated.
+      # This eliminates the need to run the agent a second time in the plan
+      File <| title == 'patching_configuration.json' |> {
+        noop => true,
+      }
     } else {
       # Self-service override was detected
       $_has_perm_override      = 'permanent' in $facts[$_override_fact]
@@ -303,20 +309,31 @@ class growell_patch (
     $high_prio_updates = []
   }
 
+  # Allow self-service to override the configured blocklist
+  if ($facts[$_override_fact]) {
+    if ('blocklist' in $facts[$_override_fact]) {
+      $selected_blocklist      = $facts[$_override_fact]['list']
+      $selected_blocklist_mode = $facts[$_override_fact]['mode']
+    } else {
+      $selected_blocklist      = $blocklist
+      $selected_blocklist_mode = $blocklist_mode
+    }
+  }
+
   # Determine which updates should get installed if any
   case $allowlist.count {
     0: {
-      case $blocklist_mode {
+      case $selected_blocklist_mode {
         'strict': {
-          $_updates_to_install          = $available_updates.filter |$item| { !($item in $blocklist) }
-          $high_prio_updates_to_install = $high_prio_updates.filter |$item| { !($item in $blocklist) }
+          $_updates_to_install          = $available_updates.filter |$item| { !($item in $selected_blocklist) }
+          $high_prio_updates_to_install = $high_prio_updates.filter |$item| { !($item in $selected_blocklist) }
         }
         'fuzzy': {
-          $_updates_to_install          = growell_patch::fuzzy_filter($available_updates, $blocklist)
-          $high_prio_updates_to_install = growell_patch::fuzzy_filter($high_prio_updates, $blocklist)
+          $_updates_to_install          = growell_patch::fuzzy_filter($available_updates, $selected_blocklist)
+          $high_prio_updates_to_install = growell_patch::fuzzy_filter($high_prio_updates, $selected_blocklist)
         }
         default: {
-          fail("${blocklist_mode} is an unsupported blocklist_mode")
+          fail("${selected_blocklist_mode} is an unsupported blocklist_mode")
         }
       }
       if ($_is_patchday and $_is_high_prio_patch_day) {
@@ -326,18 +343,18 @@ class growell_patch (
       }
     }
     default: {
-      $whitelisted_updates  = $available_updates.filter |$item| { $item in $allowlist }
-      case $blocklist_mode {
+      $allowlisted_updates  = $available_updates.filter |$item| { $item in $allowlist }
+      case $selected_blocklist_mode {
         'strict': {
-          $_updates_to_install          = $whitelisted_updates.filter |$item| { !($item in $blocklist) }
-          $high_prio_updates_to_install = $high_prio_updates.filter |$item| { !($item in $blocklist) }
+          $_updates_to_install          = $allowlisted_updates.filter |$item| { !($item in $selected_blocklist) }
+          $high_prio_updates_to_install = $high_prio_updates.filter |$item| { !($item in $selected_blocklist) }
         }
         'fuzzy': {
-          $_updates_to_install          = growell_patch::fuzzy_filter($whitelisted_updates, $blocklist)
-          $high_prio_updates_to_install = growell_patch::fuzzy_filter($high_prio_updates, $blocklist)
+          $_updates_to_install          = growell_patch::fuzzy_filter($allowlisted_updates, $selected_blocklist)
+          $high_prio_updates_to_install = growell_patch::fuzzy_filter($high_prio_updates, $selected_blocklist)
         }
         default: {
-          fail("${blocklist_mode} is an unsupported blocklist_mode")
+          fail("${selected_blocklist_mode} is an unsupported blocklist_mode")
         }
       }
       if ($_is_patchday and $_is_high_prio_patch_day) {
@@ -349,9 +366,9 @@ class growell_patch (
   }
 
   # create the blocklist assuming we want to fuzzy match
-  $_blocklist = $blocklist_mode == 'fuzzy' ? {
-    true    => growell_patch::fuzzy_match($available_updates, $blocklist),
-    default => $blocklist,
+  $_blocklist = $selected_blocklist_mode == 'fuzzy' ? {
+    true    => growell_patch::fuzzy_match($available_updates, $selected_blocklist),
+    default => $selected_blocklist,
   }
 
   ## Start of debug stuff

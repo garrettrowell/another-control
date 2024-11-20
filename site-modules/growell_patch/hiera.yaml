@@ -19,6 +19,7 @@ hierarchy:
       - "environments/%{server_facts.environment}/0.yaml"
       - "environments/%{server_facts.environment}/%{os.name}.yaml"
       - "environments/%{server_facts.environment}.yaml"
+      - "os/${os.name}.yaml"
 
 plan_hierarchy:
   - name: 'proposed patching'
@@ -28,3 +29,4 @@ plan_hierarchy:
       - "environments/%{server_facts.environment}/0.yaml"
       - "environments/%{server_facts.environment}/%{os.name}.yaml"
       - "environments/%{server_facts.environment}.yaml"
+      - "os/${os.name}.yaml"
