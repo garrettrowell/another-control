@@ -33,7 +33,7 @@ plan growell_patch::schedule_selfservice(
           $fact_content = {
             $_override_fact => deep_merge(
               $cur_override, {
-                'permanent' => {
+                'temporary' => {
                   'day'       => $day,
                   'week'      => $week,
                   'offset'    => $offset,
