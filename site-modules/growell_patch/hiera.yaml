@@ -19,3 +19,12 @@ hierarchy:
       - "environments/%{server_facts.environment}/0.yaml"
       - "environments/%{server_facts.environment}/%{os.name}.yaml"
       - "environments/%{server_facts.environment}.yaml"
+
+plan_hierarchy:
+  - name: 'proposed patching'
+    paths:
+      - "nodes/%{trusted.certname}.yaml"
+      - "environments/%{server_facts.environment}/%{az_metadata.compute.zone}.yaml"
+      - "environments/%{server_facts.environment}/0.yaml"
+      - "environments/%{server_facts.environment}/%{os.name}.yaml"
+      - "environments/%{server_facts.environment}.yaml"
