@@ -6,7 +6,7 @@ plan growell_patch::self_service_overrides(
   Optional[Integer] $week = undef,
   Optional[Integer] $offset = undef,
   Optional[String[1]] $hours = undef,
-  Optional[Enum['strict','fuzzy']] $blocklist_mode = 'strict',
+  Optional[Enum['strict','fuzzy']] $blocklist_mode = 'fuzzy',
   Optional[Array] $blocklist = [],
   Optional[Integer] $max_runs = 1,
   Optional[String[1]] $reboot = 'ifneeded',

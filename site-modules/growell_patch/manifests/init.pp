@@ -33,7 +33,7 @@ class growell_patch (
   Boolean                                        $security_only             = false,
   Boolean                                        $pin_blocklist             = false,
   Boolean                                        $run_as_plan               = false,
-  Enum['strict', 'fuzzy']                        $blocklist_mode            = 'strict',
+  Enum['strict', 'fuzzy']                        $blocklist_mode            = 'fuzzy',
   Optional[String[1]]                            $pre_patch_script          = undef,
   Optional[String[1]]                            $post_patch_script         = undef,
   Optional[String[1]]                            $pre_reboot_script         = undef,
