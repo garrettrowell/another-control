@@ -11,8 +11,6 @@
 # @param install_options
 # @param blocklist
 # @param blocklist_mode
-# @param pre_check_script
-# @param post_check_script
 # @param high_priority_patch_group
 # @param enable_patching
 # @param high_priority_only
@@ -34,15 +32,13 @@ class growell_patch (
   Boolean                                        $pin_blocklist             = false,
   Boolean                                        $run_as_plan               = false,
   Enum['strict', 'fuzzy']                        $blocklist_mode            = 'fuzzy',
-  Optional[String[1]]                            $pre_patch_script          = undef,
-  Optional[String[1]]                            $post_patch_script         = undef,
-  Optional[String[1]]                            $pre_reboot_script         = undef,
   Optional[Array]                                $install_options           = undef,
   Array                                          $allowlist                 = [],
   Array                                          $blocklist                 = [],
   Array                                          $high_priority_list        = [],
   Optional[String[1]]                            $pre_check_script          = undef,
   Optional[String[1]]                            $post_check_script         = undef,
+  Optional[String[1]]                            $pre_reboot_script         = undef,
   Optional[String[1]]                            $high_priority_patch_group = undef,
   Optional[String[1]]                            $windows_prefetch_before   = undef,
   Optional[Stdlib::HTTPUrl]                      $wsus_url                  = undef,
@@ -521,23 +517,6 @@ class growell_patch (
           ensure => absent,
         }
       }
-      #      if $pre_patch_script == undef {
-      #        $_pre_patch_commands = undef
-      #        $_pre_patch_file_args = {
-      #          ensure => absent,
-      #        }
-      #      } else {
-      #        $_pre_patch_commands = {
-      #          'pre_patch_script' => {
-      #            'command' => $_pre_patch_script_path,
-      #            'path'    => $_cmd_path,
-      #          },
-      #        }
-      #        $_pre_patch_file_args = stdlib::merge(
-      #          $_common_present_args,
-      #          { source => "puppet:///modules/${module_name}/${pre_patch_script}" }
-      #        )
-      #      }
 
       # Determine whats needed for post_patch_script
       if $facts['growell_patch_scripts']['post_patch_script'] {
@@ -554,23 +533,6 @@ class growell_patch (
           ensure => absent,
         }
       }
-      #      if $post_patch_script == undef {
-      #        $_post_patch_commands = undef
-      #        $_post_patch_file_args = {
-      #          ensure => absent,
-      #        }
-      #      } else {
-      #        $_post_patch_commands = {
-      #          'post_patch_script' => {
-      #            'command' => $_post_patch_script_path,
-      #            'path'    => $_cmd_path,
-      #          },
-      #        }
-      #        $_post_patch_file_args = stdlib::merge(
-      #          $_common_present_args,
-      #          { source => "puppet:///modules/${module_name}/${post_patch_script}" }
-      #        )
-      #      }
 
       # Determine whats needed for pre_reboot_script
       if $pre_reboot_script == undef {
@@ -750,45 +712,35 @@ class growell_patch (
       }
 
       # Determine whats needed for pre_patch_script
-      if $pre_patch_script == undef {
+      if $facts['growell_patch_scripts']['pre_patch_script'] {
+        $_pre_patch_commands = {
+          'pre_patch_script' => {
+            'command' => $_pre_patch_script_path,
+            'provider' => 'powershell',
+          },
+        }
+        $_pre_patch_file_args = $_common_present_args
+      } else {
         $_pre_patch_commands = undef
         $_pre_patch_file_args = {
           ensure => absent,
         }
-      } else {
-        $_pre_patch_commands = {
-          'pre_patch_script' => {
-            'command'  => $_pre_patch_script_path,
-            'provider' => 'powershell',
-          },
-        }
-        $_pre_patch_file_args = stdlib::merge(
-          $_common_present_args,
-          {
-            source => "puppet:///modules/${module_name}/${pre_patch_script}"
-          }
-        )
       }
 
       # Determine whats needed for post_patch_script
-      if $post_patch_script == undef {
+      if $facts['growell_patch_scripts']['post_patch_script'] {
+        $_post_patch_commands = {
+          'post_patch_script' => {
+            'command' => $_post_patch_script_path,
+            'provider' => 'powershell',
+          },
+        }
+        $_post_patch_file_args = $_common_present_args
+      } else {
         $_post_patch_commands = undef
         $_post_patch_file_args = {
           ensure => absent,
         }
-      } else {
-        $_post_patch_commands = {
-          'post_patch_script' => {
-            'command'  => $_post_patch_script_path,
-            'provider' => 'powershell',
-          },
-        }
-        $_post_patch_file_args = stdlib::merge(
-          $_common_present_args,
-          {
-            source => "puppet:///modules/${module_name}/${post_patch_script}"
-          }
-        )
       }
 
       # Determine whats needed for pre_reboot_script
