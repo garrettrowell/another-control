@@ -7,6 +7,6 @@ growell_patch::pin_blocklist: true
 growell_patch::blocklist:
   - 'linux*'
 growell_patch::blocklist_mode: 'fuzzy'
-growell_patch::install_options:
-  - '-t'
-  - 'nonexist'
+#growell_patch::install_options:
+#  - '-t'
+#  - 'nonexist'
