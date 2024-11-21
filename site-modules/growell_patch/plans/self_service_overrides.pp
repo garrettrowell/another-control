@@ -15,7 +15,7 @@ plan growell_patch::self_service_overrides(
   if $action == 'add' {
     case $type {
       'blocklist': {
-        unless ($blocklist != [] or $blocklist_mode != undef) {
+        unless ($blocklist != [] and $blocklist_mode != undef) {
           fail_plan('$blocklist and $blocklist_mode are required parameters when $type = blocklist and $action = add')
         }
       }
