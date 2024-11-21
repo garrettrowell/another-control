@@ -322,6 +322,9 @@ class growell_patch (
       $selected_blocklist      = $blocklist
       $selected_blocklist_mode = $blocklist_mode
     }
+  } else {
+    $selected_blocklist      = $blocklist
+    $selected_blocklist_mode = $blocklist_mode
   }
 
   # Determine which updates should get installed if any
