@@ -682,6 +682,7 @@ class growell_patch (
           }
         } elsif ($run_as_plan) {
           # When running as a plan don't hide KB's
+          notify { 'Hiding the KBs is not supported when running as a plan': }
         } elsif ($_is_patchday or $_is_high_prio_patch_day) {
           # KB's should be hidden before the patch window
           $_blocklist.each |$kb| {
