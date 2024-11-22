@@ -31,11 +31,14 @@ class growell_patch (
   Boolean                                        $security_only             = false,
   Boolean                                        $pin_blocklist             = false,
   Boolean                                        $run_as_plan               = false,
+  Boolean                                        $classify_pe_patch         = true,
+  Boolean                                        $fact_upload               = true,
   Enum['strict', 'fuzzy']                        $blocklist_mode            = 'fuzzy',
   Optional[Array]                                $install_options           = undef,
   Array                                          $allowlist                 = [],
   Array                                          $blocklist                 = [],
   Array                                          $high_priority_list        = [],
+  Array                                          $unsafe_process_list,
   Optional[String[1]]                            $pre_check_script          = undef,
   Optional[String[1]]                            $post_check_script         = undef,
   Optional[String[1]]                            $pre_reboot_script         = undef,
@@ -43,6 +46,78 @@ class growell_patch (
   Optional[String[1]]                            $windows_prefetch_before   = undef,
   Optional[Stdlib::HTTPUrl]                      $wsus_url                  = undef,
 ) {
+  # Create extra stages so we can reboot before and after
+  stage { "${module_name}_post_reboot": }
+  stage { "${module_name}_pre_reboot": }
+  Stage["${module_name}_pre_reboot"] -> Stage['main'] -> Stage["${module_name}_post_reboot"]
+
+  # Ensure we work with a $patch_groups array for further processing
+  $patch_groups = Array($patch_group, true)
+
+  # Verify if all of $patch_groups point to a valid patch schedule
+  $patch_groups.each |$pg| {
+    unless $patch_schedule[$pg] or $pg in ['always', 'never'] {
+      fail("Patch group ${pg} is not valid as no associated schedule was found!\nEnsure the ${module_name}::patch_schedule parameter contains a schedule for this patch group.") #lint:ignore:140chars
+    }
+  }
+
+  # Verify if the $high_priority_patch_group points to a valid patch schedule
+  unless $patch_schedule[$high_priority_patch_group] or $high_priority_patch_group in ['always', 'never'] {
+    fail("High Priority Patch group ${high_priority_patch_group} is not valid as no associated schedule was found!\nEnsure the ${module_name}::patch_schedule parameter contains a schedule for this patch group.") #lint:ignore:140chars
+  }
+
+  # Verify the puppet_confdir from the puppetlabs/puppet_agent module is present
+  unless $facts['puppet_confdir'] {
+    fail("The ${module_name} module depends on the puppetlabs/puppet_agent module, please add it to your setup!")
+  }
+
+  # Write local config file for unsafe processes
+  file { "${facts['puppet_confdir']}/patching_unsafe_processes":
+    ensure    => file,
+    content   => $unsafe_process_list.join("\n"),
+    show_diff => false,
+  }
+
+  #  if $classify_pe_patch {
+  #    class { 'pe_patch':
+  #      patch_group => join($patch_groups, ' '),
+  #      fact_upload => $fact_upload,
+  #    }
+  #  }
+
+  # Ensure yum-utils package is installed on RedHat/CentOS for needs-restarting utility
+  if $facts['os']['family'] == 'RedHat' {
+    ensure_packages('yum-utils')
+  }
+
+  # Write local state file for config reporting and reuse in plans
+  file { "${module_name}_configuration.json":
+    ensure    => file,
+    path      => "${facts['puppet_vardir']}/../../facter/facts.d/${module_name}_configuration.json",
+    content   => to_json_pretty( { # lint:ignore:manifest_whitespace_opening_brace_before
+        "${module_name}_config" => {
+          allowlist                 => $allowlist,
+          blocklist                 => $blocklist,
+          high_priority_list        => $high_priority_list,
+          enable_patching           => $enable_patching,
+          patch_group               => $patch_groups,
+          patch_schedule            => if $active_pg in ['always', 'never'] {
+            { $active_pg => 'N/A' }
+          } else {
+            $patch_schedule.filter |$item| { $item[0] in $patch_groups }
+          },
+          high_priority_patch_group => $high_priority_patch_group,
+          post_patch_commands       => $post_patch_commands,
+          pre_patch_commands        => $pre_patch_commands,
+          pre_reboot_commands       => $pre_reboot_commands,
+          patch_on_metered_links    => $patch_on_metered_links,
+          security_only             => $security_only,
+          unsafe_process_list       => $unsafe_process_list,
+        },
+    }, false),
+    show_diff => false,
+  }
+
   # Convert our custom schedule into the form expected by patching_as_code.
   #
   # Using the growell_patch::calc_patchday function we are able to determine the 'day_of_week'
@@ -379,9 +454,6 @@ class growell_patch (
   }
 
   ## Start of debug stuff
-  notify { 'hey its patch day!':
-    schedule => 'Growell_patch - Patch Window',
-  }
   notify { "process_groups => ${result}": }
   notify { "available_updates => ${available_updates}": }
   notify { "high_prio_updates => ${high_prio_updates}": }
