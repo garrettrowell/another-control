@@ -80,6 +80,7 @@ class growell_patch (
     show_diff => false,
   }
 
+  # TODO: uncomment once patching_as_code has been replaced
   #  if $classify_pe_patch {
   #    class { 'pe_patch':
   #      patch_group => join($patch_groups, ' '),
@@ -344,9 +345,9 @@ class growell_patch (
         []
       },
       'Linux' => if $security_only and !$high_priority_only {
-        patching_as_code::dedupe_arch($facts['pe_patch']['security_package_updates'])
+        growell_patch::dedupe_arch($facts['pe_patch']['security_package_updates'])
       } elsif !$high_priority_only {
-        patching_as_code::dedupe_arch($facts['pe_patch']['package_updates'])
+        growell::dedupe_arch($facts['pe_patch']['package_updates'])
       } else {
         []
       },
