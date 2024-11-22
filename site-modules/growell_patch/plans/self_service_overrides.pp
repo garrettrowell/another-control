@@ -9,7 +9,8 @@ plan growell_patch::self_service_overrides(
   Optional[Enum['strict','fuzzy']] $blocklist_mode = 'fuzzy',
   Optional[Array] $blocklist = [],
   Optional[Integer] $max_runs = 1,
-  Optional[String[1]] $post_reboot = 'ifneeded',
+  Optional[Enum['always', 'never', 'ifneeded']] $post_reboot = 'ifneeded',
+  Optional[Enum['always', 'never', 'ifneeded']] $pre_reboot  = 'ifneeded',
 ) {
   # Validate the required Parameters are passed for the given override 'type'
   if $action == 'add' {
@@ -73,7 +74,8 @@ plan growell_patch::self_service_overrides(
                   'offset'      => $offset,
                   'hours'       => $hours,
                   'max_runs'    => $max_runs,
-                  'post_reboot' => $reboot,
+                  'post_reboot' => $post_reboot,
+                  'pre_reboot'  => $pre_reboot,
                   'timestamp'   => Timestamp.new(),
                 }
               }
@@ -96,7 +98,8 @@ plan growell_patch::self_service_overrides(
                   'offset'      => $offset,
                   'hours'       => $hours,
                   'max_runs'    => $max_runs,
-                  'post_reboot' => $reboot,
+                  'post_reboot' => $post_reboot,
+                  'pre_reboot'  => $pre_reboot,
                 }
               }
             )

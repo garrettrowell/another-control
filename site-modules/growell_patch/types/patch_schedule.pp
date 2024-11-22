@@ -6,5 +6,6 @@ type Growell_patch::Patch_schedule = Struct[
     hours       => String,
     max_runs    => String,
     post_reboot => Enum['always', 'never', 'ifneeded'],
+    pre_reboot  => Enum['always', 'never', 'ifneeded'],
   }
 ]
