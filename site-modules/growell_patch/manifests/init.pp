@@ -564,7 +564,7 @@ class growell_patch (
         }
         $_pre_patch_file_args = $_common_present_args
       } else {
-        $_pre_patch_commands = undef
+        $_pre_patch_commands = {}
         $_pre_patch_file_args = {
           ensure => absent,
         }
@@ -580,7 +580,7 @@ class growell_patch (
         }
         $_post_patch_file_args = $_common_present_args
       } else {
-        $_post_patch_commands = undef
+        $_post_patch_commands = {}
         $_post_patch_file_args = {
           ensure => absent,
         }
@@ -588,7 +588,7 @@ class growell_patch (
 
       # Determine whats needed for pre_reboot_script
       if $pre_reboot_script == undef {
-        $_pre_reboot_commands = undef
+        $_pre_reboot_commands = {}
         $_pre_reboot_file_args = {
           ensure => absent,
         }
@@ -774,7 +774,7 @@ class growell_patch (
         }
         $_pre_patch_file_args = $_common_present_args
       } else {
-        $_pre_patch_commands = undef
+        $_pre_patch_commands = {}
         $_pre_patch_file_args = {
           ensure => absent,
         }
@@ -790,7 +790,7 @@ class growell_patch (
         }
         $_post_patch_file_args = $_common_present_args
       } else {
-        $_post_patch_commands = undef
+        $_post_patch_commands = {}
         $_post_patch_file_args = {
           ensure => absent,
         }
@@ -798,7 +798,7 @@ class growell_patch (
 
       # Determine whats needed for pre_reboot_script
       if $pre_reboot_script == undef {
-        $_pre_reboot_commands = undef
+        $_pre_reboot_commands = {}
         $_pre_reboot_file_args = {
           ensure => absent,
         }
