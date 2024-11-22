@@ -3,7 +3,7 @@ growell_patch::patch_schedule:
     day: 'Tuesday'
     week: 3
     offset: 3
-    hours: 02:00 - 04:00
+    hours: 10:00 - 12:00
     max_runs: '1'
     reboot: ifneeded
 
