@@ -1,0 +1,40 @@
+---
+growell_patch::patch_group: primary
+growell_patch::high_priority_patch_group: never
+growell_patch::patch_schedule:
+  weekly:
+    day_of_week: Thursday
+    count_of_week: [1,2,3,4,5]
+    hours: 09:00 - 11:00
+    max_runs: 4
+    reboot: ifneeded
+  testing:
+    day_of_week: Thursday
+    count_of_week: 2
+    hours: 07:00 - 09:00
+    max_runs: 4
+    reboot: ifneeded
+  early:
+    day_of_week: Monday
+    count_of_week: 3
+    hours: 20:00 - 22:00
+    max_runs: 4
+    reboot: ifneeded
+  primary:
+    day_of_week: Friday
+    count_of_week: 3
+    hours: 22:00 - 00:00
+    max_runs: 4
+    reboot: ifneeded
+  secondary:
+    day_of_week: Saturday
+    count_of_week: 3
+    hours: 22:00 - 00:00
+    max_runs: 4
+    reboot: ifneeded
+  late:
+    day_of_week: Saturday
+    count_of_week: 4
+    hours: 22:00 - 00:00
+    max_runs: 4
+    reboot: ifneeded
