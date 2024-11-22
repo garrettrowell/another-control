@@ -379,6 +379,9 @@ class growell_patch (
   }
 
   ## Start of debug stuff
+  notify { 'hey its patch day!':
+    schedule => 'Growell_patch - Patch Window',
+  }
   notify { "process_groups => ${result}": }
   notify { "available_updates => ${available_updates}": }
   notify { "high_prio_updates => ${high_prio_updates}": }
