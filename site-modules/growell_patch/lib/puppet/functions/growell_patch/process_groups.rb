@@ -34,11 +34,20 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
 
     if patch_group.include? 'never'
       active_pg              = 'never'
-      call_function('create_resources', 'schedule', {'Growell_patch - Patch Window' => { 'period' => 'never'}})
+      call_function('create_resources', 'schedule', {
+        'Growell_patch - Patch Window' => {
+          'period' => 'never'
+        }
+      })
     elsif patch_group.include? 'always'
       bool_patch_day         = true
       active_pg              = 'always'
-      call_function('create_resources', 'schedule', {'Growell_patch - Patch Window' => { 'range' => '00:00 - 23:59', 'repeat' => 1440}})
+      call_function('create_resources', 'schedule', {
+        'Growell_patch - Patch Window' => {
+          'range'  => '00:00 - 23:59',
+          'repeat' => 1440
+        }
+      })
     else
       patch_group = patch_group.is_a?(String) ? [patch_group] : patch_group
       pg_info = patch_group.map do |pg|
@@ -66,7 +75,12 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         before_patch_window = parsed_window['current_time'] < parsed_window['start_time']
         after_patch_window  = parsed_window['current_time'] >= parsed_window['end_time']
         patch_duration      = calc_duration(parsed_window['start_time'], parsed_window['end_time'])
-        call_function('create_resources', 'schedule', {'Growell_patch - Patch Window' => { 'range' => patch_schedule[active_pg]['hours'], 'repeat' => patch_schedule[active_pg]['max_runs']}})
+        call_function('create_resources', 'schedule', {
+          'Growell_patch - Patch Window' => {
+            'range'  => patch_schedule[active_pg]['hours'],
+            'repeat' => patch_schedule[active_pg]['max_runs']
+          }
+        })
         unless windows_prefetch_before.nil?
           parsed_prefetch        = parse_prefetch(windows_prefetch_before, parsed_window)
           in_prefetch_window     = parsed_window['current_time'].between?(parsed_prefetch, parsed_window['start_time'])
@@ -78,10 +92,20 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     end
 
     if high_priority_patch_group == 'never'
-      # Use defaults
+      call_function('create_resources', 'schedule', {
+        'Growell_patch - High Priority Patch Window' => {
+          'period' => 'never'
+        }
+      })
     elsif high_priority_patch_group == 'always'
       bool_high_prio_patch_day  = true
       in_high_prio_patch_window = true
+      call_function('create_resources', 'schedule', {
+        'Growell_patch - High Priority Patch Window' => {
+          'range'  => '00:00 - 23:59',
+          'repeat' => 1440
+        }
+      })
     elsif !high_priority_patch_group.nil?
       bool_high_prio_patch_day = patchday?(high_priority_patch_group, patch_schedule[high_priority_patch_group], time_now)
 
@@ -91,6 +115,13 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         before_high_prio_patch_window = parsed_high_prio_patch_window['current_time'] < parsed_high_prio_patch_window['start_time']
         after_high_prio_patch_window  = parsed_high_prio_patch_window['current_time'] >= parsed_high_prio_patch_window['end_time']
         high_prio_patch_duration      = calc_duration(parsed_high_prio_patch_window['start_time'], parsed_high_prio_patch_window['end_time'])
+        call_function('create_resources', 'schedule', {
+          'Growell_patch - High Priority Patch Window' => {
+            'range'  => patch_schedule[high_priority_patch_group]['hours'],
+            'repeat' => patch_schedule[high_priority_patch_group]['max_runs'],
+          }
+        })
+
         unless windows_prefetch_before.nil?
           parsed_high_prio_prefetch        = parse_prefetch(windows_prefetch_before, parsed_high_prio_patch_window)
           in_high_prio_prefetch_window     = parsed_high_prio_patch_window['current_time'].between?(parsed_high_prio_prefetch, parsed_high_prio_patch_window['start_time'])
