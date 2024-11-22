@@ -147,7 +147,7 @@ class growell_patch (
                 'count_of_week' => $_patch_day['count_of_week'],
                 'hours'         => $facts[$_override_fact]['temporary']['hours'],
                 'max_runs'      => String($facts[$_override_fact]['temporary']['max_runs']),
-                'reboot'        => $facts[$_override_fact]['temporary']['reboot'],
+                'post_reboot'   => $facts[$_override_fact]['temporary']['post_reboot'],
               }
             }
           } else {
@@ -167,7 +167,7 @@ class growell_patch (
                   'count_of_week' => $_patch_day['count_of_week'],
                   'hours'         => $facts[$_override_fact]['permanent']['hours'],
                   'max_runs'      => String($facts[$_override_fact]['permanent']['max_runs']),
-                  'reboot'        => $facts[$_override_fact]['permanent']['reboot'],
+                  'post_reboot'   => $facts[$_override_fact]['permanent']['post_reboot'],
                 }
               }
             } else {
@@ -180,7 +180,7 @@ class growell_patch (
                     'count_of_week' => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['count_of_week'],
                     'hours'         => $x[1]['hours'],
                     'max_runs'      => $x[1]['max_runs'],
-                    'reboot'        => $x[1]['reboot'],
+                    'post_reboot'   => $x[1]['post_reboot'],
                   }
                 }
               }
@@ -203,7 +203,7 @@ class growell_patch (
                 'count_of_week' => $_patch_day['count_of_week'],
                 'hours'         => $facts[$_override_fact]['permanent']['hours'],
                 'max_runs'      => String($facts[$_override_fact]['permanent']['max_runs']),
-                'reboot'        => $facts[$_override_fact]['permanent']['reboot'],
+                'post_reboot'   => $facts[$_override_fact]['permanent']['post_reboot'],
               }
             }
           } else {
@@ -216,7 +216,7 @@ class growell_patch (
                   'count_of_week' => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['count_of_week'],
                   'hours'         => $x[1]['hours'],
                   'max_runs'      => $x[1]['max_runs'],
-                  'reboot'        => $x[1]['reboot'],
+                  'post_reboot'   => $x[1]['post_reboot'],
                 }
               }
             }
@@ -234,7 +234,7 @@ class growell_patch (
           'count_of_week' => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['count_of_week'],
           'hours'         => $x[1]['hours'],
           'max_runs'      => $x[1]['max_runs'],
-          'reboot'        => $x[1]['reboot'],
+          'post_reboot'   => $x[1]['post_reboot'],
         }
       }
     }
