@@ -72,7 +72,8 @@ class growell_patch (
   }
 
   # Write local config file for unsafe processes
-  file { "${facts['puppet_confdir']}/patching_unsafe_processes":
+  # Todo: once patching_as_code has been fully replaced remove your name from this file!
+  file { "${facts['puppet_confdir']}/patching_unsafe_processes_growell":
     ensure    => file,
     content   => $unsafe_process_list.join("\n"),
     show_diff => false,
