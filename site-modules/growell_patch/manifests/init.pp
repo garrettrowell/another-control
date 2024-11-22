@@ -33,6 +33,7 @@ class growell_patch (
   Boolean                                        $run_as_plan               = false,
   Boolean                                        $classify_pe_patch         = true,
   Boolean                                        $fact_upload               = true,
+  Boolean                                        $patch_on_metered_links    = false,
   Enum['strict', 'fuzzy']                        $blocklist_mode            = 'fuzzy',
   Optional[Array]                                $install_options           = undef,
   Array                                          $allowlist                 = [],
