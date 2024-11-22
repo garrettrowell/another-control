@@ -91,34 +91,6 @@ class growell_patch (
     ensure_packages('yum-utils')
   }
 
-  # Write local state file for config reporting and reuse in plans
-  file { "${module_name}_configuration.json":
-    ensure    => file,
-    path      => "${facts['puppet_vardir']}/../../facter/facts.d/${module_name}_configuration.json",
-    content   => to_json_pretty( { # lint:ignore:manifest_whitespace_opening_brace_before
-        "${module_name}_config" => {
-          allowlist                 => $allowlist,
-          blocklist                 => $blocklist,
-          high_priority_list        => $high_priority_list,
-          enable_patching           => $enable_patching,
-          patch_group               => $patch_groups,
-          patch_schedule            => if $active_pg in ['always', 'never'] {
-            { $active_pg => 'N/A' }
-          } else {
-            $patch_schedule.filter |$item| { $item[0] in $patch_groups }
-          },
-          high_priority_patch_group => $high_priority_patch_group,
-          post_patch_commands       => $post_patch_commands,
-          pre_patch_commands        => $pre_patch_commands,
-          pre_reboot_commands       => $pre_reboot_commands,
-          patch_on_metered_links    => $patch_on_metered_links,
-          security_only             => $security_only,
-          unsafe_process_list       => $unsafe_process_list,
-        },
-    }, false),
-    show_diff => false,
-  }
-
   # Convert our custom schedule into the form expected by patching_as_code.
   #
   # Using the growell_patch::calc_patchday function we are able to determine the 'day_of_week'
@@ -288,6 +260,7 @@ class growell_patch (
   $_after_high_prio_prefetch_window  = $result['high_prio_patch']['prefetch_window']['after']
   # Determine the longest window (in seconds) that applies
   $_longest_duration = $result['longest_duration']
+  $_active_pg = $result['normal_patch']['active_pg']
 
   # Configure the agents runtimeout accordingly
   $runtimeout_cfg_section = 'agent'
@@ -920,6 +893,34 @@ class growell_patch (
 
   # Make sure if the fact gets refreshed, it happens before upload
   Exec['pe_patch::exec::fact'] -> Exec['pe_patch::exec::fact_upload']
+
+  # Write local state file for config reporting and reuse in plans
+  file { "${module_name}_configuration.json":
+    ensure    => file,
+    path      => "${facts['puppet_vardir']}/../../facter/facts.d/${module_name}_configuration.json",
+    content   => to_json_pretty( { # lint:ignore:manifest_whitespace_opening_brace_before
+        "${module_name}_config" => {
+          allowlist                 => $allowlist,
+          blocklist                 => $_blocklist,
+          high_priority_list        => $high_priority_list,
+          enable_patching           => $enable_patching,
+          patch_group               => $_patch_groups,
+          patch_schedule            => if $_active_pg in ['always', 'never'] {
+            { $_active_pg => 'N/A' }
+          } else {
+            $patch_schedule.filter |$item| { $item[0] in $_patch_groups }
+          },
+          high_priority_patch_group => $high_priority_patch_group,
+          post_patch_commands       => $_post_patch_commands,
+          pre_patch_commands        => $_pre_patch_commands,
+          pre_reboot_commands       => $_pre_reboot_commands,
+          patch_on_metered_links    => $patch_on_metered_links,
+          security_only             => $security_only,
+          unsafe_process_list       => $unsafe_process_list,
+        },
+    }, false),
+    show_diff => false,
+  }
 
   # Finally we have the information to pass to 'patching_as_code'
   class { 'patching_as_code':
