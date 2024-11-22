@@ -42,7 +42,7 @@ class growell_patch (
   Optional[String[1]]                            $pre_check_script          = undef,
   Optional[String[1]]                            $post_check_script         = undef,
   Optional[String[1]]                            $pre_reboot_script         = undef,
-  Optional[String[1]]                            $high_priority_patch_group = undef,
+  String[1]                                      $high_priority_patch_group,
   Optional[String[1]]                            $windows_prefetch_before   = undef,
   Optional[Stdlib::HTTPUrl]                      $wsus_url                  = undef,
 ) {
