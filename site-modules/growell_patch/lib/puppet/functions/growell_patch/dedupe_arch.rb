@@ -1,4 +1,4 @@
-Puppet::Functions.create_function(:'growell::dedupe_arch') do
+Puppet::Functions.create_function(:'growell_patch::dedupe_arch') do
   dispatch :dedupe_arch do
     param 'Array', :patches
   end
