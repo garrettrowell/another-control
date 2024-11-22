@@ -38,7 +38,7 @@ class growell_patch (
   Array                                          $allowlist                 = [],
   Array                                          $blocklist                 = [],
   Array                                          $high_priority_list        = [],
-  Array                                          $unsafe_process_list,
+  Array                                          $unsafe_process_list       = [],
   Optional[String[1]]                            $pre_check_script          = undef,
   Optional[String[1]]                            $post_check_script         = undef,
   Optional[String[1]]                            $pre_reboot_script         = undef,
