@@ -33,15 +33,17 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     high_prio_prefetch_duration      = 0
 
     if patch_group.include? 'never'
-      active_pg              = 'never'
+      active_pg = 'never'
+      reboot    = 'never'
       call_function('create_resources', 'schedule', {
         'Growell_patch - Patch Window' => {
           'period' => 'never'
         }
       })
     elsif patch_group.include? 'always'
-      bool_patch_day         = true
-      active_pg              = 'always'
+      bool_patch_day = true
+      active_pg      = 'always'
+      reboot         = 'ifneeded'
       call_function('create_resources', 'schedule', {
         'Growell_patch - Patch Window' => {
           'range'  => '00:00 - 23:59',
@@ -75,6 +77,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         before_patch_window = parsed_window['current_time'] < parsed_window['start_time']
         after_patch_window  = parsed_window['current_time'] >= parsed_window['end_time']
         patch_duration      = calc_duration(parsed_window['start_time'], parsed_window['end_time'])
+        reboot              = patch_schedule[active_pg]['reboot']
         call_function('create_resources', 'schedule', {
           'Growell_patch - Patch Window' => {
             'range'  => patch_schedule[active_pg]['hours'],
@@ -88,10 +91,13 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
           after_prefetch_window  = parsed_window['current_time'] >= parsed_window['start_time']
           prefetch_duration      = calc_duration(parsed_prefetch, parsed_window['start_time'])
         end
+      else
+        reboot = 'never'
       end
     end
 
     if high_priority_patch_group == 'never'
+      high_prio_reboot = 'never'
       call_function('create_resources', 'schedule', {
         'Growell_patch - High Priority Patch Window' => {
           'period' => 'never'
@@ -100,6 +106,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
     elsif high_priority_patch_group == 'always'
       bool_high_prio_patch_day  = true
       in_high_prio_patch_window = true
+      high_prio_reboot          = 'ifneeded'
       call_function('create_resources', 'schedule', {
         'Growell_patch - High Priority Patch Window' => {
           'range'  => '00:00 - 23:59',
@@ -115,6 +122,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         before_high_prio_patch_window = parsed_high_prio_patch_window['current_time'] < parsed_high_prio_patch_window['start_time']
         after_high_prio_patch_window  = parsed_high_prio_patch_window['current_time'] >= parsed_high_prio_patch_window['end_time']
         high_prio_patch_duration      = calc_duration(parsed_high_prio_patch_window['start_time'], parsed_high_prio_patch_window['end_time'])
+        high_prio_reboot              = patch_schedule[high_priority_patch_group]['reboot']
         call_function('create_resources', 'schedule', {
           'Growell_patch - High Priority Patch Window' => {
             'range'  => patch_schedule[high_priority_patch_group]['hours'],
@@ -129,14 +137,17 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
           after_high_prio_prefetch_window  = parsed_high_prio_patch_window['current_time'] >= parsed_window['start_time']
           high_prio_prefetch_duration      = calc_duration(parsed_high_prio_prefetch, parsed_high_prio_patch_window['start_time'])
         end
+      else
+        high_prio_reboot = 'never'
       end
     end
 
     {
       'normal_patch' => {
-        'is_patch_day'    => bool_patch_day,
-        'active_pg'       => active_pg,
-        'window'          => {
+        'is_patch_day' => bool_patch_day,
+        'active_pg'    => active_pg,
+        'reboot'       => reboot,
+        'window'       => {
           'within'   => in_patch_window,
           'before'   => before_patch_window,
           'after'    => after_patch_window,
@@ -150,8 +161,9 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         }
       },
       'high_prio_patch' => {
-        'is_patch_day'    => bool_high_prio_patch_day,
-        'window'          => {
+        'is_patch_day' => bool_high_prio_patch_day,
+        'reboot'       => high_prio_reboot,
+        'window'       => {
           'within'   => in_high_prio_patch_window,
           'before'   => before_high_prio_patch_window,
           'after'    => after_high_prio_patch_window,

@@ -262,7 +262,11 @@ class growell_patch (
   $_after_high_prio_prefetch_window  = $result['high_prio_patch']['prefetch_window']['after']
   # Determine the longest window (in seconds) that applies
   $_longest_duration = $result['longest_duration']
+  # Determine the current active pg
   $_active_pg = $result['normal_patch']['active_pg']
+  # Determine reboot
+  $_reboot           = $result['normal_patch']['reboot']
+  $_high_prio_reboot = $result['high_prio_patch']['reboot']
 
   # Configure the agents runtimeout accordingly
   $runtimeout_cfg_section = 'agent'
@@ -347,7 +351,7 @@ class growell_patch (
       'Linux' => if $security_only and !$high_priority_only {
         growell_patch::dedupe_arch($facts['pe_patch']['security_package_updates'])
       } elsif !$high_priority_only {
-        growell::dedupe_arch($facts['pe_patch']['package_updates'])
+        growell_patch::dedupe_arch($facts['pe_patch']['package_updates'])
       } else {
         []
       },
@@ -355,7 +359,7 @@ class growell_patch (
     }
     $high_prio_updates = $facts['kernel'] ? {
       'windows' => $facts['pe_patch']['missing_update_kbs'].filter |$item| { $item in $high_priority_list },
-      'Linux'   => patching_as_code::dedupe_arch($facts['pe_patch']['package_updates'].filter |$item| { $item in $high_priority_list }),
+      'Linux'   => growell_patch::dedupe_arch($facts['pe_patch']['package_updates'].filter |$item| { $item in $high_priority_list }),
       default   => []
     }
   }
