@@ -148,6 +148,7 @@ class growell_patch (
                 'hours'         => $facts[$_override_fact]['temporary']['hours'],
                 'max_runs'      => String($facts[$_override_fact]['temporary']['max_runs']),
                 'post_reboot'   => $facts[$_override_fact]['temporary']['post_reboot'],
+                'pre_reboot'    => $facts[$_override_fact]['temporary']['pre_reboot'],
               }
             }
           } else {
@@ -168,6 +169,7 @@ class growell_patch (
                   'hours'         => $facts[$_override_fact]['permanent']['hours'],
                   'max_runs'      => String($facts[$_override_fact]['permanent']['max_runs']),
                   'post_reboot'   => $facts[$_override_fact]['permanent']['post_reboot'],
+                  'pre_reboot'    => $facts[$_override_fact]['permanent']['pre_reboot'],
                 }
               }
             } else {
@@ -181,6 +183,7 @@ class growell_patch (
                     'hours'         => $x[1]['hours'],
                     'max_runs'      => $x[1]['max_runs'],
                     'post_reboot'   => $x[1]['post_reboot'],
+                    'pre_reboot'    => $x[1]['pre_reboot'],
                   }
                 }
               }
@@ -204,6 +207,7 @@ class growell_patch (
                 'hours'         => $facts[$_override_fact]['permanent']['hours'],
                 'max_runs'      => String($facts[$_override_fact]['permanent']['max_runs']),
                 'post_reboot'   => $facts[$_override_fact]['permanent']['post_reboot'],
+                'pre_reboot'    => $facts[$_override_fact]['permanent']['pre_reboot'],
               }
             }
           } else {
@@ -217,6 +221,7 @@ class growell_patch (
                   'hours'         => $x[1]['hours'],
                   'max_runs'      => $x[1]['max_runs'],
                   'post_reboot'   => $x[1]['post_reboot'],
+                  'pre_reboot'    => $x[1]['pre_reboot'],
                 }
               }
             }
@@ -235,6 +240,7 @@ class growell_patch (
           'hours'         => $x[1]['hours'],
           'max_runs'      => $x[1]['max_runs'],
           'post_reboot'   => $x[1]['post_reboot'],
+          'pre_reboot'    => $x[1]['pre_reboot'],
         }
       }
     }
