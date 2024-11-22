@@ -9,7 +9,7 @@ plan growell_patch::self_service_overrides(
   Optional[Enum['strict','fuzzy']] $blocklist_mode = 'fuzzy',
   Optional[Array] $blocklist = [],
   Optional[Integer] $max_runs = 1,
-  Optional[String[1]] $reboot = 'ifneeded',
+  Optional[String[1]] $post_reboot = 'ifneeded',
 ) {
   # Validate the required Parameters are passed for the given override 'type'
   if $action == 'add' {
@@ -68,13 +68,13 @@ plan growell_patch::self_service_overrides(
             $_override_fact => deep_merge(
               $cur_override, {
                 'temporary' => {
-                  'day'       => $day,
-                  'week'      => $week,
-                  'offset'    => $offset,
-                  'hours'     => $hours,
-                  'max_runs'  => $max_runs,
-                  'reboot'    => $reboot,
-                  'timestamp' => Timestamp.new(),
+                  'day'         => $day,
+                  'week'        => $week,
+                  'offset'      => $offset,
+                  'hours'       => $hours,
+                  'max_runs'    => $max_runs,
+                  'post_reboot' => $reboot,
+                  'timestamp'   => Timestamp.new(),
                 }
               }
             )
@@ -91,12 +91,12 @@ plan growell_patch::self_service_overrides(
             $_override_fact => deep_merge(
               $cur_override, {
                 'permanent' => {
-                  'day'      => $day,
-                  'week'     => $week,
-                  'offset'   => $offset,
-                  'hours'    => $hours,
-                  'max_runs' => $max_runs,
-                  'reboot'   => $reboot,
+                  'day'         => $day,
+                  'week'        => $week,
+                  'offset'      => $offset,
+                  'hours'       => $hours,
+                  'max_runs'    => $max_runs,
+                  'post_reboot' => $reboot,
                 }
               }
             )

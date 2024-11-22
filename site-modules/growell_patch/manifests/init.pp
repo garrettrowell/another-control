@@ -265,8 +265,8 @@ class growell_patch (
   # Determine the current active pg
   $_active_pg = $result['normal_patch']['active_pg']
   # Determine reboot
-  $_reboot           = $result['normal_patch']['reboot']
-  $_high_prio_reboot = $result['high_prio_patch']['reboot']
+  $_post_reboot           = $result['normal_patch']['post_reboot']
+  $_high_prio_post_reboot = $result['high_prio_patch']['post_reboot']
 
   # Configure the agents runtimeout accordingly
   $runtimeout_cfg_section = 'agent'
