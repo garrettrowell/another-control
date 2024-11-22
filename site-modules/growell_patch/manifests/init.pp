@@ -904,11 +904,11 @@ class growell_patch (
           blocklist                 => $_blocklist,
           high_priority_list        => $high_priority_list,
           enable_patching           => $enable_patching,
-          patch_group               => $_patch_groups,
+          patch_group               => $_patch_group,
           patch_schedule            => if $_active_pg in ['always', 'never'] {
             { $_active_pg => 'N/A' }
           } else {
-            $patch_schedule.filter |$item| { $item[0] in $_patch_groups }
+            $patch_schedule.filter |$item| { $item[0] in $_patch_group }
           },
           high_priority_patch_group => $high_priority_patch_group,
           post_patch_commands       => $_post_patch_commands,
