@@ -34,7 +34,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
 
     if patch_group.include? 'never'
       active_pg              = 'never'
-      call_function('create_resources', ['schedule', {'Growell_patch - Patch Window' => { 'period' => 'never'}}])
+      call_function('create_resources', 'schedule', {'Growell_patch - Patch Window' => { 'period' => 'never'}})
     elsif patch_group.include? 'always'
       bool_patch_day         = true
       active_pg              = 'always'
