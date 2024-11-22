@@ -54,17 +54,17 @@ class growell_patch (
   # Ensure we work with a $patch_groups array for further processing
   $patch_groups = Array($patch_group, true)
 
-  # Verify if all of $patch_groups point to a valid patch schedule
-  $patch_groups.each |$pg| {
-    unless $patch_schedule[$pg] or $pg in ['always', 'never'] {
-      fail("Patch group ${pg} is not valid as no associated schedule was found!\nEnsure the ${module_name}::patch_schedule parameter contains a schedule for this patch group.") #lint:ignore:140chars
-    }
-  }
-
-  # Verify if the $high_priority_patch_group points to a valid patch schedule
-  unless $patch_schedule[$high_priority_patch_group] or $high_priority_patch_group in ['always', 'never'] {
-    fail("High Priority Patch group ${high_priority_patch_group} is not valid as no associated schedule was found!\nEnsure the ${module_name}::patch_schedule parameter contains a schedule for this patch group.") #lint:ignore:140chars
-  }
+  #  # Verify if all of $patch_groups point to a valid patch schedule
+  #  $patch_groups.each |$pg| {
+  #    unless $patch_schedule[$pg] or $pg in ['always', 'never'] {
+  #      fail("Patch group ${pg} is not valid as no associated schedule was found!\nEnsure the ${module_name}::patch_schedule parameter contains a schedule for this patch group.") #lint:ignore:140chars
+  #    }
+  #  }
+  #
+  #  # Verify if the $high_priority_patch_group points to a valid patch schedule
+  #  unless $patch_schedule[$high_priority_patch_group] or $high_priority_patch_group in ['always', 'never'] {
+  #    fail("High Priority Patch group ${high_priority_patch_group} is not valid as no associated schedule was found!\nEnsure the ${module_name}::patch_schedule parameter contains a schedule for this patch group.") #lint:ignore:140chars
+  #  }
 
   # Verify the puppet_confdir from the puppetlabs/puppet_agent module is present
   unless $facts['puppet_confdir'] {
