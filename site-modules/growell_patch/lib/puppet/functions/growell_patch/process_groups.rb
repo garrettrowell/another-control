@@ -66,6 +66,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         before_patch_window = parsed_window['current_time'] < parsed_window['start_time']
         after_patch_window  = parsed_window['current_time'] >= parsed_window['end_time']
         patch_duration      = calc_duration(parsed_window['start_time'], parsed_window['end_time'])
+        call_function('create_resources', 'schedule', {'Growell_patch - Patch Window' => { 'range' => patch_schedule[active_pg]['hours'], 'repeat' => patch_schedule[active_pg]['max_runs']}})
         unless windows_prefetch_before.nil?
           parsed_prefetch        = parse_prefetch(windows_prefetch_before, parsed_window)
           in_prefetch_window     = parsed_window['current_time'].between?(parsed_prefetch, parsed_window['start_time'])

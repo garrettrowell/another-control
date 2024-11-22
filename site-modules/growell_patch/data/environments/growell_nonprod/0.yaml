@@ -1,22 +1,11 @@
-#growell_patch::patch_schedule:
-#  growell_nonprod_wave0:
-#    day: 'Tuesday'
-#    week: 2
-#    offset: 2
-#    hours: 02:00 - 04:00
-#    max_runs: '1'
-#    reboot: ifneeded
-#
-#growell_patch::patch_group:
-#  - growell_nonprod_wave0
-#growell_patch::patch_schedule:
-#  growell_nonprod_wave0:
-#    day: 'Tuesday'
-#    week: 2
-#    offset: 2
-#    hours: 02:00 - 04:00
-#    max_runs: '1'
-#    reboot: ifneeded
+growell_patch::patch_schedule:
+  growell_nonprod_wave0:
+    day: 'Tuesday'
+    week: 3
+    offset: 3
+    hours: 02:00 - 04:00
+    max_runs: '1'
+    reboot: ifneeded
 
 growell_patch::patch_group:
-  - always
+  - growell_nonprod_wave0
