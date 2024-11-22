@@ -506,7 +506,7 @@ class growell_patch (
       }
 
       # Determine whats needed for pre_patch_script
-      if $facts['growell_patch_scripts']['pre_patch_script'] {
+      if $facts["${module_name}_scripts"]['pre_patch_script'] {
         $_pre_patch_commands = {
           'pre_patch_script' => {
             'command' => $_pre_patch_script_path,
@@ -522,7 +522,7 @@ class growell_patch (
       }
 
       # Determine whats needed for post_patch_script
-      if $facts['growell_patch_scripts']['post_patch_script'] {
+      if $facts["${module_name}_scripts"]['post_patch_script'] {
         $_post_patch_commands = {
           'post_patch_script' => {
             'command' => $_post_patch_script_path,
@@ -716,7 +716,7 @@ class growell_patch (
       }
 
       # Determine whats needed for pre_patch_script
-      if $facts['growell_patch_scripts']['pre_patch_script'] {
+      if $facts["${module_name}_scripts"]['pre_patch_script'] {
         $_pre_patch_commands = {
           'pre_patch_script' => {
             'command' => $_pre_patch_script_path,
@@ -732,7 +732,7 @@ class growell_patch (
       }
 
       # Determine whats needed for post_patch_script
-      if $facts['growell_patch_scripts']['post_patch_script'] {
+      if $facts["${module_name}_scripts"]['post_patch_script'] {
         $_post_patch_commands = {
           'post_patch_script' => {
             'command' => $_post_patch_script_path,
