@@ -38,3 +38,11 @@ growell_patch::patch_schedule:
     hours: 22:00 - 00:00
     max_runs: 4
     reboot: ifneeded
+
+growell_patch::blocklist: []
+growell_patch::allowlist: []
+growell_patch::high_priority_list: []
+growell_patch::unsafe_process_list: []
+growell_patch::pre_patch_commands: {}
+growell_patch::post_patch_commands: {}
+growell_patch::pre_reboot_commands: {}
