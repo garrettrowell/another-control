@@ -16,7 +16,7 @@ Puppet::Type.newtype(:patch_package) do
 
   # All parameters are required
   validate do
-    [:name, :patch_window, :chocolatey].each do |param|
+    [:name, :patch_window].each do |param|
       raise Puppet::Error, "Required parameter missing: #{param}" unless @parameters[param]
     end
   end
