@@ -1016,7 +1016,9 @@ class growell_patch (
     anchor { 'growell_patch::start': } #lint:ignore:anchor_resource
 
     if $enable_patching == true {
+      notify { 'patching enabled': }
       if (($patch_on_metered_links == true) or (! $facts['metered_link'] == true)) and (! $facts['patch_unsafe_process_active'] == true) {
+        notify { 'in if statement': }
         case $facts['kernel'].downcase() {
           /(windows|linux)/: {
             # Run pre-patch commands if provided
