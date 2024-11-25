@@ -1046,6 +1046,7 @@ class growell_patch (
               false => Exec['pe_patch::exec::fact']
             }
             if ($updates_to_install.count + $high_prio_updates_to_install.count > 0) {
+              notify { 'i have updates to install': }
               class { "${module_name}::${0}::patchday":
                 updates                 => $updates_to_install.unique,
                 high_prio_updates       => $high_prio_updates_to_install.unique,
