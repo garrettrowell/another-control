@@ -452,15 +452,15 @@ class growell_patch (
   }
   ## End of debug stuff
 
-  if ($run_as_plan) {
-    # These file resources use Deferred functions normally, which do not play nicely in apply blocks
-    File <| title == 'Patching as Code - Save Patch Run Info' |> {
-      content => patching_as_code::last_run($updates_to_install.unique, []),
-    }
-    File <| title == 'Patching as Code - Save High Priority Patch Run Info' |> {
-      content => patching_as_code::high_prio_last_run($high_prio_updates_to_install.unique, []),
-    }
-  }
+  #if ($run_as_plan) {
+  #  # These file resources use Deferred functions normally, which do not play nicely in apply blocks
+  #  File <| title == 'Patching as Code - Save Patch Run Info' |> {
+  #    content => patching_as_code::last_run($updates_to_install.unique, []),
+  #  }
+  #  File <| title == 'Patching as Code - Save High Priority Patch Run Info' |> {
+  #    content => patching_as_code::high_prio_last_run($high_prio_updates_to_install.unique, []),
+  #  }
+  #}
 
   # Determine the states of the pre/post scripts based on operating system
   case $facts['kernel'] {
@@ -685,7 +685,7 @@ class growell_patch (
           type   => 'string',
           data   => $wsus_url,
           tag    => ["${module_name}-WUServer", "${module_name}_reg"],
-          before => Class['patching_as_code'],
+          #    before => Class['patching_as_code'],
           notify => Service['wuauserv'],
         }
 
@@ -694,7 +694,7 @@ class growell_patch (
           Registry_value <| title == 'UseWUServer' or title == "${_au_base_reg}\\UseWUServer" |> {
             data   => 1,
             tag    => ["${module_name}-UseWUServer", "${module_name}_reg"],
-            before => Class['patching_as_code'],
+            #  before => Class['patching_as_code'],
             notify => Service['wuauserv'],
           }
         } else {
@@ -703,7 +703,7 @@ class growell_patch (
             type   => dword,
             data   => 1,
             tag    => ["${module_name}-UseWUServer", "${module_name}_reg"],
-            before => Class['patching_as_code'],
+            #before => Class['patching_as_code'],
             notify => Service['wuauserv'],
           }
         }
@@ -738,7 +738,7 @@ class growell_patch (
                 command  => "Unhide-WindowsUpdate -KBArticleID '${kb}' -AcceptAll",
                 unless   => epp("${module_name}/kb_is_unhidden.ps1.epp", { 'kb' => $kb }),
                 provider => 'powershell',
-                before   => Class['patching_as_code'],
+                #    before   => Class['patching_as_code'],
                 notify   => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
               }
             }
@@ -753,7 +753,7 @@ class growell_patch (
               command  => "Hide-WindowsUpdate -KBArticleID '${kb}' -AcceptAll",
               unless   => epp("${module_name}/kb_is_hidden.ps1.epp", { 'kb' => $kb }),
               provider => 'powershell',
-              before   => Class['patching_as_code'],
+              #before   => Class['patching_as_code'],
               notify   => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
             }
           }
@@ -848,7 +848,7 @@ class growell_patch (
             command  => $_pre_check_script_path,
             provider => powershell,
             require  => File['pre_check_script'],
-            before   => Class['patching_as_code'],
+            #before   => Class['patching_as_code'],
           }
         }
       }
@@ -869,7 +869,8 @@ class growell_patch (
           exec { 'post_check_script':
             command  => $_post_check_script_path,
             provider => powershell,
-            require  => [File['post_check_script'], Class['patching_as_code']],
+            require  => File['post_check_script'],
+            #require => [File['post_check_script'], Class['patching_as_code']],
           }
         }
       }
@@ -881,7 +882,7 @@ class growell_patch (
   file {
     default:
       require => File[$_script_base],
-      before  => Class['patching_as_code'],
+      #before  => Class['patching_as_code'],
       ;
     'pre_patch_script':
       path => $_pre_patch_script_path,
