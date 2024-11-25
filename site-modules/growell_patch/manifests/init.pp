@@ -80,13 +80,12 @@ class growell_patch (
     show_diff => false,
   }
 
-  # TODO: uncomment once patching_as_code has been replaced
-  #  if $classify_pe_patch {
-  #    class { 'pe_patch':
-  #      patch_group => join($patch_groups, ' '),
-  #      fact_upload => $fact_upload,
-  #    }
-  #  }
+  if $classify_pe_patch {
+    class { 'pe_patch':
+      patch_group => join($patch_groups, ' '),
+      fact_upload => $fact_upload,
+    }
+  }
 
   # Ensure yum-utils package is installed on RedHat/CentOS for needs-restarting utility
   if $facts['os']['family'] == 'RedHat' {
@@ -908,7 +907,7 @@ class growell_patch (
   }
 
   # Make sure if the fact gets refreshed, it happens before upload
-  #Exec['pe_patch::exec::fact'] -> Exec['pe_patch::exec::fact_upload']
+  Exec['pe_patch::exec::fact'] -> Exec['pe_patch::exec::fact_upload']
 
   # Write local state file for config reporting and reuse in plans
   file { "${module_name}_configuration.json":
