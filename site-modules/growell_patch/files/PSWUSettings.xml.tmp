@@ -1,0 +1,26 @@
+<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Collections.Hashtable</T>
+      <T>System.Object</T>
+    </TN>
+    <DCT>
+      <En>
+        <S N="Key">Port</S>
+        <S N="Value">25</S>
+      </En>
+      <En>
+        <S N="Key">SmtpServer</S>
+        <S N="Value">smtpwawa.server.pl</S>
+      </En>
+      <En>
+        <S N="Key">To</S>
+        <S N="Value">recipient@email.pl</S>
+      </En>
+      <En>
+        <S N="Key">From</S>
+        <S N="Value">sender@email.pl</S>
+      </En>
+    </DCT>
+  </Obj>
+</Objs>

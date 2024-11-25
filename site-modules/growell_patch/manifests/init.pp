@@ -913,44 +913,338 @@ class growell_patch (
     ensure    => file,
     path      => "${facts['puppet_vardir']}/../../facter/facts.d/${module_name}_configuration.json",
     content   => to_json_pretty( { # lint:ignore:manifest_whitespace_opening_brace_before
-        "${module_name}_config" => {
-          allowlist                 => $allowlist,
-          blocklist                 => $_blocklist,
-          high_priority_list        => $high_priority_list,
-          enable_patching           => $enable_patching,
-          patch_group               => $_patch_group,
-          patch_schedule            => if $_active_pg in ['always', 'never'] {
-            { $_active_pg => 'N/A' }
-          } else {
-            $patch_schedule.filter |$item| { $item[0] in $_patch_group }
-          },
-          high_priority_patch_group => $high_priority_patch_group,
-          post_patch_commands       => $_post_patch_commands,
-          pre_patch_commands        => $_pre_patch_commands,
-          pre_reboot_commands       => $_pre_reboot_commands,
-          patch_on_metered_links    => $patch_on_metered_links,
-          security_only             => $security_only,
-          unsafe_process_list       => $unsafe_process_list,
+      "${module_name}_config" => {
+        allowlist                 => $allowlist,
+        blocklist                 => $_blocklist,
+        high_priority_list        => $high_priority_list,
+        enable_patching           => $enable_patching,
+        patch_group               => $_patch_group,
+        patch_schedule            => if $_active_pg in ['always', 'never'] {
+          { $_active_pg => 'N/A' }
+        } else {
+          $patch_schedule.filter |$item| { $item[0] in $_patch_group }
         },
-    }, false),
-    show_diff => false,
+        high_priority_patch_group => $high_priority_patch_group,
+        post_patch_commands       => $_post_patch_commands,
+        pre_patch_commands        => $_pre_patch_commands,
+        pre_reboot_commands       => $_pre_reboot_commands,
+        patch_on_metered_links    => $patch_on_metered_links,
+        security_only             => $security_only,
+        unsafe_process_list       => $unsafe_process_list,
+      },
+      }, false),
+      show_diff => false,
   }
 
-  # Finally we have the information to pass to 'patching_as_code'
-  class { 'patching_as_code':
-    classify_pe_patch         => true,
-    enable_patching           => $enable_patching,
-    security_only             => $security_only,
-    high_priority_only        => $high_priority_only,
-    patch_group               => $_patch_group,
-    pre_patch_commands        => $_pre_patch_commands,
-    post_patch_commands       => $_post_patch_commands,
-    pre_reboot_commands       => $_pre_reboot_commands,
-    install_options           => $install_options,
-    allowlist                 => $allowlist,
-    blocklist                 => $_blocklist,
-    patch_schedule            => $_patch_schedule,
-    high_priority_patch_group => $high_priority_patch_group,
-    high_priority_list        => $high_priority_list,
+  # Pre reboot
+  $pre_reboot = case $_pre_reboot {
+    'always': { true }
+    'never': { false }
+    'ifneeded': { true }
+    default: { false }
   }
-}
+  $pre_reboot_if_needed = case $_pre_reboot {
+    'ifneeded': { true }
+    default: { false }
+  }
+  $high_prio_pre_reboot = case $_high_prio_pre_reboot {
+    'always': { true }
+    'never': { false }
+    'ifneeded': { true }
+    default: { false }
+  }
+  $high_prio_pre_reboot_if_needed = case $_high_prio_pre_reboot {
+    'ifneeded': { true }
+    default: { false }
+  }
+  # Post reboot
+  $post_reboot = case $_post_reboot {
+    'always': { true }
+    'never': { false }
+    'ifneeded': { true }
+    default: { false }
+  }
+  $post_reboot_if_needed = case $_post_reboot {
+    'ifneeded': { true }
+    default: { false }
+  }
+  $high_prio_post_reboot = case $_high_prio_post_reboot {
+    'always': { true }
+    'never': { false }
+    'ifneeded': { true }
+    default: { false }
+  }
+  $high_prio_post_reboot_if_needed = case $_high_prio_post_reboot {
+    'ifneeded': { true }
+    default: { false }
+  }
+
+  if $_is_patch_day or $_is_high_prio_patch_day {
+    # Perform pending reboots pre-patching, except if this is a high prio only run
+    if $enable_patching and !$high_priority_only {
+      if $pre_reboot and $_is_patch_day {
+        # Reboot the node first if a reboot is already pending
+        case $facts['kernel'].downcase() {
+          /(windows|linux)/: {
+            reboot_if_pending { 'Growell_patch':
+              patch_window => 'Growell_patch - Patch Window',
+              os           => $0,
+            }
+          }
+          default: {
+            fail('Unsupported operating system for Growell_patch!')
+          }
+        }
+      }
+      if $high_prio_pre_reboot and $_is_high_prio_patch_day and
+      ($high_prio_updates_to_install.count > 0) {
+        # Reboot the node first if a reboot is already pending
+        case $facts['kernel'].downcase() {
+          /(windows|linux)/: {
+            reboot_if_pending { 'Growell_patch High Priority':
+              patch_window => 'Growell_patch - High Priority Patch Window',
+              os           => $0,
+            }
+          }
+          default: {
+            fail("Unsupported operating system for Growell_patch!")
+          }
+        }
+      }
+    }
+    anchor { 'growell_patch::start': } #lint:ignore:anchor_resource
+
+    if $enable_patching == true {
+      if (($patch_on_metered_links == true) or (! $facts['metered_link'] == true)) and (! $facts['patch_unsafe_process_active'] == true) {
+        case $facts['kernel'].downcase() {
+          /(windows|linux)/: {
+            # Run pre-patch commands if provided
+            if ($updates_to_install.count > 0) {
+              $_pre_patch_commands.each | $cmd, $cmd_opts | {
+                exec { "Growell_patch - Before patching - ${cmd}":
+                  *        => delete($cmd_opts, ['before', 'schedule', 'tag']),
+                  before   => Class["${module_name}::${0}::patchday"],
+                  schedule => 'Growell_patch - Patch Window',
+                  tag      => ['growell_patch_pre_patching'],
+                }
+              }
+            }
+            if ($high_prio_updates_to_install.count > 0) {
+              $_pre_patch_commands.each | $cmd, $cmd_opts | {
+                exec { "Growell_patch - Before patching (High Priority) - ${cmd}":
+                  *        => delete($cmd_opts, ['before', 'schedule', 'tag']),
+                  before   => Class["${module_name}::${0}::patchday"],
+                  schedule => 'Growell_patch - High Priority Patch Window',
+                  tag      => ['growell_patch_pre_patching'],
+                }
+              }
+            }
+            # Perform main patching run
+            $patch_refresh_actions = $fact_upload ? {
+              true  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
+              false => Exec['pe_patch::exec::fact']
+            }
+            if ($updates_to_install.count + $high_prio_updates_to_install.count > 0) {
+              class { "${module_name}::${0}::patchday":
+                updates                 => $updates_to_install.unique,
+                high_prio_updates       => $high_prio_updates_to_install.unique,
+                install_options         => $install_options,
+                require                 => Anchor['growell_patch::start'],
+                before                  => Anchor['growell_patch::post'],
+                } -> file { "${facts['puppet_vardir']}/../../patching_as_code":
+                  ensure => directory,
+                }
+            }
+            if ($updates_to_install.count > 0) {
+              file { 'Growell_patch - Save Patch Run Info':
+                ensure    => file,
+                path      => "${facts['puppet_vardir']}/../../patching_as_code/last_run",
+                show_diff => false,
+                content   => Deferred('growell_patch::last_run', [
+                  $updates_to_install.unique,
+                  $choco_updates_to_install.unique,
+                  ]),
+                  schedule  => 'Growell_patch - Patch Window',
+                  require   => File["${facts['puppet_vardir']}/../../patching_as_code"],
+                  before    => Anchor['growell_patch::post'],
+                  } -> notify { 'Growell_patch - Update Fact':
+                    message  => 'Patches installed, refreshing patching facts...',
+                    notify   => $patch_refresh_actions,
+                    schedule => 'Growell_patch - Patch Window',
+                    before   => Anchor['growell_patch::post'],
+                  }
+            }
+            if ($high_prio_updates_to_install.count > 0) {
+              file { 'Growell_patch - Save High Priority Patch Run Info':
+                ensure    => file,
+                path      => "${facts['puppet_vardir']}/../../patching_as_code/high_prio_last_run",
+                show_diff => false,
+                content   => Deferred('growell_patch::high_prio_last_run', [
+                  $high_prio_updates_to_install.unique,
+                  $high_prio_choco_updates_to_install.unique,
+                  ]),
+                  schedule  => 'Growell_patch - High Priority Patch Window',
+                  require   => File["${facts['puppet_vardir']}/../../patching_as_code"],
+                  before    => Anchor['growell_patch::post'],
+                  } -> notify { 'Growell_patch - Update Fact (High Priority)':
+                    message  => 'Patches installed, refreshing patching facts...',
+                    notify   => $patch_refresh_actions,
+                    schedule => 'Growell_patch - High Priority Patch Window',
+                    before   => Anchor['growell_patch::post'],
+                  }
+            }
+            anchor { 'growell_patch::post': } #lint:ignore:anchor_resource
+            if ($post_reboot and $_is_patch_day) or ($high_prio_post_reboot and ($high_prio_updates_to_install.count > 0)) { #lint:ignore:140chars
+              # Reboot after patching (in later patch_reboot stage)
+              if ($updates_to_install.count > 0) and $post_reboot {
+                class { 'growell_patch::reboot':
+                  reboot_if_needed => $post_reboot_if_needed,
+                  schedule         => 'Growell_patch - Patch Window',
+                  stage            => patch_reboot,
+                }
+              }
+              if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
+                class { 'patching_as_code::high_prio_reboot':
+                  reboot_if_needed => $high_prio_post_reboot_if_needed,
+                  schedule         => 'Patching as Code - High Priority Patch Window',
+                  stage            => patch_reboot,
+                }
+              }
+              # Perform post-patching Execs
+              if ($updates_to_install.count > 0) and $post_reboot {
+                $_post_patch_commands.each | $cmd, $cmd_opts | {
+                  exec { "Growell_patch - After patching - ${cmd}":
+                    *        => delete($cmd_opts, ['require', 'before', 'schedule', 'tag']),
+                    require  => Anchor['growell_patch::post'],
+                    schedule => 'Growell_patch - Patch Window',
+                    tag      => ['growell_patch_post_patching'],
+                    } -> Exec <| tag == 'growell_patch_pre_reboot' |>
+                }
+              }
+              if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
+                $_post_patch_commands.each | $cmd, $cmd_opts | {
+                  exec { "Growell_patch - After patching (High Priority) - ${cmd}":
+                    *        => delete($cmd_opts, ['require', 'before', 'schedule', 'tag']),
+                    require  => Anchor['growell_patch::post'],
+                    schedule => 'Growell_patch - High Priority Patch Window',
+                    tag      => ['growell_patch_post_patching'],
+                    } -> Exec <| tag == 'growell_patch_pre_reboot' |>
+                }
+              }
+              # Define pre-reboot Execs
+              case $facts['kernel'].downcase() {
+                'windows': {
+                  $reboot_logic_provider = 'powershell'
+                  $reboot_logic_onlyif   = $post_reboot_if_needed ? {
+                    true  => "${facts['puppet_vardir']}/lib/${module_name}/pending_reboot.ps1",
+                    false => if ($updates_to_install.count > 0) {
+                      undef
+                    } else {
+                      "${facts['puppet_vardir']}/lib/${module_name}/pending_reboot.ps1"
+                    }
+                  }
+                  $reboot_logic_onlyif_high_prio = $high_prio_post_reboot_if_needed ? {
+                    true  => "${facts['puppet_vardir']}/lib/${module_name}/pending_reboot.ps1",
+                    false => undef
+                  }
+                }
+                'linux': {
+                  $reboot_logic_provider = 'posix'
+                  $reboot_logic_onlyif   = $post_reboot_if_needed ? {
+                    true  => "/bin/sh ${facts['puppet_vardir']}/lib/${module_name}/pending_reboot.sh",
+                    false => if ($updates_to_install.count > 0) {
+                      undef
+                    } else {
+                      "/bin/sh ${facts['puppet_vardir']}/lib/${module_name}/pending_reboot.sh"
+                    }
+                  }
+                  $reboot_logic_onlyif_high_prio = $high_prio_post_reboot_if_needed ? {
+                    true  => "/bin/sh ${facts['puppet_vardir']}/lib/${module_name}/pending_reboot.sh",
+                    false => undef
+                  }
+                }
+                default: {
+                  fail('Unsupported operating system for Growell_patch!')
+                }
+              }
+              if $post_reboot and $_is_patch_day and !$high_priority_only {
+                $_pre_reboot_commands.each | $cmd, $cmd_opts | {
+                  exec { "Growell_patch - Before reboot - ${cmd}":
+                    *        => delete($cmd_opts, ['provider', 'onlyif', 'unless', 'require', 'before', 'schedule', 'tag']),
+                    provider => $reboot_logic_provider,
+                    onlyif   => $reboot_logic_onlyif,
+                    require  => Anchor['growell_patch::post'],
+                    schedule => 'Growell_patch - Patch Window',
+                    tag      => ['growell_patch_pre_reboot'],
+                  }
+                }
+              }
+              if $high_prio_post_reboot and ($high_prio_updates_to_install.count > 0) {
+                $_pre_reboot_commands.each | $cmd, $cmd_opts | {
+                  exec { "Growell_patch - Before reboot (High Priority) - ${cmd}":
+                    *        => delete($cmd_opts, ['provider', 'onlyif', 'unless', 'require', 'before', 'schedule', 'tag']),
+                    provider => $reboot_logic_provider,
+                    onlyif   => $reboot_logic_onlyif_high_prio,
+                    require  => Anchor['growell_patch::post'],
+                    schedule => 'Growell_patch - High Priority Patch Window',
+                    tag      => ['growell_patch_pre_reboot'],
+                  }
+                }
+              }
+            } else {
+              # Do not reboot after patching, just run post_patch commands if given
+              if ($updates_to_install.count > 0) {
+                $_post_patch_commands.each | $cmd, $cmd_opts | {
+                  exec { "Growell_patch - After patching - ${cmd}":
+                    *        => delete($cmd_opts, ['require', 'schedule', 'tag']),
+                    require  => Anchor['growell_patch::post'],
+                    schedule => 'Growell_patch - Patch Window',
+                    tag      => ['growell_patch_post_patching'],
+                  }
+                }
+              }
+              if ($high_prio_updates_to_install.count > 0) {
+                $_post_patch_commands.each | $cmd, $cmd_opts | {
+                  exec { "Growell_patch - After patching (High Priority)- ${cmd}":
+                    *        => delete($cmd_opts, ['require', 'schedule', 'tag']),
+                    require  => Anchor['growell_patch::post'],
+                    schedule => 'Growell_patch - High Priority Patch Window',
+                    tag      => ['growell_patch_post_patching'],
+                  }
+                }
+              }
+            }
+          }
+          default: {
+            fail('Unsupported operating system for Growell_patch!')
+          }
+        }
+      } else {
+        if $facts['metered_link'] == true {
+          notice("Puppet is skipping installation of patches on ${trusted['certname']} due to the current network link being metered.")
+        }
+        if $facts['patch_unsafe_process_active'] == true {
+          notice("Puppet is skipping installation of patches on ${trusted['certname']} because a process is active that is unsafe for patching.") #lint:ignore:140chars
+        }
+      }
+    }
+  }
+
+    #  # Finally we have the information to pass to 'patching_as_code'
+    #  class { 'patching_as_code':
+    #    classify_pe_patch         => true,
+    #    enable_patching           => $enable_patching,
+    #    security_only             => $security_only,
+    #    high_priority_only        => $high_priority_only,
+    #    patch_group               => $_patch_group,
+    #    pre_patch_commands        => $_pre_patch_commands,
+    #    post_patch_commands       => $_post_patch_commands,
+    #    pre_reboot_commands       => $_pre_reboot_commands,
+    #    install_options           => $install_options,
+    #    allowlist                 => $allowlist,
+    #    blocklist                 => $_blocklist,
+    #    patch_schedule            => $_patch_schedule,
+    #    high_priority_patch_group => $high_priority_patch_group,
+    #    high_priority_list        => $high_priority_list,
+    #  }
+  }
