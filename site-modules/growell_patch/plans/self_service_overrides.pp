@@ -8,7 +8,7 @@ plan growell_patch::self_service_overrides(
   Optional[String[1]] $hours = undef,
   Optional[Enum['strict','fuzzy']] $blocklist_mode = 'fuzzy',
   Optional[Array] $blocklist = [],
-  Optional[Integer] $max_runs = 1,
+  Optional[Integer] $max_runs = 3,
   Optional[Enum['always', 'never', 'ifneeded']] $post_reboot = 'ifneeded',
   Optional[Enum['always', 'never', 'ifneeded']] $pre_reboot  = 'ifneeded',
 ) {
