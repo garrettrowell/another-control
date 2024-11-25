@@ -980,6 +980,7 @@ class growell_patch (
     default: { false }
   }
 
+  notify { "_is_patch_day: ${_is_patch_day}, _is_high_prio_patch_day: ${_is_high_prio_patch_day}": }
   if $_is_patch_day or $_is_high_prio_patch_day {
     # Perform pending reboots pre-patching, except if this is a high prio only run
     if $enable_patching and !$high_priority_only {
