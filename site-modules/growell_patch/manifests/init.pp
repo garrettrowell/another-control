@@ -1067,7 +1067,6 @@ class growell_patch (
                 show_diff => false,
                 content   => Deferred('growell_patch::last_run', [
                   $updates_to_install.unique,
-                  $choco_updates_to_install.unique,
                   ]),
                   schedule  => 'Growell_patch - Patch Window',
                   require   => File["${facts['puppet_vardir']}/../../${module_name}"],
@@ -1086,7 +1085,6 @@ class growell_patch (
                 show_diff => false,
                 content   => Deferred('growell_patch::high_prio_last_run', [
                   $high_prio_updates_to_install.unique,
-                  $high_prio_choco_updates_to_install.unique,
                   ]),
                   schedule  => 'Growell_patch - High Priority Patch Window',
                   require   => File["${facts['puppet_vardir']}/../../${module_name}"],
@@ -1099,7 +1097,7 @@ class growell_patch (
                   }
             }
             anchor { 'growell_patch::post': } #lint:ignore:anchor_resource
-            if ($post_reboot and $_is_patch_day) or ($high_prio_post_reboot and ($high_prio_updates_to_install.count > 0)) { #lint:ignore:140chars
+            if ($post_reboot and $_is_patchday) or ($high_prio_post_reboot and ($high_prio_updates_to_install.count > 0)) { #lint:ignore:140chars
               # Reboot after patching (in later patch_reboot stage)
               if ($updates_to_install.count > 0) and $post_reboot {
                 class { 'growell_patch::reboot':
@@ -1172,7 +1170,7 @@ class growell_patch (
                   fail('Unsupported operating system for Growell_patch!')
                 }
               }
-              if $post_reboot and $_is_patch_day and !$high_priority_only {
+              if $post_reboot and $_is_patchday and !$high_priority_only {
                 $_pre_reboot_commands.each | $cmd, $cmd_opts | {
                   exec { "Growell_patch - Before reboot - ${cmd}":
                     *        => delete($cmd_opts, ['provider', 'onlyif', 'unless', 'require', 'before', 'schedule', 'tag']),
