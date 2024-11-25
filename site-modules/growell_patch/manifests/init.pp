@@ -908,7 +908,7 @@ class growell_patch (
   }
 
   # Make sure if the fact gets refreshed, it happens before upload
-  Exec['pe_patch::exec::fact'] -> Exec['pe_patch::exec::fact_upload']
+  #Exec['pe_patch::exec::fact'] -> Exec['pe_patch::exec::fact_upload']
 
   # Write local state file for config reporting and reuse in plans
   file { "${module_name}_configuration.json":
