@@ -498,7 +498,7 @@ class growell_patch (
             'apt': {
               apt::mark { $_to_unpin:
                 setting => 'unhold',
-                before  => Class['patching_as_code'],
+                #                before  => Class['patching_as_code'],
                 notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
               }
             }
@@ -509,7 +509,7 @@ class growell_patch (
                   version => '*',
                   release => '*',
                   epoch   => 0,
-                  before  => Class['patching_as_code'],
+                  #    before  => Class['patching_as_code'],
                   notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
                 }
               }
@@ -519,7 +519,7 @@ class growell_patch (
                 exec { "${module_name}-removelock-${pin}":
                   command => "zypper removelock ${pin}",
                   path    => $_cmd_path,
-                  before  => Class['patching_as_code'],
+                  #before  => Class['patching_as_code'],
                   notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
                 }
               }
@@ -537,7 +537,7 @@ class growell_patch (
             'apt': {
               apt::mark { $_blocklist:
                 setting => 'hold',
-                before  => Class['patching_as_code'],
+                # before  => Class['patching_as_code'],
                 notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
               }
             }
@@ -547,7 +547,7 @@ class growell_patch (
                 version => '*',
                 release => '*',
                 epoch   => 0,
-                before  => Class['patching_as_code'],
+                #before  => Class['patching_as_code'],
                 notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
               }
             }
@@ -556,7 +556,7 @@ class growell_patch (
                 exec { "${module_name}-addlock-${pin}":
                   command => "zypper addlock ${pin}",
                   path    => $_cmd_path,
-                  before  => Class['patching_as_code'],
+                  # before  => Class['patching_as_code'],
                   notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
                 }
               }
@@ -636,7 +636,7 @@ class growell_patch (
             command => $_pre_check_script_path,
             path    => $_cmd_path,
             require => File['pre_check_script'],
-            before  => Class['patching_as_code'],
+            #before  => Class['patching_as_code'],
           }
         }
       }
@@ -657,7 +657,8 @@ class growell_patch (
           exec { 'post_check_script':
             command => $_post_check_script_path,
             path    => $_cmd_path,
-            require => [File['post_check_script'], Class['patching_as_code']],
+            #            require => [File['post_check_script'], Class['patching_as_code']],
+            require => File['post_check_script'],
           }
         }
       }
@@ -1052,21 +1053,21 @@ class growell_patch (
                 install_options         => $install_options,
                 require                 => Anchor['growell_patch::start'],
                 before                  => Anchor['growell_patch::post'],
-                } -> file { "${facts['puppet_vardir']}/../../patching_as_code":
+                } -> file { "${facts['puppet_vardir']}/../../${module_name}":
                   ensure => directory,
                 }
             }
             if ($updates_to_install.count > 0) {
               file { 'Growell_patch - Save Patch Run Info':
                 ensure    => file,
-                path      => "${facts['puppet_vardir']}/../../patching_as_code/last_run",
+                path      => "${facts['puppet_vardir']}/../../${module_name}/last_run",
                 show_diff => false,
                 content   => Deferred('growell_patch::last_run', [
                   $updates_to_install.unique,
                   $choco_updates_to_install.unique,
                   ]),
                   schedule  => 'Growell_patch - Patch Window',
-                  require   => File["${facts['puppet_vardir']}/../../patching_as_code"],
+                  require   => File["${facts['puppet_vardir']}/../../${module_name}"],
                   before    => Anchor['growell_patch::post'],
                   } -> notify { 'Growell_patch - Update Fact':
                     message  => 'Patches installed, refreshing patching facts...',
@@ -1078,14 +1079,14 @@ class growell_patch (
             if ($high_prio_updates_to_install.count > 0) {
               file { 'Growell_patch - Save High Priority Patch Run Info':
                 ensure    => file,
-                path      => "${facts['puppet_vardir']}/../../patching_as_code/high_prio_last_run",
+                path      => "${facts['puppet_vardir']}/../../${module_name}/high_prio_last_run",
                 show_diff => false,
                 content   => Deferred('growell_patch::high_prio_last_run', [
                   $high_prio_updates_to_install.unique,
                   $high_prio_choco_updates_to_install.unique,
                   ]),
                   schedule  => 'Growell_patch - High Priority Patch Window',
-                  require   => File["${facts['puppet_vardir']}/../../patching_as_code"],
+                  require   => File["${facts['puppet_vardir']}/../../${module_name}"],
                   before    => Anchor['growell_patch::post'],
                   } -> notify { 'Growell_patch - Update Fact (High Priority)':
                     message  => 'Patches installed, refreshing patching facts...',
