@@ -1103,14 +1103,14 @@ class growell_patch (
                 class { 'growell_patch::reboot':
                   reboot_if_needed => $post_reboot_if_needed,
                   schedule         => 'Growell_patch - Patch Window',
-                  stage            => patch_reboot,
+                  stage            => "${module_name}_post_reboot",
                 }
               }
               if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
                 class { 'patching_as_code::high_prio_reboot':
                   reboot_if_needed => $high_prio_post_reboot_if_needed,
                   schedule         => 'Patching as Code - High Priority Patch Window',
-                  stage            => patch_reboot,
+                  stage            => "${module_name}_post_reboot",
                 }
               }
               # Perform post-patching Execs
