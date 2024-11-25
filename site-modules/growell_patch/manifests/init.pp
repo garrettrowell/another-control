@@ -980,11 +980,11 @@ class growell_patch (
     default: { false }
   }
 
-  notify { "_is_patch_day: ${_is_patch_day}, _is_high_prio_patch_day: ${_is_high_prio_patch_day}": }
-  if $_is_patch_day or $_is_high_prio_patch_day {
+  notify { "_is_patch_day: ${_ispatch_day}, _is_high_prio_patch_day: ${_is_high_prio_patch_day}": }
+  if $_is_patchday or $_is_high_prio_patch_day {
     # Perform pending reboots pre-patching, except if this is a high prio only run
     if $enable_patching and !$high_priority_only {
-      if $pre_reboot and $_is_patch_day {
+      if $pre_reboot and $_is_patchday {
         # Reboot the node first if a reboot is already pending
         case $facts['kernel'].downcase() {
           /(windows|linux)/: {
