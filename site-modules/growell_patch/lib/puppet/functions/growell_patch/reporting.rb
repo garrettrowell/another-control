@@ -8,10 +8,8 @@ Puppet::Functions.create_function(:'growell_patch::reporting') do
     data = {
       'hello' => 'world'
     }
-    File.write("#{vardir_fact}/../../facter/facts.d/growell_patch_report.json", data.to_json)
+    vardir = Facter.value('puppet_vardir')
+    File.write("#{vardir}/../../facter/facts.d/growell_patch_report.json", data.to_json)
   end
 
-  def vardir_fact
-    closure_scope['facts']['puppet_vardir']
-  end
 end
