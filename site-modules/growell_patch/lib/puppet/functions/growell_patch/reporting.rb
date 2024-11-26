@@ -9,7 +9,8 @@ Puppet::Functions.create_function(:'growell_patch::reporting') do
       'hello' => 'world'
     }
     vardir = Facter.value('puppet_vardir')
-    File.write("#{vardir}/../../facter/facts.d/growell_patch_report.json", data.to_json)
+    File.write('/tmp/imatest', 'hello world')
+#    File.write("#{vardir}/../../facter/facts.d/growell_patch_report.json", data.to_json)
   end
 
 end
