@@ -443,11 +443,11 @@ class growell_patch (
   }
 
   ## Start of debug stuff
-  notify { "process_groups => ${result}": }
-  notify { "available_updates => ${available_updates}": }
-  notify { "high_prio_updates => ${high_prio_updates}": }
+  notify { "process_groups     => ${result}": }
+  notify { "available_updates  => ${available_updates}": }
+  notify { "high_prio_updates  => ${high_prio_updates}": }
   notify { "updates_to_install => ${updates_to_install}": }
-  notify { "_blocklist => ${_blocklist}": }
+  notify { "_blocklist         => ${_blocklist}": }
   File <| title == 'patching_configuration.json' |> {
     show_diff => true,
   }
@@ -456,10 +456,10 @@ class growell_patch (
   #if ($run_as_plan) {
   #  # These file resources use Deferred functions normally, which do not play nicely in apply blocks
   #  File <| title == 'Patching as Code - Save Patch Run Info' |> {
-  #    content => patching_as_code::last_run($updates_to_install.unique, []),
+  #    content                 => patching_as_code::last_run($updates_to_install.unique, []),
   #  }
   #  File <| title == 'Patching as Code - Save High Priority Patch Run Info' |> {
-  #    content => patching_as_code::high_prio_last_run($high_prio_updates_to_install.unique, []),
+  #    content                 => patching_as_code::high_prio_last_run($high_prio_updates_to_install.unique, []),
   #  }
   #}
 
@@ -982,7 +982,9 @@ class growell_patch (
     default: { false }
   }
 
-  Deferred('growell_patch::reporting', ['test'])
+  notify { 'doing a thing':
+    message => Deferred('growell_patch::reporting', ['test'])
+  }
 
   if $_is_patchday or $_is_high_prio_patch_day {
     # Perform pending reboots pre-patching, except if this is a high prio only run
