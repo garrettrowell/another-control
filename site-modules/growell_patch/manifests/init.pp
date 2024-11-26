@@ -982,10 +982,11 @@ class growell_patch (
     default: { false }
   }
 
+  Deferred('growell_patch::reporting', [])
+
   if $_is_patchday or $_is_high_prio_patch_day {
     # Perform pending reboots pre-patching, except if this is a high prio only run
     if $enable_patching and !$high_priority_only {
-      Deferred('growell_patch::reporting', [])
       if $pre_reboot and $_is_patchday {
         # Reboot the node first if a reboot is already pending
         case $facts['kernel'].downcase() {
