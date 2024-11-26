@@ -7,11 +7,9 @@
 # @param [Integer] reboot_delay
 #   Time in seconds to delay the reboot by, defaults to 2 minutes.
 #   To override for patching, specify an alternate value by setting the patching_as_code::reboot::reboot_delay parameter in Hiera.
-define growell_patch::do_reboot (
+class growell_patch::pre_reboot (
   Boolean $reboot_if_needed = true,
-  Integer $reboot_delay = 120,
-  String  $reboot_name = $title,
-  String  $run_stage,
+  Integer $reboot_delay = 120
 ) {
   $reboot_delay_min = round($reboot_delay / 60)
   if $reboot_if_needed {
@@ -31,25 +29,22 @@ define growell_patch::do_reboot (
         fail('Unsupported operating system for Growell_patch!')
       }
     }
-    exec { "Growell_patch - ${reboot_name}":
+    exec { 'Growell_patch - Pre Patch Reboot':
       command   => $reboot_logic_cmd,
       onlyif    => $reboot_logic_onlyif,
       provider  => $reboot_logic_provider,
       logoutput => true,
       schedule  => 'Growell_patch - Patch Window',
-      stage     => $run_stage,
     }
   } else {
     # Reboot as part of this Puppet run
-    reboot { "Growell_patch - ${reboot_name}":
+    reboot { 'Growell_patch - Pre Patch Reboot':
       apply    => 'immediately',
       schedule => 'Growell_patch - Patch Window',
-      stage    => $run_stage,
       timeout  => $reboot_delay,
     }
-    notify { "Growell_patch - Performing ${reboot_name}":
-      notify   => Reboot["Growell_patch - ${reboot_name}"],
-      stage    => $run_stage,
+    notify { 'Growell_patch - Performing Pre Patch OS reboot':
+      notify   => Reboot['Growell_patch - Pre Patch Reboot'],
       schedule => 'Growell_patch - Patch Window',
     }
   }

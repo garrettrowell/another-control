@@ -991,10 +991,10 @@ class growell_patch (
             #  patch_window => 'Growell_patch - Patch Window',
             #  os           => $0,
             #}
-            growell_patch::do_reboot { 'Pre-Patch Reboot':
+            class { 'growell_patch::pre_reboot':
               reboot_if_needed => $pre_reboot_if_needed,
               schedule         => 'Growell_patch - Patch Window',
-              run_stage        => "${module_name}_pre_reboot",
+              stage            => "${module_name}_pre_reboot",
             }
           }
           default: {
