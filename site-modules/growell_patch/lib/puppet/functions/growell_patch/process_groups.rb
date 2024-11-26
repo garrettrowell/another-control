@@ -41,6 +41,11 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
           'period' => 'never'
         }
       })
+      call_function('create_resources', 'schedule', {
+        'Growell_patch - Pre Reboot' => {
+          'period' => 'never'
+        }
+      })
     elsif patch_group.include? 'always'
       bool_patch_day = true
       active_pg      = 'always'
@@ -50,6 +55,12 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         'Growell_patch - Patch Window' => {
           'range'  => '00:00 - 23:59',
           'repeat' => 1440
+        }
+      })
+      call_function('create_resources', 'schedule', {
+        'Growell_patch - Pre Reboot' => {
+          'range'  => '00:00 - 23:59',
+          'repeat' => 1
         }
       })
     else
@@ -85,6 +96,12 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
           'Growell_patch - Patch Window' => {
             'range'  => patch_schedule[active_pg]['hours'],
             'repeat' => patch_schedule[active_pg]['max_runs']
+          }
+        })
+        call_function('create_resources', 'schedule', {
+          'Growell_patch - Pre Reboot' => {
+            'range'  => patch_schedule[active_pg]['hours'],
+            'repeat' => 1
           }
         })
         unless windows_prefetch_before.nil?

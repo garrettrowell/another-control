@@ -993,7 +993,7 @@ class growell_patch (
             #}
             class { 'growell_patch::pre_reboot':
               reboot_if_needed => $pre_reboot_if_needed,
-              schedule         => 'Growell_patch - Patch Window',
+              schedule         => 'Growell_patch - Pre Reboot',
               stage            => "${module_name}_pre_reboot",
             }
           }
