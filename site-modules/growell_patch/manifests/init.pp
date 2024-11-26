@@ -993,9 +993,13 @@ class growell_patch (
             #  patch_window => 'Growell_patch - Patch Window',
             #  os           => $0,
             #}
+            schedule { 'only reboot once':
+              range  => '00:00 - 23:59',
+              repeat => 1,
+            }
             class { 'growell_patch::pre_reboot':
               reboot_if_needed => $pre_reboot_if_needed,
-              schedule         => 'Growell_patch - Pre Reboot',
+              schedule         => 'only reboot once',
               before           => Anchor['growell_patch::start'],
               #    stage       => "${module_name}_pre_reboot",
             }
@@ -1054,7 +1058,6 @@ class growell_patch (
               false => Exec['pe_patch::exec::fact']
             }
             if ($updates_to_install.count + $high_prio_updates_to_install.count > 0) {
-              notify { 'i have updates to install': }
               class { "${module_name}::${0}::patchday":
                 updates                 => $updates_to_install.unique,
                 high_prio_updates       => $high_prio_updates_to_install.unique,

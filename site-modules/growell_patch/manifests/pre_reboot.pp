@@ -34,18 +34,18 @@ class growell_patch::pre_reboot (
       onlyif    => $reboot_logic_onlyif,
       provider  => $reboot_logic_provider,
       logoutput => true,
-      schedule  => 'Growell_patch - Pre Reboot',
+      schedule  => 'only reboot once',
     }
   } else {
     # Reboot as part of this Puppet run
     reboot { 'Growell_patch - Pre Patch Reboot':
       apply    => 'immediately',
-      schedule => 'Growell_patch - Pre Reboot',
+      schedule => 'only reboot once',
       timeout  => $reboot_delay,
     }
     notify { 'Growell_patch - Performing Pre Patch OS reboot':
       notify   => Reboot['Growell_patch - Pre Patch Reboot'],
-      schedule => 'Growell_patch - Pre Reboot',
+      schedule => 'only reboot once',
     }
   }
 }
