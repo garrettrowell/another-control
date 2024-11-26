@@ -946,10 +946,10 @@ class growell_patch (
     'ifneeded': { true }
     default: { false }
   }
-  $pre_reboot_if_needed = case $_pre_reboot {
-    'ifneeded': { true }
-    default: { false }
-  }
+  #  $pre_reboot_if_needed = case $_pre_reboot {
+  #    'ifneeded': { true }
+  #    default: { false }
+  #  }
   $high_prio_pre_reboot = case $_high_prio_pre_reboot {
     'always': { true }
     'never': { false }
@@ -993,14 +993,10 @@ class growell_patch (
             #  patch_window => 'Growell_patch - Patch Window',
             #  os           => $0,
             #}
-            schedule { 'only reboot once':
-              range  => '00:00 - 23:59',
-              repeat => 1,
-            }
             class { 'growell_patch::pre_reboot':
-              reboot_if_needed => $pre_reboot_if_needed,
-              schedule         => 'only reboot once',
-              before           => Anchor['growell_patch::start'],
+              reboot_type => $_pre_reboot,
+              schedule    => 'Growell_patch - Patch Window',
+              before      => Anchor['growell_patch::start'],
               #    stage       => "${module_name}_pre_reboot",
             }
           }

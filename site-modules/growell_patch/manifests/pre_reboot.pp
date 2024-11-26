@@ -5,48 +5,53 @@
 # @param [Boolean] reboot_if_needed
 #   Only reboot the node if a system reboot is pending. This parameter is passed automatically from init.pp
 # @param [Integer] reboot_delay
-#   Time in seconds to delay the reboot by, defaults to 2 minutes.
+#   Time in seconds to delay the reboot by, defaults to 1 minutes.
 #   To override for patching, specify an alternate value by setting the patching_as_code::reboot::reboot_delay parameter in Hiera.
 class growell_patch::pre_reboot (
-  Boolean $reboot_if_needed = true,
-  Integer $reboot_delay = 120
+  String $reboot_type = 'never',
+  #  Boolean $reboot_if_needed = true,
+  Integer $reboot_delay = 60
 ) {
   $reboot_delay_min = round($reboot_delay / 60)
-  if $reboot_if_needed {
-    # Define an Exec to perform the reboot shortly after the Puppet run completes
-    case $facts['kernel'].downcase() {
-      'windows': {
-        $reboot_logic_provider = 'powershell'
-        $reboot_logic_cmd      = "& shutdown /r /t ${reboot_delay} /c \"Growell_patch: Rebooting system due to a pending reboot after patching\" /d p:2:17" # lint:ignore:140chars 
-        $reboot_logic_onlyif   = "${facts['puppet_vardir']}/lib/${module_name}/pending_reboot.ps1"
+  case $reboot_type {
+    'never': {
+    }
+    'always': {
+      # Reboot as part of this Puppet run
+      reboot { 'Growell_patch - Pre Patch Reboot':
+        apply    => 'immediately',
+        schedule => 'Growell_patch - Patch Window',
+        timeout  => $reboot_delay,
       }
-      'linux': {
-        $reboot_logic_provider = 'posix'
-        $reboot_logic_cmd      = "/sbin/shutdown -r +${reboot_delay_min}"
-        $reboot_logic_onlyif   = "/bin/sh ${facts['puppet_vardir']}/lib/${module_name}/pending_reboot.sh"
-      }
-      default: {
-        fail('Unsupported operating system for Growell_patch!')
+      notify { 'Growell_patch - Performing Pre Patch OS reboot':
+        notify   => Reboot['Growell_patch - Pre Patch Reboot'],
+        schedule => 'Growell_patch - Patch Window',
       }
     }
-    exec { 'Growell_patch - Pre Patch Reboot':
-      command   => $reboot_logic_cmd,
-      onlyif    => $reboot_logic_onlyif,
-      provider  => $reboot_logic_provider,
-      logoutput => true,
-      schedule  => 'only reboot once',
-    }
-  } else {
-    # Reboot as part of this Puppet run
-    reboot { 'Growell_patch - Pre Patch Reboot':
-      apply    => 'immediately',
-      schedule => 'only reboot once',
-      timeout  => $reboot_delay,
-    }
-    notify { 'Growell_patch - Performing Pre Patch OS reboot':
-      notify   => Reboot['Growell_patch - Pre Patch Reboot'],
-      schedule => 'only reboot once',
+    'ifneeded': {
+      # Define an Exec to perform the reboot shortly after the Puppet run completes
+      case $facts['kernel'].downcase() {
+        'windows': {
+          $reboot_logic_provider = 'powershell'
+          $reboot_logic_cmd      = "& shutdown /r /t ${reboot_delay} /c \"Growell_patch: Rebooting system due to a pending reboot after patching\" /d p:2:17" # lint:ignore:140chars 
+          $reboot_logic_onlyif   = "${facts['puppet_vardir']}/lib/${module_name}/pending_reboot.ps1"
+        }
+        'linux': {
+          $reboot_logic_provider = 'posix'
+          $reboot_logic_cmd      = "/sbin/shutdown -r +${reboot_delay_min}"
+          $reboot_logic_onlyif   = "/bin/sh ${facts['puppet_vardir']}/lib/${module_name}/pending_reboot.sh"
+        }
+        default: {
+          fail('Unsupported operating system for Growell_patch!')
+        }
+      }
+      exec { 'Growell_patch - Pre Patch Reboot':
+        command   => $reboot_logic_cmd,
+        onlyif    => $reboot_logic_onlyif,
+        provider  => $reboot_logic_provider,
+        logoutput => true,
+        schedule  => 'only reboot once',
+      }
     }
   }
 }
-
