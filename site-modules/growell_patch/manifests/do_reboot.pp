@@ -11,6 +11,7 @@ define growell_patch::do_reboot (
   Boolean $reboot_if_needed = true,
   Integer $reboot_delay = 120,
   String  $reboot_name = $title,
+  String  $run_stage,
 ) {
   $reboot_delay_min = round($reboot_delay / 60)
   if $reboot_if_needed {
@@ -36,16 +37,19 @@ define growell_patch::do_reboot (
       provider  => $reboot_logic_provider,
       logoutput => true,
       schedule  => 'Growell_patch - Patch Window',
+      stage     => $run_stage,
     }
   } else {
     # Reboot as part of this Puppet run
     reboot { "Growell_patch - ${reboot_name}":
       apply    => 'immediately',
       schedule => 'Growell_patch - Patch Window',
+      stage    => $run_stage,
       timeout  => $reboot_delay,
     }
     notify { "Growell_patch - Performing ${reboot_name}":
       notify   => Reboot["Growell_patch - ${reboot_name}"],
+      stage    => $run_stage,
       schedule => 'Growell_patch - Patch Window',
     }
   }
