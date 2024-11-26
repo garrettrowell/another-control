@@ -980,7 +980,6 @@ class growell_patch (
     default: { false }
   }
 
-  notify { "_is_patch_day: ${_ispatch_day}, _is_high_prio_patch_day: ${_is_high_prio_patch_day}": }
   if $_is_patchday or $_is_high_prio_patch_day {
     # Perform pending reboots pre-patching, except if this is a high prio only run
     if $enable_patching and !$high_priority_only {
@@ -988,9 +987,14 @@ class growell_patch (
         # Reboot the node first if a reboot is already pending
         case $facts['kernel'].downcase() {
           /(windows|linux)/: {
-            reboot_if_pending { 'Growell_patch':
-              patch_window => 'Growell_patch - Patch Window',
-              os           => $0,
+            #reboot_if_pending { 'Growell_patch':
+            #  patch_window => 'Growell_patch - Patch Window',
+            #  os           => $0,
+            #}
+            class { 'growell_patch::reboot':
+              reboot_if_needed => $pre_reboot_if_needed,
+              schedule         => 'Growell_patch - Patch Window',
+              stage            => "${module_name}_pre_reboot",
             }
           }
           default: {
@@ -1017,9 +1021,7 @@ class growell_patch (
     anchor { 'growell_patch::start': } #lint:ignore:anchor_resource
 
     if $enable_patching == true {
-      notify { 'patching enabled': }
       if (($patch_on_metered_links == true) or (! $facts['metered_link'] == true)) and (! $facts['patch_unsafe_process_active'] == true) {
-        notify { 'in if statement': }
         case $facts['kernel'].downcase() {
           /(windows|linux)/: {
             # Run pre-patch commands if provided
@@ -1107,9 +1109,9 @@ class growell_patch (
                 }
               }
               if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
-                class { 'patching_as_code::high_prio_reboot':
+                class { 'growell_patch::high_prio_reboot':
                   reboot_if_needed => $high_prio_post_reboot_if_needed,
-                  schedule         => 'Patching as Code - High Priority Patch Window',
+                  schedule         => 'Growell_patch - High Priority Patch Window',
                   stage            => "${module_name}_post_reboot",
                 }
               }
