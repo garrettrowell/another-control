@@ -49,8 +49,10 @@ class growell_patch (
 ) {
   # Create extra stages so we can reboot before and after
   stage { "${module_name}_post_reboot": }
-  stage { "${module_name}_pre_reboot": }
-  Stage["${module_name}_pre_reboot"] -> Stage['main'] -> Stage["${module_name}_post_reboot"]
+  #  stage { "${module_name}_pre_reboot": }
+  # Stage["${module_name}_pre_reboot"] -> Stage['main'] -> Stage["${module_name}_post_reboot"]
+  Stage['main'] -> Stage["${module_name}_post_reboot"]
+
 
   # Ensure we work with a $patch_groups array for further processing
   $patch_groups = Array($patch_group, true)
@@ -994,7 +996,8 @@ class growell_patch (
             class { 'growell_patch::pre_reboot':
               reboot_if_needed => $pre_reboot_if_needed,
               schedule         => 'Growell_patch - Pre Reboot',
-              stage            => "${module_name}_pre_reboot",
+              before           => Anchor['growell_patch::start'],
+              #    stage       => "${module_name}_pre_reboot",
             }
           }
           default: {
