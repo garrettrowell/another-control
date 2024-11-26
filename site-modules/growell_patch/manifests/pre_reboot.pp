@@ -17,16 +17,28 @@ class growell_patch::pre_reboot (
     'never': {
     }
     'always': {
-      # Reboot as part of this Puppet run
-      reboot { 'Growell_patch - Pre Patch Reboot':
-        apply    => 'immediately',
-        schedule => 'Growell_patch - Patch Window',
-        timeout  => $reboot_delay,
+      if $facts['growell_patch_report'].dig('pre_reboot') {
+        # check if pre_reboot timestamp is for this month
+        $cur = growell_patch::within_cur_month($facts['growell_patch_report']['pre_reboot'])
+        if $cur {
+          # check if we're greater than the timestamp
+          $_needs_reboot = Timestamp.new() < Timestamp($facts['growell_patch_report']['pre_reboot'])
+        } else {
+          $_needs_reboot = true
+        }
       }
-      notify { 'Growell_patch - Performing Pre Patch OS reboot':
-        notify   => Reboot['Growell_patch - Pre Patch Reboot'],
-        schedule => 'Growell_patch - Patch Window',
-        message  => Deferred('growell_patch::reporting', [{'pre_reboot' => Timestamp.new()}])
+      if $_needs_reboot {
+        # Reboot as part of this Puppet run
+        reboot { 'Growell_patch - Pre Patch Reboot':
+          apply    => 'immediately',
+          schedule => 'Growell_patch - Patch Window',
+          timeout  => $reboot_delay,
+        }
+        notify { 'Growell_patch - Performing Pre Patch OS reboot':
+          notify   => Reboot['Growell_patch - Pre Patch Reboot'],
+          schedule => 'Growell_patch - Patch Window',
+          message  => Deferred('growell_patch::reporting', [{'pre_reboot' => Timestamp.new()}])
+        }
       }
     }
     'ifneeded': {
