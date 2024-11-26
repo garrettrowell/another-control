@@ -982,10 +982,6 @@ class growell_patch (
     default: { false }
   }
 
-  notify { 'doing a thing':
-    message => Deferred('growell_patch::reporting', ['test'])
-  }
-
   if $_is_patchday or $_is_high_prio_patch_day {
     # Perform pending reboots pre-patching, except if this is a high prio only run
     if $enable_patching and !$high_priority_only {

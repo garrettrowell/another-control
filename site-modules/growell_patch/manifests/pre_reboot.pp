@@ -26,6 +26,7 @@ class growell_patch::pre_reboot (
       notify { 'Growell_patch - Performing Pre Patch OS reboot':
         notify   => Reboot['Growell_patch - Pre Patch Reboot'],
         schedule => 'Growell_patch - Patch Window',
+        message  => Deferred('growell_patch::reporting', [{'pre_reboot' => Timestamp.new()}])
       }
     }
     'ifneeded': {
@@ -50,7 +51,7 @@ class growell_patch::pre_reboot (
         onlyif    => $reboot_logic_onlyif,
         provider  => $reboot_logic_provider,
         logoutput => true,
-        schedule  => 'only reboot once',
+        schedule  => 'Growell_patch - Patch Window',
       }
     }
   }
