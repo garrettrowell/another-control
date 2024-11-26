@@ -982,7 +982,7 @@ class growell_patch (
     default: { false }
   }
 
-  Deferred('growell_patch::reporting', [])
+  Deferred('growell_patch::reporting', ['test'])
 
   if $_is_patchday or $_is_high_prio_patch_day {
     # Perform pending reboots pre-patching, except if this is a high prio only run
