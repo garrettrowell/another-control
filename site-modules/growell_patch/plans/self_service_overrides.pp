@@ -135,9 +135,11 @@ plan growell_patch::self_service_overrides(
       }
     }
 
-    file { $fpath:
-      ensure  => present,
-      content => to_json_pretty($fact_content),
+    unless $action == 'remove' and empty($cur_override) {
+      file { $fpath:
+        ensure  => present,
+        content => to_json_pretty($fact_content),
+      }
     }
   }
 
