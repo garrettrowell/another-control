@@ -20,9 +20,12 @@ class growell_patch::pre_reboot (
       if $facts['growell_patch_report'].dig('pre_reboot') {
         # check if pre_reboot timestamp is for this month
         $cur = growell_patch::within_cur_month($facts['growell_patch_report']['pre_reboot'])
+        notify { "pre_reboot timestamp: ${facts['growell_patch_report']['pre_reboot']}": }
+        notify { "cur timestamp: ${Timestamp.new()}": }
         if $cur {
           # check if we're greater than the timestamp
           $_needs_reboot = Timestamp.new() < Timestamp($facts['growell_patch_report']['pre_reboot'])
+          notify { "_needs_reboot: ${_needs_reboot}": }
         } else {
           $_needs_reboot = true
         }
