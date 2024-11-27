@@ -107,7 +107,7 @@ Puppet::Type.newtype(:reboot_if_pending) do
                            require: pre_reboot_resources,
                          ))
 #    Puppet::Pops::Evaluator::DeferredResolver.resolve_and_replace(Puppet.runtime[:facter], catalog)
-    Puppet::Pops::Functions::Function.call(scope, 'growell_patch::reporting', [{'ima' => 'test'}])
+    Puppet::Pops::Functions::Function.call(nil, 'growell_patch::reporting', [{'ima' => 'test'}])
   end
 
   def retrieve_resource_reference(res)
