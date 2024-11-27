@@ -110,6 +110,7 @@ Puppet::Type.newtype(:reboot_if_pending) do
 #    Puppet::Pops::Functions::Function.call(nil, 'growell_patch::reporting', [{'ima' => 'test'}])
     vardir = Facter.value(:puppet_vardir)
     report = Facter.value(:growell_patch_report)
+    data = { 'pre_reboot' => Puppet::Pops::Time::Timestamp.now() }
     if report
       _data = { 'growell_patch_report' => report.merge(data) }
     else
