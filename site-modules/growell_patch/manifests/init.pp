@@ -75,8 +75,7 @@ class growell_patch (
   }
 
   # Write local config file for unsafe processes
-  # Todo: once patching_as_code has been fully replaced remove your name from this file!
-  file { "${facts['puppet_confdir']}/patching_unsafe_processes_growell":
+  file { "${facts['puppet_confdir']}/patching_unsafe_processes":
     ensure    => file,
     content   => $unsafe_process_list.join("\n"),
     show_diff => false,
@@ -276,6 +275,8 @@ class growell_patch (
   $_pre_reboot            = $result['normal_patch']['pre_reboot']
   $_high_prio_post_reboot = $result['high_prio_patch']['post_reboot']
   $_high_prio_pre_reboot  = $result['high_prio_patch']['pre_reboot']
+  # Avoid having to call $facts['kernel'].downcase a ton of times
+  $_kern = $facts['kernel'].downcase
 
   # Configure the agents runtimeout accordingly
   $runtimeout_cfg_section = 'agent'
@@ -345,7 +346,7 @@ class growell_patch (
 
   # Determine the available updates if any
   if $facts['pe_patch'] {
-    $available_updates = $facts['kernel'] ? {
+    $available_updates = $_kern ? {
       'windows' => if $security_only and !$high_priority_only {
         unless $facts['pe_patch']['missing_security_kbs'].empty {
           $facts['pe_patch']['missing_security_kbs']
@@ -357,7 +358,7 @@ class growell_patch (
       } else {
         []
       },
-      'Linux' => if $security_only and !$high_priority_only {
+      'linux' => if $security_only and !$high_priority_only {
         growell_patch::dedupe_arch($facts['pe_patch']['security_package_updates'])
       } elsif !$high_priority_only {
         growell_patch::dedupe_arch($facts['pe_patch']['package_updates'])
@@ -366,9 +367,9 @@ class growell_patch (
       },
       default => []
     }
-    $high_prio_updates = $facts['kernel'] ? {
+    $high_prio_updates = $_kern ? {
       'windows' => $facts['pe_patch']['missing_update_kbs'].filter |$item| { $item in $high_priority_list },
-      'Linux'   => growell_patch::dedupe_arch($facts['pe_patch']['package_updates'].filter |$item| { $item in $high_priority_list }),
+      'linux'   => growell_patch::dedupe_arch($facts['pe_patch']['package_updates'].filter |$item| { $item in $high_priority_list }),
       default   => []
     }
   }
@@ -464,7 +465,7 @@ class growell_patch (
   #}
 
   # Determine the states of the pre/post scripts based on operating system
-  case $facts['kernel'].downcase {
+  case $_kern {
     'linux': {
       $_script_base            = '/opt/puppetlabs/pe_patch'
       $_pre_patch_script_path  = "${_script_base}/pre_patch_script.sh"
@@ -636,7 +637,7 @@ class growell_patch (
           $_com_pre_check_script = {
             'command' => $_pre_check_script_path,
             'path'    => $_cmd_path,
-            'before'  => Class["${module_name}::${0}::patchday"],
+            'before'  => Class["${module_name}::${_kern}::patchday"],
             'tag'     => ['growell_patch_pre_patching'],
             'require' => File['pre_check_script'],
           }
@@ -891,7 +892,7 @@ class growell_patch (
             'command'  => $_pre_check_script_path,
             'provider' => powershell,
             'require'  => File['pre_check_script'],
-            'before'   => Class["${module_name}::${facts['kernel'].downcase}::patchday"],
+            'before'   => Class["${module_name}::${_kern}::patchday"],
             'tag'      => ['growell_patch_pre_patching'],
           }
           if ($updates_to_install.count > 0) {
@@ -1067,7 +1068,7 @@ class growell_patch (
       if $enable_patching and !$high_priority_only {
         if $pre_reboot and $_is_patchday {
           # Reboot the node first if a reboot is already pending
-          case $facts['kernel'].downcase() {
+          case $_kern {
             /(windows|linux)/: {
               #reboot_if_pending { 'Growell_patch':
               #  patch_window => 'Growell_patch - Patch Window',
@@ -1089,7 +1090,7 @@ class growell_patch (
         if $high_prio_pre_reboot and $_is_high_prio_patch_day and
         ($high_prio_updates_to_install.count > 0) {
           # Reboot the node first if a reboot is already pending
-          case $facts['kernel'].downcase() {
+          case $_kern {
             /(windows|linux)/: {
               #  reboot_if_pending { 'Growell_patch High Priority':
               #    patch_window => 'Growell_patch - High Priority Patch Window',
@@ -1113,14 +1114,14 @@ class growell_patch (
 
     if $enable_patching == true {
       if (($patch_on_metered_links == true) or (! $facts['metered_link'] == true)) and (! $facts['patch_unsafe_process_active'] == true) {
-        case $facts['kernel'].downcase() {
+        case $_kern {
           /(windows|linux)/: {
             # Run pre-patch commands if provided
             if ($updates_to_install.count > 0) {
               $_pre_patch_commands.each | $cmd, $cmd_opts | {
                 exec { "Growell_patch - Before patching - ${cmd}":
                   *        => delete($cmd_opts, ['before', 'schedule', 'tag']),
-                  before   => Class["${module_name}::${0}::patchday"],
+                  before   => Class["${module_name}::${_kern}::patchday"],
                   schedule => 'Growell_patch - Patch Window',
                   tag      => ['growell_patch_pre_patching'],
                 }
@@ -1130,7 +1131,7 @@ class growell_patch (
               $_pre_patch_commands.each | $cmd, $cmd_opts | {
                 exec { "Growell_patch - Before patching (High Priority) - ${cmd}":
                   *        => delete($cmd_opts, ['before', 'schedule', 'tag']),
-                  before   => Class["${module_name}::${0}::patchday"],
+                  before   => Class["${module_name}::${_kern}::patchday"],
                   schedule => 'Growell_patch - High Priority Patch Window',
                   tag      => ['growell_patch_pre_patching'],
                 }
@@ -1142,7 +1143,7 @@ class growell_patch (
               false => Exec['pe_patch::exec::fact']
             }
             if ($updates_to_install.count + $high_prio_updates_to_install.count > 0) {
-              class { "${module_name}::${0}::patchday":
+              class { "${module_name}::${_kern}::patchday":
                 updates                 => $updates_to_install.unique,
                 high_prio_updates       => $high_prio_updates_to_install.unique,
                 install_options         => $install_options,
