@@ -20,12 +20,9 @@ class growell_patch::pre_reboot (
       if $facts['growell_patch_report'].dig('pre_reboot') {
         # check if pre_reboot timestamp is for this month
         $cur = growell_patch::within_cur_month($facts['growell_patch_report']['pre_reboot'])
-        notify { "pre_reboot timestamp: ${facts['growell_patch_report']['pre_reboot']}": }
-        notify { "cur timestamp: ${Timestamp.new()}": }
         if $cur {
           # check if we're greater than the timestamp
           $_needs_reboot = Timestamp.new() < Timestamp($facts['growell_patch_report']['pre_reboot'])
-          notify { "_needs_reboot: ${_needs_reboot}": }
         } else {
           $_needs_reboot = true
         }
@@ -64,12 +61,32 @@ class growell_patch::pre_reboot (
           fail('Unsupported operating system for Growell_patch!')
         }
       }
-      exec { 'Growell_patch - Pre Patch Reboot':
-        command   => $reboot_logic_cmd,
-        onlyif    => $reboot_logic_onlyif,
-        provider  => $reboot_logic_provider,
-        logoutput => true,
-        schedule  => 'Growell_patch - Patch Window',
+      if $facts['growell_patch_report'].dig('pre_reboot') {
+        # check if pre_reboot timestamp is for this month
+        $cur = growell_patch::within_cur_month($facts['growell_patch_report']['pre_reboot'])
+        if $cur {
+          # check if we're greater than the timestamp
+          $_needs_reboot = Timestamp.new() < Timestamp($facts['growell_patch_report']['pre_reboot'])
+        } else {
+          $_needs_reboot = true
+        }
+      } else {
+        # if the pre_reboot key is not in our report we should reboot assuming its pending
+        $_needs_reboot = true
+      }
+      if $_needs_reboot {
+        exec { 'Growell_patch - Pre Patch Reboot':
+          command   => $reboot_logic_cmd,
+          onlyif    => $reboot_logic_onlyif,
+          provider  => $reboot_logic_provider,
+          logoutput => true,
+          schedule  => 'Growell_patch - Patch Window',
+        }
+        notify { 'Growell_patch - Performing Pre Patch OS reboot ifneeded':
+          notify   => Exec['Growell_patch - Pre Patch Reboot'],
+          schedule => 'Growell_patch - Patch Window',
+          message  => Deferred('growell_patch::reporting', [{'pre_reboot' => Timestamp.new()}])
+        }
       }
     }
   }
