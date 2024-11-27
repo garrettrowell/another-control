@@ -75,18 +75,22 @@ class growell_patch::pre_reboot (
         $_needs_reboot = true
       }
       if $_needs_reboot {
-        exec { 'Growell_patch - Pre Patch Reboot':
-          command   => $reboot_logic_cmd,
-          onlyif    => $reboot_logic_onlyif,
-          provider  => $reboot_logic_provider,
-          logoutput => true,
-          schedule  => 'Growell_patch - Patch Window',
+        reboot_if_pending { 'Growell_patch':
+          patch_window => 'Growell_patch - Patch Window',
+          os           => $facts['kernel'].downcase,
         }
-        notify { 'Growell_patch - Performing Pre Patch OS reboot ifneeded':
-          notify   => Exec['Growell_patch - Pre Patch Reboot'],
-          schedule => 'Growell_patch - Patch Window',
-          message  => Deferred('growell_patch::reporting', [{'pre_reboot' => Timestamp.new()}])
-        }
+        #exec { 'Growell_patch - Pre Patch Reboot':
+        #  command   => $reboot_logic_cmd,
+        #  onlyif    => $reboot_logic_onlyif,
+        #  provider  => $reboot_logic_provider,
+        #  logoutput => true,
+        #  schedule  => 'Growell_patch - Patch Window',
+        #}
+        #notify { 'Growell_patch - Performing Pre Patch OS reboot ifneeded':
+        #  notify   => Exec['Growell_patch - Pre Patch Reboot'],
+        #  schedule => 'Growell_patch - Patch Window',
+        #  message  => Deferred('growell_patch::reporting', [{'pre_reboot' => Timestamp.new()}])
+        #}
       }
     }
   }
