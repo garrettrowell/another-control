@@ -96,7 +96,7 @@ Puppet::Type.newtype(:reboot_if_pending) do
 
     catalog.add_resource(Puppet::Type.type('notify').new(
                            title: 'Growell_patch - Performing Pending OS reboot before patching...',
-                           message: call('deferred', ['growell_patch::reporting', [{'pre_reboot' => Puppet::Pops::Time::Timestamp.now()}]]),
+                           message: Puppet::Functions::Function.dispatch('deferred', ['growell_patch::reporting', [{'pre_reboot' => Puppet::Pops::Time::Timestamp.now()}]]),
 #                           message: Deferred('growell_patch::reporting', [{'pre_reboot' => Puppet::Pops::Time::Timestamp.now()}]),
                            schedule: parameter(:patch_window).value,
                            notify: 'Reboot[Growell_patch - Pending OS reboot]',
