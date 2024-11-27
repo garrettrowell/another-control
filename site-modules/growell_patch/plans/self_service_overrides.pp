@@ -58,8 +58,11 @@ plan growell_patch::self_service_overrides(
             )
           }
         } else {
-          $fact_content = {
-            $_override_fact => $cur_override.filter |$k,$v| { $k != 'blocklist' }
+          # When removing a blocklist first check if we have an override_fact first
+          if $cur_override {
+            $fact_content = {
+              $_override_fact => $cur_override.filter |$k,$v| { $k != 'blocklist' }
+            }
           }
         }
       }
@@ -82,8 +85,11 @@ plan growell_patch::self_service_overrides(
             )
           }
         } else {
-          $fact_content = {
-            $_override_fact => $cur_override.filter |$k,$v| { $k != 'temporary' }
+          # When removing a temporary override, first check if we have an override_fact
+          if $cur_override {
+            $fact_content = {
+              $_override_fact => $cur_override.filter |$k,$v| { $k != 'temporary' }
+            }
           }
         }
       }
@@ -105,8 +111,11 @@ plan growell_patch::self_service_overrides(
             )
           }
         } else {
-          $fact_content = {
-            $_override_fact => $cur_override.filter |$k,$v| { $k != 'permanent' }
+          # When removing a permanent override, first check if we have an override_fact
+          if $cur_override {
+            $fact_content = {
+              $_override_fact => $cur_override.filter |$k,$v| { $k != 'permanent' }
+            }
           }
         }
       }
@@ -116,8 +125,11 @@ plan growell_patch::self_service_overrides(
             $_override_fact => deep_merge($cur_override, {'exclusion' => true})
           }
         } else {
-          $fact_content = {
-            $_override_fact => $cur_override.filter |$k,$v| { $k != 'exclusion' }
+          # When removing an exclusion, first check if we have an override_fact
+          if $cur_override {
+            $fact_content = {
+              $_override_fact => $cur_override.filter |$k,$v| { $k != 'exclusion' }
+            }
           }
         }
       }

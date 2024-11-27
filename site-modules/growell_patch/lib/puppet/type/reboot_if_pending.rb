@@ -96,18 +96,14 @@ Puppet::Type.newtype(:reboot_if_pending) do
 
     catalog.add_resource(Puppet::Type.type('notify').new(
                            title: 'Growell_patch - Performing Pending OS reboot before patching...',
-#                           message: Puppet::Pops::Types::TypeFactory.deferred.create('growell_patch::reporting',[{'ima' => 'test'}]),
-#                           message: "Deferred('growell_patch::reporting', [{'pre_reboot' => #{Puppet::Pops::Time::Timestamp.now()}}])",
-#                           message: Puppet::Functions::Function.dispatch('deferred'),
-#                           message: Puppet::Functions::Function.dispatch('deferred', ['growell_patch::reporting', [{'pre_reboot' => Puppet::Pops::Time::Timestamp.now()}]]),
-#                           message: Deferred('growell_patch::reporting', [{'pre_reboot' => Puppet::Pops::Time::Timestamp.now()}]),
                            schedule: parameter(:patch_window).value,
                            notify: 'Reboot[Growell_patch - Pending OS reboot]',
                            before: 'Anchor[growell_patch::start]',
                            require: pre_reboot_resources,
                          ))
-#    Puppet::Pops::Evaluator::DeferredResolver.resolve_and_replace(Puppet.runtime[:facter], catalog)
-#    Puppet::Pops::Functions::Function.call(nil, 'growell_patch::reporting', [{'ima' => 'test'}])
+
+    # Just duplicating the functionality of growell_patch::reporting function...
+    # Way easier than figuring out how to call a function from a type...
     vardir = Facter.value(:puppet_vardir)
     report = Facter.value(:growell_patch_report)
     data = { 'pre_reboot' => Puppet::Pops::Time::Timestamp.now() }
