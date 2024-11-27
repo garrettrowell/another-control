@@ -8,11 +8,27 @@
 #   Time in seconds to delay the reboot by, defaults to 1 minutes.
 #   To override for patching, specify an alternate value by setting the patching_as_code::reboot::reboot_delay parameter in Hiera.
 class growell_patch::pre_reboot (
-  String $reboot_type = 'never',
+  Enum['never','always','ifneeded'] $reboot_type = 'never',
+  Enum['normal','high'] $priority = 'normal',
   #  Boolean $reboot_if_needed = true,
-  Integer $reboot_delay = 60
+  Integer $reboot_delay = 60,
 ) {
   $reboot_delay_min = round($reboot_delay / 60)
+  case $priority {
+    'normal': {
+      $_reboot_title = 'Growell_patch - Pre Patch Reboot'
+      $_schedule = 'Growell_patch - Patch Window'
+      $_notify_title = 'Growell_patch - Performing Pre Patch OS reboot'
+      $_reboot_if_pending_title = 'Growell_patch'
+    }
+    'high': {
+      $_reboot_title = 'Growell_patch - High Priority Pre Patch Reboot'
+      $_schedule = 'Growell_patch - High Priority Patch Window'
+      $_notify_title = 'Growell_patch - Performing High Priority Pre Patch OS reboot'
+      $_reboot_if_pending_title = 'Growell_patch High Priority'
+    }
+  }
+
   case $reboot_type {
     'never': {
     }
@@ -32,14 +48,14 @@ class growell_patch::pre_reboot (
       }
       if $_needs_reboot {
         # Reboot as part of this Puppet run
-        reboot { 'Growell_patch - Pre Patch Reboot':
+        reboot { $_reboot_title:
           apply    => 'immediately',
-          schedule => 'Growell_patch - Patch Window',
+          schedule => $_schedule,
           timeout  => $reboot_delay,
         }
-        notify { 'Growell_patch - Performing Pre Patch OS reboot':
-          notify   => Reboot['Growell_patch - Pre Patch Reboot'],
-          schedule => 'Growell_patch - Patch Window',
+        notify { $_notify_title:
+          notify   => Reboot[$_reboot_title],
+          schedule => $_schedule,
           message  => Deferred('growell_patch::reporting', [{'pre_reboot' => Timestamp.new()}])
         }
       }
@@ -75,8 +91,8 @@ class growell_patch::pre_reboot (
         $_needs_reboot = true
       }
       if $_needs_reboot {
-        reboot_if_pending { 'Growell_patch':
-          patch_window => 'Growell_patch - Patch Window',
+        reboot_if_pending { $_reboot_if_pending_title:
+          patch_window => $_schedule,
           os           => $facts['kernel'].downcase,
         }
         #exec { 'Growell_patch - Pre Patch Reboot':

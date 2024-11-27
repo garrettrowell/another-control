@@ -633,12 +633,34 @@ class growell_patch (
           }
         )
         if (($_is_patchday or $_is_high_prio_patch_day) and ($_in_patch_window or $_in_high_prio_patch_window)) {
-          exec { 'pre_check_script':
-            command => $_pre_check_script_path,
-            path    => $_cmd_path,
-            require => File['pre_check_script'],
-            #before  => Class['patching_as_code'],
+          $_com_pre_check_script = {
+            'command' => $_pre_check_script_path,
+            'path'    => $_cmd_path,
+            'before'  => Class["${module_name}::${facts['kernel'].downcase}::patchday"],
+            'tag'     => ['growell_patch_pre_patching'],
+            'require' => File['pre_check_script'],
           }
+          if ($updates_to_install.count > 0) {
+            exec { 'pre_check_script':
+              *        => $_com_pre_check_script,
+              schedule => 'Growell_patch - Patch Window',
+            }
+          }
+          if ($high_prio_updates_to_install.count > 0) {
+            exec { 'pre_check_script (High Priority)':
+              *        => $_com_pre_check_script,
+              schedule => 'Growell_patch - High Priority Patch Window',
+            }
+          }
+          #exec { 'pre_check_script':
+          #  command  => $_pre_check_script_path,
+          #  path     => $_cmd_path,
+          #  before   => Class["${module_name}::${facts['kernel'].downcase}::patchday"],
+          #  schedule => 'Growell_patch - Patch Window',
+          #  tag      => ['growell_patch_pre_patching'],
+          #  require  => File['pre_check_script'],
+          #  #before  => Class['patching_as_code'],
+          #}
         }
       }
 
@@ -655,12 +677,31 @@ class growell_patch (
           }
         )
         if (($_is_patchday or $_is_high_prio_patch_day) and ($_in_patch_window or $_in_high_prio_patch_window)) {
-          exec { 'post_check_script':
-            command => $_post_check_script_path,
-            path    => $_cmd_path,
-            #            require => [File['post_check_script'], Class['patching_as_code']],
-            require => File['post_check_script'],
+          $_com_post_check_script = {
+            'command' => $_post_check_script_path,
+            'path'    => $_cmd_path,
+            'require' => [File['post_check_script'], Anchor['growell_patch::post']],
+            'tag'     => ['growell_patch_post_patching'],
           }
+          if ($updates_to_install.count > 0) {
+            exec { 'post_check_script':
+              *        => $_com_post_check_script,
+              schedule => 'Growell_patch - Patch Window',
+            } -> Exec <| tag == 'growell_patch_pre_reboot' |>
+          }
+          if ($high_prio_updates_to_install.count > 0) {
+            exec { 'post_check_script (High Priority)':
+              *        => $_com_post_check_script,
+              schedule => 'Growell_patch - High Priority Patch Window',
+            } -> Exec <| tag == 'growell_patch_pre_reboot' |>
+          }
+          #          exec { 'post_check_script':
+          #            command  => $_post_check_script_path,
+          #            path     => $_cmd_path,
+          #            schedule => 'Growell_patch - Patch Window',
+          #            require  => [File['post_check_script'], Anchor['growell_patch::post']],
+          #            tag      => ['growell_patch_post_patching']
+          #          } -> Exec <| tag == 'growell_patch_pre_reboot' |>
         }
       }
     }
@@ -956,10 +997,10 @@ class growell_patch (
     'ifneeded': { true }
     default: { false }
   }
-  $high_prio_pre_reboot_if_needed = case $_high_prio_pre_reboot {
-    'ifneeded': { true }
-    default: { false }
-  }
+  #$high_prio_pre_reboot_if_needed = case $_high_prio_pre_reboot {
+  #  'ifneeded': { true }
+  #  default: { false }
+  #}
   # Post reboot
   $post_reboot = case $_post_reboot {
     'always': { true }
@@ -983,40 +1024,50 @@ class growell_patch (
   }
 
   if $_is_patchday or $_is_high_prio_patch_day {
-    # Perform pending reboots pre-patching, except if this is a high prio only run
-    if $enable_patching and !$high_priority_only {
-      if $pre_reboot and $_is_patchday {
-        # Reboot the node first if a reboot is already pending
-        case $facts['kernel'].downcase() {
-          /(windows|linux)/: {
-            #reboot_if_pending { 'Growell_patch':
-            #  patch_window => 'Growell_patch - Patch Window',
-            #  os           => $0,
-            #}
-            class { 'growell_patch::pre_reboot':
-              reboot_type => $_pre_reboot,
-              schedule    => 'Growell_patch - Patch Window',
-              before      => Anchor['growell_patch::start'],
-              #    stage       => "${module_name}_pre_reboot",
+    # Only deal with pre_reboot if this is a normal puppet run. if being ran as a plan we handle it elsewhere
+    unless $run_as_plan {
+      # Perform pending reboots pre-patching, except if this is a high prio only run
+      if $enable_patching and !$high_priority_only {
+        if $pre_reboot and $_is_patchday {
+          # Reboot the node first if a reboot is already pending
+          case $facts['kernel'].downcase() {
+            /(windows|linux)/: {
+              #reboot_if_pending { 'Growell_patch':
+              #  patch_window => 'Growell_patch - Patch Window',
+              #  os           => $0,
+              #}
+              class { 'growell_patch::pre_reboot':
+                priority    => 'normal',
+                reboot_type => $_pre_reboot,
+                schedule    => 'Growell_patch - Patch Window',
+                before      => Anchor['growell_patch::start'],
+                #    stage  => "${module_name}_pre_reboot",
+              }
             }
-          }
-          default: {
-            fail('Unsupported operating system for Growell_patch!')
+            default: {
+              fail('Unsupported operating system for Growell_patch!')
+            }
           }
         }
-      }
-      if $high_prio_pre_reboot and $_is_high_prio_patch_day and
-      ($high_prio_updates_to_install.count > 0) {
-        # Reboot the node first if a reboot is already pending
-        case $facts['kernel'].downcase() {
-          /(windows|linux)/: {
-            reboot_if_pending { 'Growell_patch High Priority':
-              patch_window => 'Growell_patch - High Priority Patch Window',
-              os           => $0,
+        if $high_prio_pre_reboot and $_is_high_prio_patch_day and
+        ($high_prio_updates_to_install.count > 0) {
+          # Reboot the node first if a reboot is already pending
+          case $facts['kernel'].downcase() {
+            /(windows|linux)/: {
+              #  reboot_if_pending { 'Growell_patch High Priority':
+              #    patch_window => 'Growell_patch - High Priority Patch Window',
+              #    os           => $0,
+              #  }
+              class { 'growell_patch::pre_reboot':
+                priority    => 'high',
+                reboot_type => $_high_prio_pre_reboot,
+                schedule    => 'Growell_patch - High Priority Patch Window',
+                before      => Anchor['growell_patch::start'],
+              }
             }
-          }
-          default: {
-            fail("Unsupported operating system for Growell_patch!")
+            default: {
+              fail("Unsupported operating system for Growell_patch!")
+            }
           }
         }
       }
@@ -1237,21 +1288,21 @@ class growell_patch (
     }
   }
 
-    #  # Finally we have the information to pass to 'patching_as_code'
-    #  class { 'patching_as_code':
-    #    classify_pe_patch         => true,
-    #    enable_patching           => $enable_patching,
-    #    security_only             => $security_only,
-    #    high_priority_only        => $high_priority_only,
-    #    patch_group               => $_patch_group,
-    #    pre_patch_commands        => $_pre_patch_commands,
-    #    post_patch_commands       => $_post_patch_commands,
-    #    pre_reboot_commands       => $_pre_reboot_commands,
-    #    install_options           => $install_options,
-    #    allowlist                 => $allowlist,
-    #    blocklist                 => $_blocklist,
-    #    patch_schedule            => $_patch_schedule,
-    #    high_priority_patch_group => $high_priority_patch_group,
-    #    high_priority_list        => $high_priority_list,
-    #  }
-  }
+  #  # Finally we have the information to pass to 'patching_as_code'
+  #  class { 'patching_as_code':
+  #    classify_pe_patch         => true,
+  #    enable_patching           => $enable_patching,
+  #    security_only             => $security_only,
+  #    high_priority_only        => $high_priority_only,
+  #    patch_group               => $_patch_group,
+  #    pre_patch_commands        => $_pre_patch_commands,
+  #    post_patch_commands       => $_post_patch_commands,
+  #    pre_reboot_commands       => $_pre_reboot_commands,
+  #    install_options           => $install_options,
+  #    allowlist                 => $allowlist,
+  #    blocklist                 => $_blocklist,
+  #    patch_schedule            => $_patch_schedule,
+  #    high_priority_patch_group => $high_priority_patch_group,
+  #    high_priority_list        => $high_priority_list,
+  #  }
+}
