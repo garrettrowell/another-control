@@ -106,7 +106,7 @@ Puppet::Type.newtype(:reboot_if_pending) do
                            before: 'Anchor[growell_patch::start]',
                            require: pre_reboot_resources,
                          ))
-    Puppet::Pops::Evaluator::DeferredResolver.resolve_and_replace(catalog[:facts], catalog)
+    Puppet::Pops::Evaluator::DeferredResolver.resolve_and_replace({}, catalog)
   end
 
   def retrieve_resource_reference(res)
