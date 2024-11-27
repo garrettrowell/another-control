@@ -107,7 +107,15 @@ Puppet::Type.newtype(:reboot_if_pending) do
                            require: pre_reboot_resources,
                          ))
 #    Puppet::Pops::Evaluator::DeferredResolver.resolve_and_replace(Puppet.runtime[:facter], catalog)
-    Puppet::Pops::Functions::Function.call(nil, 'growell_patch::reporting', [{'ima' => 'test'}])
+#    Puppet::Pops::Functions::Function.call(nil, 'growell_patch::reporting', [{'ima' => 'test'}])
+    vardir = Facter.value(:puppet_vardir)
+    report = Facter.value(:growell_patch_report)
+    if report
+      _data = { 'growell_patch_report' => report.merge(data) }
+    else
+      _data = { 'growell_patch_report' => data }
+    end
+    File.write("#{vardir}/../../facter/facts.d/growell_patch_report.json", _data.to_json)
   end
 
   def retrieve_resource_reference(res)
