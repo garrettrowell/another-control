@@ -464,8 +464,8 @@ class growell_patch (
   #}
 
   # Determine the states of the pre/post scripts based on operating system
-  case $facts['kernel'] {
-    'Linux': {
+  case $facts['kernel'].downcase {
+    'linux': {
       $_script_base            = '/opt/puppetlabs/pe_patch'
       $_pre_patch_script_path  = "${_script_base}/pre_patch_script.sh"
       $_post_patch_script_path = "${_script_base}/post_patch_script.sh"
@@ -636,7 +636,7 @@ class growell_patch (
           $_com_pre_check_script = {
             'command' => $_pre_check_script_path,
             'path'    => $_cmd_path,
-            'before'  => Class["${module_name}::${facts['kernel'].downcase}::patchday"],
+            'before'  => Class["${module_name}::${0}::patchday"],
             'tag'     => ['growell_patch_pre_patching'],
             'require' => File['pre_check_script'],
           }
@@ -887,12 +887,31 @@ class growell_patch (
           }
         )
         if (($_is_patchday or $_is_high_prio_patch_day) and ($_in_patch_window or $_in_high_prio_patch_window)) {
-          exec { 'pre_check_script':
-            command  => $_pre_check_script_path,
-            provider => powershell,
-            require  => File['pre_check_script'],
-            #before   => Class['patching_as_code'],
+          $_com_pre_check_script = {
+            'command'  => $_pre_check_script_path,
+            'provider' => powershell,
+            'require'  => File['pre_check_script'],
+            'before'   => Class["${module_name}::${facts['kernel'].downcase}::patchday"],
+            'tag'      => ['growell_patch_pre_patching'],
           }
+          if ($updates_to_install.count > 0) {
+            exec { 'pre_check_script':
+              *        => $_com_pre_check_script,
+              schedule => 'Growell_patch - Patch Window',
+            }
+          }
+          if ($high_prio_updates_to_install.count > 0) {
+            exec { 'pre_check_script (High Priority)':
+              *        => $_com_pre_check_script,
+              schedule => 'Growell_patch - High Priority Patch Window',
+            }
+          }
+          #          exec { 'pre_check_script':
+          #            command  => $_pre_check_script_path,
+          #            provider => powershell,
+          #            require  => File['pre_check_script'],
+          #            #before   => Class['patching_as_code'],
+          #          }
         }
       }
 
@@ -909,12 +928,30 @@ class growell_patch (
           }
         )
         if (($_is_patchday or $_is_high_prio_patch_day) and ($_in_patch_window or $_in_high_prio_patch_window)) {
-          exec { 'post_check_script':
-            command  => $_post_check_script_path,
-            provider => powershell,
-            require  => File['post_check_script'],
-            #require => [File['post_check_script'], Class['patching_as_code']],
+          $_com_post_check_script = {
+            'command'  => $_post_check_script_path,
+            'provider' => powershell,
+            'require'  => [File['post_check_script'], Anchor['growell_patch::post']],
+            'tag'      => ['growell_patch_post_patching'],
           }
+          if ($updates_to_install.count > 0) {
+            exec { 'post_check_script':
+              *        => $_com_post_check_script,
+              schedule => 'Growell_patch - Patch Window',
+            } -> Exec <| tag == 'growell_patch_pre_reboot' |>
+          }
+          if ($high_prio_updates_to_install.count > 0) {
+            exec { 'post_check_script (High Priority)':
+              *        => $_com_post_check_script,
+              schedule => 'Growell_patch - High Priority Patch Window',
+            } -> Exec <| tag == 'growell_patch_pre_reboot' |>
+          }
+          #exec { 'post_check_script':
+          #  command  => $_post_check_script_path,
+          #  provider => powershell,
+          #  require  => File['post_check_script'],
+          #  #require => [File['post_check_script'], Class['patching_as_code']],
+          #}
         }
       }
     }
