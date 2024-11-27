@@ -29,6 +29,9 @@ class growell_patch::pre_reboot (
         } else {
           $_needs_reboot = true
         }
+      } else {
+        # if the pre_reboot key is not in our report we must always reboot once
+        $_needs_reboot = true
       }
       if $_needs_reboot {
         # Reboot as part of this Puppet run
