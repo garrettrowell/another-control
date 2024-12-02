@@ -106,9 +106,9 @@ class growell_patch (
       # When running the growell_patch::patch_now plan, we need to set the group to 'always'
       $_patch_group    = 'always'
       $_patch_schedule = {}
-      # Override the patching_as_code configuration file so that it won't actually get updated.
+      # Override the configuration file so that it won't actually get updated.
       # This eliminates the need to run the agent a second time in the plan
-      File <| title == 'patching_configuration.json' |> {
+      File <| title == "${module_name}_configuration.json" |> {
         noop => true,
       }
       # pe_patch's 'patch_group' file also should not get updated
@@ -449,9 +449,9 @@ class growell_patch (
   notify { "high_prio_updates  => ${high_prio_updates}": }
   notify { "updates_to_install => ${updates_to_install}": }
   notify { "_blocklist         => ${_blocklist}": }
-  File <| title == 'patching_configuration.json' |> {
-    show_diff => true,
-  }
+  #File <| title == 'patching_configuration.json' |> {
+  #  show_diff => true,
+  #}
   ## End of debug stuff
 
   #if ($run_as_plan) {
@@ -500,6 +500,7 @@ class growell_patch (
             'apt': {
               apt::mark { $_to_unpin:
                 setting => 'unhold',
+                before  => Class["${module_name}::${_kern}::patchday"],
                 #                before  => Class['patching_as_code'],
                 notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
               }
@@ -511,6 +512,7 @@ class growell_patch (
                   version => '*',
                   release => '*',
                   epoch   => 0,
+                  before  => Class["${module_name}::${_kern}::patchday"],
                   #    before  => Class['patching_as_code'],
                   notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
                 }
@@ -521,6 +523,7 @@ class growell_patch (
                 exec { "${module_name}-removelock-${pin}":
                   command => "zypper removelock ${pin}",
                   path    => $_cmd_path,
+                  before  => Class["${module_name}::${_kern}::patchday"],
                   #before  => Class['patching_as_code'],
                   notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
                 }
@@ -539,6 +542,7 @@ class growell_patch (
             'apt': {
               apt::mark { $_blocklist:
                 setting => 'hold',
+                before  => Class["${module_name}::${_kern}::patchday"],
                 # before  => Class['patching_as_code'],
                 notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
               }
@@ -549,6 +553,7 @@ class growell_patch (
                 version => '*',
                 release => '*',
                 epoch   => 0,
+                before  => Class["${module_name}::${_kern}::patchday"],
                 #before  => Class['patching_as_code'],
                 notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
               }
@@ -558,6 +563,7 @@ class growell_patch (
                 exec { "${module_name}-addlock-${pin}":
                   command => "zypper addlock ${pin}",
                   path    => $_cmd_path,
+                  before  => Class["${module_name}::${_kern}::patchday"],
                   # before  => Class['patching_as_code'],
                   notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
                 }
@@ -729,6 +735,7 @@ class growell_patch (
           type   => 'string',
           data   => $wsus_url,
           tag    => ["${module_name}-WUServer", "${module_name}_reg"],
+          before => Class["${module_name}::${_kern}::patchday"],
           #    before => Class['patching_as_code'],
           notify => Service['wuauserv'],
         }
@@ -738,6 +745,7 @@ class growell_patch (
           Registry_value <| title == 'UseWUServer' or title == "${_au_base_reg}\\UseWUServer" |> {
             data   => 1,
             tag    => ["${module_name}-UseWUServer", "${module_name}_reg"],
+            before => Class["${module_name}::${_kern}::patchday"],
             #  before => Class['patching_as_code'],
             notify => Service['wuauserv'],
           }
@@ -747,6 +755,7 @@ class growell_patch (
             type   => dword,
             data   => 1,
             tag    => ["${module_name}-UseWUServer", "${module_name}_reg"],
+            before => Class["${module_name}::${_kern}::patchday"],
             #before => Class['patching_as_code'],
             notify => Service['wuauserv'],
           }
@@ -782,6 +791,7 @@ class growell_patch (
                 command  => "Unhide-WindowsUpdate -KBArticleID '${kb}' -AcceptAll",
                 unless   => epp("${module_name}/kb_is_unhidden.ps1.epp", { 'kb' => $kb }),
                 provider => 'powershell',
+                before   => Class["${module_name}::${_kern}::patchday"],
                 #    before   => Class['patching_as_code'],
                 notify   => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
               }
@@ -797,6 +807,7 @@ class growell_patch (
               command  => "Hide-WindowsUpdate -KBArticleID '${kb}' -AcceptAll",
               unless   => epp("${module_name}/kb_is_hidden.ps1.epp", { 'kb' => $kb }),
               provider => 'powershell',
+              before   => Class["${module_name}::${_kern}::patchday"],
               #before   => Class['patching_as_code'],
               notify   => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
             }
@@ -963,7 +974,7 @@ class growell_patch (
   file {
     default:
       require => File[$_script_base],
-      #before  => Class['patching_as_code'],
+      before  => Class["${module_name}::${_kern}::patchday"],
       ;
     'pre_patch_script':
       path => $_pre_patch_script_path,
