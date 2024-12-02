@@ -1234,7 +1234,8 @@ class growell_patch (
                 }
               }
               # Perform post-patching Execs
-              if ($updates_to_install.count > 0) and $post_reboot {
+              #              if ($updates_to_install.count > 0) and $post_reboot {
+              if ($_in_patch_window and $post_reboot) {
                 class { "${module_name}::post_patch_script":
                   post_patch_commands => $_post_patch_commands,
                   priority            => 'normal',
@@ -1250,7 +1251,8 @@ class growell_patch (
                 #  }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
                 #}
               }
-              if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
+              #              if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
+              if ($_in_high_prio_patch_window and $high_prio_post_reboot) {
                 class { "${module_name}::post_patch_script":
                   post_patch_commands => $_post_patch_commands,
                   priority            => 'high',
