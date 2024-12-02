@@ -1015,7 +1015,7 @@ class growell_patch (
         patch_schedule            => if $_active_pg in ['always', 'never'] {
           { $_active_pg => 'N/A' }
         } else {
-          $patch_schedule.filter |$item| { $item[0] in $_patch_group }
+          $_patch_schedule.filter |$item| { $item[0] in $_patch_group }
         },
         high_priority_patch_group => $high_priority_patch_group,
         post_patch_commands       => $_post_patch_commands,
