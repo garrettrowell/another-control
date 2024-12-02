@@ -974,7 +974,7 @@ class growell_patch (
   file {
     default:
       require => File[$_script_base],
-      before  => Class["${module_name}::${_kern}::patchday"],
+      before  => Anchor["${module_name}::start"],
       ;
     'pre_patch_script':
       path => $_pre_patch_script_path,
@@ -1121,7 +1121,7 @@ class growell_patch (
         }
       }
     }
-    anchor { 'growell_patch::start': } #lint:ignore:anchor_resource
+    anchor { "${module_name}::start": } #lint:ignore:anchor_resource
 
     if $enable_patching == true {
       if (($patch_on_metered_links == true) or (! $facts['metered_link'] == true)) and (! $facts['patch_unsafe_process_active'] == true) {
