@@ -684,36 +684,40 @@ class growell_patch (
             source => "puppet:///modules/${module_name}/${post_check_script}",
           }
         )
-        if (($_is_patchday or $_is_high_prio_patch_day) and ($_in_patch_window or $_in_high_prio_patch_window)) {
+        if ($_is_patchday or $_is_high_prio_patch_day) {
           $_com_post_check_script = {
             'command' => $_post_check_script_path,
             'path'    => $_cmd_path,
             'require' => [File['post_check_script'], Anchor['growell_patch::post']],
             'tag'     => ['growell_patch_post_patching', "${module_name}_post_check"],
           }
-          if ($updates_to_install.count > 0) {
+          #if ($updates_to_install.count > 0) {
+          if $_in_patch_window {
             class { "${module_name}::post_check":
               priority  => 'normal',
               exec_args => $_com_post_check_script,
               stage     => "${module_name}_after_post_reboot",
             }
+          }
             #            exec { 'post_check_script':
             #              *        => $_com_post_check_script,
             #              schedule => 'Growell_patch - Patch Window',
             #            }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
-          }
-          if ($high_prio_updates_to_install.count > 0) {
+            #}
+            #if ($high_prio_updates_to_install.count > 0) {
+          if $_in_high_prio_patch_window {
             class { "${module_name}::post_check":
               priority  => 'high',
               exec_args => $_com_post_check_script,
               stage     => "${module_name}_after_post_reboot",
-            }
+              }
+          }
 
             #            exec { 'post_check_script (High Priority)':
             #              *        => $_com_post_check_script,
             #              schedule => 'Growell_patch - High Priority Patch Window',
             #            }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
-          }
+            #}
           #          exec { 'post_check_script':
           #            command  => $_post_check_script_path,
           #            path     => $_cmd_path,
