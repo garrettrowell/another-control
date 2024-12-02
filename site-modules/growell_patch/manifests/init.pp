@@ -49,9 +49,10 @@ class growell_patch (
 ) {
   # Create extra stages so we can reboot before and after
   stage { "${module_name}_post_reboot": }
+  stage { "${module_name}_after_final_reboot": }
   #  stage { "${module_name}_pre_reboot": }
   # Stage["${module_name}_pre_reboot"] -> Stage['main'] -> Stage["${module_name}_post_reboot"]
-  Stage['main'] -> Stage["${module_name}_post_reboot"]
+  Stage['main'] -> Stage["${module_name}_post_reboot"] -> Stage["${module_name}_after_final_reboot"]
 
 
   # Ensure we work with a $patch_groups array for further processing
@@ -688,19 +689,20 @@ class growell_patch (
             'command' => $_post_check_script_path,
             'path'    => $_cmd_path,
             'require' => [File['post_check_script'], Anchor['growell_patch::post']],
-            'tag'     => ['growell_patch_post_patching'],
+            'tag'     => ['growell_patch_post_patching', "${module_name}_post_check"],
+            'stage'   => "${module_name}_after_final_reboot",
           }
           if ($updates_to_install.count > 0) {
             exec { 'post_check_script':
               *        => $_com_post_check_script,
               schedule => 'Growell_patch - Patch Window',
-            } -> Exec <| tag == 'growell_patch_pre_reboot' |>
+            }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
           }
           if ($high_prio_updates_to_install.count > 0) {
             exec { 'post_check_script (High Priority)':
               *        => $_com_post_check_script,
               schedule => 'Growell_patch - High Priority Patch Window',
-            } -> Exec <| tag == 'growell_patch_pre_reboot' |>
+            }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
           }
           #          exec { 'post_check_script':
           #            command  => $_post_check_script_path,
@@ -944,19 +946,20 @@ class growell_patch (
             'command'  => $_post_check_script_path,
             'provider' => powershell,
             'require'  => [File['post_check_script'], Anchor['growell_patch::post']],
-            'tag'      => ['growell_patch_post_patching'],
+            'tag'      => ['growell_patch_post_patching', "${module_name}_post_check"],
+            'stage'    => "${module_name}_after_final_reboot",
           }
           if ($updates_to_install.count > 0) {
             exec { 'post_check_script':
               *        => $_com_post_check_script,
               schedule => 'Growell_patch - Patch Window',
-            } -> Exec <| tag == 'growell_patch_pre_reboot' |>
+            }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
           }
           if ($high_prio_updates_to_install.count > 0) {
             exec { 'post_check_script (High Priority)':
               *        => $_com_post_check_script,
               schedule => 'Growell_patch - High Priority Patch Window',
-            } -> Exec <| tag == 'growell_patch_pre_reboot' |>
+            }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
           }
           #exec { 'post_check_script':
           #  command  => $_post_check_script_path,
@@ -1225,7 +1228,7 @@ class growell_patch (
                     require  => Anchor['growell_patch::post'],
                     schedule => 'Growell_patch - Patch Window',
                     tag      => ['growell_patch_post_patching'],
-                    } -> Exec <| tag == 'growell_patch_pre_reboot' |>
+                  }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
                 }
               }
               if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
@@ -1235,7 +1238,7 @@ class growell_patch (
                     require  => Anchor['growell_patch::post'],
                     schedule => 'Growell_patch - High Priority Patch Window',
                     tag      => ['growell_patch_post_patching'],
-                    } -> Exec <| tag == 'growell_patch_pre_reboot' |>
+                  }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
                 }
               }
               # Define pre-reboot Execs
