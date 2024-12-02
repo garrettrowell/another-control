@@ -690,7 +690,6 @@ class growell_patch (
             'path'    => $_cmd_path,
             'require' => [File['post_check_script'], Anchor['growell_patch::post']],
             'tag'     => ['growell_patch_post_patching', "${module_name}_post_check"],
-            'stage'   => "${module_name}_after_final_reboot",
           }
           if ($updates_to_install.count > 0) {
             exec { 'post_check_script':
@@ -947,7 +946,6 @@ class growell_patch (
             'provider' => powershell,
             'require'  => [File['post_check_script'], Anchor['growell_patch::post']],
             'tag'      => ['growell_patch_post_patching', "${module_name}_post_check"],
-            'stage'    => "${module_name}_after_final_reboot",
           }
           if ($updates_to_install.count > 0) {
             exec { 'post_check_script':
@@ -1211,18 +1209,19 @@ class growell_patch (
                   reboot_if_needed => $post_reboot_if_needed,
                   schedule         => 'Growell_patch - Patch Window',
                   stage            => "${module_name}_post_reboot",
-                }
+                } -> Exec <| tag == "${module_name}_post_check" |>
               }
               if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
                 class { 'growell_patch::high_prio_reboot':
                   reboot_if_needed => $high_prio_post_reboot_if_needed,
                   schedule         => 'Growell_patch - High Priority Patch Window',
                   stage            => "${module_name}_post_reboot",
-                }
+                } -> Exec <| tag == "${module_name}_post_check" |>
               }
               # Perform post-patching Execs
               if ($updates_to_install.count > 0) and $post_reboot {
                 $_post_patch_commands.each | $cmd, $cmd_opts | {
+                  Exec <| tag == "${module_name}_post_check" |> ->
                   exec { "Growell_patch - After patching - ${cmd}":
                     *        => delete($cmd_opts, ['require', 'before', 'schedule', 'tag']),
                     require  => Anchor['growell_patch::post'],
@@ -1233,6 +1232,7 @@ class growell_patch (
               }
               if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
                 $_post_patch_commands.each | $cmd, $cmd_opts | {
+                  Exec <| tag == "${module_name}_post_check" |> ->
                   exec { "Growell_patch - After patching (High Priority) - ${cmd}":
                     *        => delete($cmd_opts, ['require', 'before', 'schedule', 'tag']),
                     require  => Anchor['growell_patch::post'],
