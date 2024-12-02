@@ -500,7 +500,7 @@ class growell_patch (
             'apt': {
               apt::mark { $_to_unpin:
                 setting => 'unhold',
-                before  => Class["${module_name}::${_kern}::patchday"],
+                #before  => Class["${module_name}::${_kern}::patchday"],
                 #                before  => Class['patching_as_code'],
                 notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
               }
@@ -512,7 +512,7 @@ class growell_patch (
                   version => '*',
                   release => '*',
                   epoch   => 0,
-                  before  => Class["${module_name}::${_kern}::patchday"],
+                  #before  => Class["${module_name}::${_kern}::patchday"],
                   #    before  => Class['patching_as_code'],
                   notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
                 }
@@ -523,7 +523,7 @@ class growell_patch (
                 exec { "${module_name}-removelock-${pin}":
                   command => "zypper removelock ${pin}",
                   path    => $_cmd_path,
-                  before  => Class["${module_name}::${_kern}::patchday"],
+                  #before  => Class["${module_name}::${_kern}::patchday"],
                   #before  => Class['patching_as_code'],
                   notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
                 }
