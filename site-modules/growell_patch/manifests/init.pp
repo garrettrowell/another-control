@@ -1209,14 +1209,14 @@ class growell_patch (
                   reboot_if_needed => $post_reboot_if_needed,
                   schedule         => 'Growell_patch - Patch Window',
                   stage            => "${module_name}_post_reboot",
-                } -> Exec <| tag == "${module_name}_post_check" |>
+                }# -> Exec <| tag == "${module_name}_post_check" |>
               }
               if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
                 class { 'growell_patch::high_prio_reboot':
                   reboot_if_needed => $high_prio_post_reboot_if_needed,
                   schedule         => 'Growell_patch - High Priority Patch Window',
                   stage            => "${module_name}_post_reboot",
-                } -> Exec <| tag == "${module_name}_post_check" |>
+                }# -> Exec <| tag == "${module_name}_post_check" |>
               }
               # Perform post-patching Execs
               if ($updates_to_install.count > 0) and $post_reboot {
