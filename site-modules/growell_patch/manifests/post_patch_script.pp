@@ -13,7 +13,7 @@ class growell_patch::post_patch_script (
     }
   }
 
-  $post_patch_commands.each |$cmd, $cmd_pots| {
+  $post_patch_commands.each |$cmd, $cmd_opts| {
     exec { "${_exec_title_base}${cmd}":
       *        => delete($cmd_opts, ['require', 'before', 'schedule', 'tag']),
       require  => Anchor['growell_patch::post'],
