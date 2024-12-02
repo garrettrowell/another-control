@@ -974,7 +974,7 @@ class growell_patch (
   file {
     default:
       require => File[$_script_base],
-      before  => Anchor["${module_name}::start"],
+      #before  => Anchor["${module_name}::start"],
       ;
     'pre_patch_script':
       path => $_pre_patch_script_path,
