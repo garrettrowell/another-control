@@ -688,7 +688,7 @@ class growell_patch (
           $_com_post_check_script = {
             'command' => $_post_check_script_path,
             'path'    => $_cmd_path,
-            'require' => [File['post_check_script'], Anchor['growell_patch::post']],
+            'require' => [File['post_check_script']],#, Anchor['growell_patch::post']],
             'tag'     => ['growell_patch_post_patching', "${module_name}_post_check"],
           }
           if ($updates_to_install.count > 0) {
@@ -944,7 +944,7 @@ class growell_patch (
           $_com_post_check_script = {
             'command'  => $_post_check_script_path,
             'provider' => powershell,
-            'require'  => [File['post_check_script'], Anchor['growell_patch::post']],
+            'require'  => [File['post_check_script']], #, Anchor['growell_patch::post']],
             'tag'      => ['growell_patch_post_patching', "${module_name}_post_check"],
           }
           if ($updates_to_install.count > 0) {
