@@ -1224,37 +1224,47 @@ class growell_patch (
                   reboot_if_needed => $post_reboot_if_needed,
                   schedule         => 'Growell_patch - Patch Window',
                   stage            => "${module_name}_post_reboot",
-                }# -> Exec <| tag == "${module_name}_post_check" |>
+                }
               }
               if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
                 class { 'growell_patch::high_prio_reboot':
                   reboot_if_needed => $high_prio_post_reboot_if_needed,
                   schedule         => 'Growell_patch - High Priority Patch Window',
                   stage            => "${module_name}_post_reboot",
-                }# -> Exec <| tag == "${module_name}_post_check" |>
+                }
               }
               # Perform post-patching Execs
               if ($updates_to_install.count > 0) and $post_reboot {
-                $_post_patch_commands.each | $cmd, $cmd_opts | {
-                #                  Exec <| tag == "${module_name}_post_check" |> ->
-                  exec { "Growell_patch - After patching - ${cmd}":
-                    *        => delete($cmd_opts, ['require', 'before', 'schedule', 'tag']),
-                    require  => Anchor['growell_patch::post'],
-                    schedule => 'Growell_patch - Patch Window',
-                    tag      => ['growell_patch_post_patching'],
-                  }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
+                class { "${module_name}::post_patch_script":
+                  post_patch_commands => $_post_patch_commands,
+                  priority            => 'normal',
+                  stage               => "${module_name}_after_post_reboot",
                 }
+                #$_post_patch_commands.each | $cmd, $cmd_opts | {
+                ##                  Exec <| tag == "${module_name}_post_check" |> ->
+                #  exec { "Growell_patch - After patching - ${cmd}":
+                #    *        => delete($cmd_opts, ['require', 'before', 'schedule', 'tag']),
+                #    require  => Anchor['growell_patch::post'],
+                #    schedule => 'Growell_patch - Patch Window',
+                #    tag      => ['growell_patch_post_patching'],
+                #  }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
+                #}
               }
               if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
-                $_post_patch_commands.each | $cmd, $cmd_opts | {
-                #  Exec <| tag == "${module_name}_post_check" |> ->
-                  exec { "Growell_patch - After patching (High Priority) - ${cmd}":
-                    *        => delete($cmd_opts, ['require', 'before', 'schedule', 'tag']),
-                    require  => Anchor['growell_patch::post'],
-                    schedule => 'Growell_patch - High Priority Patch Window',
-                    tag      => ['growell_patch_post_patching'],
-                  }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
+                class { "${module_name}::post_patch_script":
+                  post_patch_commands => $_post_patch_commands,
+                  priority            => 'high',
+                  stage               => "${module_name}_after_post_reboot",
                 }
+                #$_post_patch_commands.each | $cmd, $cmd_opts | {
+                ##  Exec <| tag == "${module_name}_post_check" |> ->
+                #  exec { "Growell_patch - After patching (High Priority) - ${cmd}":
+                #    *        => delete($cmd_opts, ['require', 'before', 'schedule', 'tag']),
+                #    require  => Anchor['growell_patch::post'],
+                #    schedule => 'Growell_patch - High Priority Patch Window',
+                #    tag      => ['growell_patch_post_patching'],
+                #  }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
+                #}
               }
               # Define pre-reboot Execs
               case $facts['kernel'].downcase() {
