@@ -689,7 +689,8 @@ class growell_patch (
             'command' => $_post_check_script_path,
             'path'    => $_cmd_path,
             'require' => [File['post_check_script']],#, Anchor['growell_patch::post']],
-            'tag'     => ['growell_patch_post_patching', "${module_name}_post_check"],
+            #            'tag'     => ['growell_patch_post_patching', "${module_name}_post_check"],
+            'tag'     => ["${module_name}_post_check"],
           }
           if ($updates_to_install.count > 0) {
             exec { 'post_check_script':
