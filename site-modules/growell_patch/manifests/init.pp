@@ -1072,7 +1072,7 @@ class growell_patch (
     default: { false }
   }
 
-  if $_is_patchday or $_is_high_prio_patch_day {
+  if ($_is_patchday and $_in_patch_window) or ($_is_high_prio_patch_day and $_in_high_prio_patch_window) {
     # Only deal with pre_reboot if this is a normal puppet run. if being ran as a plan we handle it elsewhere
     unless $run_as_plan {
       # Perform pending reboots pre-patching, except if this is a high prio only run
