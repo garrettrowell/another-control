@@ -16,40 +16,53 @@ class growell_patch::post_check (
     }
   }
 
-  # Initially record that the post check failed
-  $failure_data = stdlib::to_json(
-    {
-      'post_check' => {
-        'status' => 'failed',
-        'timestamp' => Timestamp.new()
-      }
+  if $facts['growell_patch_report'].dig('post_check') {
+    $cur = growell_patch::within_cur_month($facts['growell_patch_report']['post_check']['timestamp'])
+    if $cur {
+      $_needs_ran = Timestamp.new() < Timestamp($facts['growell_patch_report']['post_check']['timestamp'])
+    } else {
+      $_needs_ran = true
     }
-  )
-  exec { "${_notify_title_base} - failed":
-    command     => "${report_script_loc} -d '${failure_data}'",
-    before      => Exec[$_exec_title],
-    schedule    => $_schedule,
+  } else {
+    $_needs_ran = true
   }
 
-  # Run the post check
-  exec { $_exec_title:
-    schedule => $_schedule,
-    *        => $exec_args
-  }
-
-  # In the event the post check fails, this resource will get skipped
-  $success_data = stdlib::to_json(
-    {
-      'post_check' => {
-        'status' => 'success',
-        'timestamp' => Timestamp.new()
+  if $_needs_ran {
+    # Initially record that the post check failed
+    $failure_data = stdlib::to_json(
+      {
+        'post_check' => {
+          'status' => 'failed',
+          'timestamp' => Timestamp.new()
+        }
       }
+    )
+    exec { "${_notify_title_base} - failed":
+      command     => "${report_script_loc} -d '${failure_data}'",
+      before      => Exec[$_exec_title],
+      schedule    => $_schedule,
     }
-  )
-  exec { "${_notify_title_base} - success":
-    command     => "${report_script_loc} -d '${success_data}'",
-    refreshonly => true,
-    subscribe   => Exec[$_exec_title],
-    schedule    => $_schedule,
+
+    # Run the post check
+    exec { $_exec_title:
+      schedule => $_schedule,
+      *        => $exec_args
+    }
+
+    # In the event the post check fails, this resource will get skipped
+    $success_data = stdlib::to_json(
+      {
+        'post_check' => {
+          'status' => 'success',
+          'timestamp' => Timestamp.new()
+        }
+      }
+    )
+    exec { "${_notify_title_base} - success":
+      command     => "${report_script_loc} -d '${success_data}'",
+      refreshonly => true,
+      subscribe   => Exec[$_exec_title],
+      schedule    => $_schedule,
+    }
   }
 }
