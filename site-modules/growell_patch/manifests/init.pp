@@ -58,6 +58,14 @@ class growell_patch (
   # Ensure we work with a $patch_groups array for further processing
   $patch_groups = Array($patch_group, true)
 
+  # Create a reporting script that we can call via Exec resources to keep track of whats happened during the patching process
+  $report_script_loc = "${facts['puppet_vardir']}/../../${module_name}/reporting.rb"
+  file { $report_script_loc:
+    ensure  => present,
+    mode    => '0700',
+    content => epp("${module_name}/reporting.rb.epp"),
+  }
+
   #  # Verify if all of $patch_groups point to a valid patch schedule
   #  $patch_groups.each |$pg| {
   #    unless $patch_schedule[$pg] or $pg in ['always', 'never'] {
@@ -694,9 +702,10 @@ class growell_patch (
           #if ($updates_to_install.count > 0) {
           if $_in_patch_window {
             class { "${module_name}::post_check":
-              priority  => 'normal',
-              exec_args => $_com_post_check_script,
-              stage     => "${module_name}_after_post_reboot",
+              priority          => 'normal',
+              exec_args         => $_com_post_check_script,
+              stage             => "${module_name}_after_post_reboot",
+              report_script_loc => $report_script_loc,
             }
           }
             #            exec { 'post_check_script':
@@ -707,10 +716,11 @@ class growell_patch (
             #if ($high_prio_updates_to_install.count > 0) {
           if $_in_high_prio_patch_window {
             class { "${module_name}::post_check":
-              priority  => 'high',
-              exec_args => $_com_post_check_script,
-              stage     => "${module_name}_after_post_reboot",
-              }
+              priority          => 'high',
+              exec_args         => $_com_post_check_script,
+              stage             => "${module_name}_after_post_reboot",
+              report_script_loc => $report_script_loc,
+            }
           }
 
             #            exec { 'post_check_script (High Priority)':

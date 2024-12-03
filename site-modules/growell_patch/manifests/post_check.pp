@@ -1,6 +1,7 @@
 class growell_patch::post_check (
   Enum['normal', 'high'] $priority = 'normal',
   Hash $exec_args,
+  String $report_script_loc,
 ){
   case $priority {
     'normal': {
@@ -16,15 +17,18 @@ class growell_patch::post_check (
   }
 
   # Initially record that the post check failed
-  notify { "${_notify_title_base} - failed":
-    notify   => Exec[$_exec_title],
-    schedule => $_schedule,
-    message  => Deferred('growell_patch::reporting',
-    [
-      {
-        'post_check' => {
-          'status'    => 'failed',
-          'timestamp' => Timestamp.new()}}])
+  $failure_data = stdlib::to_json(
+    {
+      'post_check' => {
+        'status' => 'failed',
+        'timestamp' => Timestamp.new()
+      }
+    }
+  )
+  exec { "${_notify_title_base} - failed":
+    command     => "${report_script_loc} -d '${failure_data}'",
+    before      => Exec[$_exec_title],
+    schedule    => $_schedule,
   }
 
   # Run the post check
@@ -33,36 +37,19 @@ class growell_patch::post_check (
     *        => $exec_args
   }
 
-  file { '/opt/puppetlabs/growell_patch/reporting.rb':
-    ensure  => present,
-    mode    => '0700',
-    content => epp("${module_name}/reporting.rb.epp"),
-  }
-
-  $data = stdlib::to_json({ 'post_check' => { 'status' => 'success', 'timestamp' => Timestamp.new() } })
-  # In the event of a failure this resource will get skipped
+  # In the event the post check fails, this resource will get skipped
+  $success_data = stdlib::to_json(
+    {
+      'post_check' => {
+        'status' => 'success',
+        'timestamp' => Timestamp.new()
+      }
+    }
+  )
   exec { "${_notify_title_base} - success":
-    command              => "/opt/puppetlabs/growell_patch/reporting.rb -d '${data}'",
-    #    command         => "/opt/puppetlabs/puppet/bin/ruby ${epp("${module_name}/reporting.rb.epp",
-    #    { 'data'        => {
-    #      'post_check'  => {
-    #        'status'    => 'success',
-    #        'timestamp' => Timestamp.new(),
-    #      }}})}",
-    refreshonly          => true,
-    subscribe            => Exec[$_exec_title],
-    schedule             => $_schedule,
+    command     => "${_report_script_loc} -d '${success_data}'",
+    refreshonly => true,
+    subscribe   => Exec[$_exec_title],
+    schedule    => $_schedule,
   }
-
-  #notify { "${_notify_title_base} - success":
-  #  require             => Exec[$_exec_title],
-  #  schedule            => $_schedule,
-  #  message             => Deferred('growell_patch::reporting',
-  #  [
-  #    {
-  #      'post_check'    => {
-  #        'status'      => 'success',
-  #        'timestamp'   => Timestamp.new()}}])
-  #}
-
 }
