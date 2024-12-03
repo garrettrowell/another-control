@@ -663,7 +663,7 @@ class growell_patch (
             'command' => $_pre_check_script_path,
             'path'    => $_cmd_path,
             'before'  => Class["${module_name}::${_kern}::patchday"],
-            'tag'     => ['growell_patch_pre_patching'],
+            'tag'     => ['growell_patch_pre_patching', 'growell_patch_pre_check'],
             'require' => File['pre_check_script'],
           }
           if ($updates_to_install.count > 0) {
