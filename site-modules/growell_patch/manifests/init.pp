@@ -59,7 +59,12 @@ class growell_patch (
   $patch_groups = Array($patch_group, true)
 
   # Create a reporting script that we can call via Exec resources to keep track of whats happened during the patching process
-  $report_script_loc = "${facts['puppet_vardir']}/../../${module_name}/reporting.rb"
+  #  $report_script_loc = "${facts['puppet_vardir']}/../../${module_name}/reporting.rb"
+  $report_script_loc = case $_kern {
+    'linux': {
+      "/opt/puppetlabs/${module_name}/reporting.rb"
+    }
+  }
   file { $report_script_loc:
     ensure  => present,
     mode    => '0700',
