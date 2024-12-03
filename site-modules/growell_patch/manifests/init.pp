@@ -680,6 +680,7 @@ class growell_patch (
               command  => "${report_script_loc} -d '${precheck_failure_data}'",
               schedule => 'Growell_patch - Patch Window',
               before   => Exec['pre_check_script'],
+              tag      => ['growell_patch_pre_check'],
             }
 
             exec { 'pre_check_script':
@@ -701,6 +702,7 @@ class growell_patch (
               refreshonly => true,
               subscribe   => Exec['pre_check_script'],
               schedule    => 'Growell_patch - Patch Window',
+              tag         => ['growell_patch_pre_check'],
             }
           }
           if ($high_prio_updates_to_install.count > 0) {
