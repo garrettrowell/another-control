@@ -42,8 +42,9 @@ class growell_patch::pre_patch_script (
       }
     )
     exec { "${_notify_title_base} - failed":
-      command     => "${report_script_loc} -d '${failure_data}'",
-      schedule    => $_schedule,
+      command  => "${report_script_loc} -d '${failure_data}'",
+      schedule => $_schedule,
+      tag      => ['growell_patch_pre_patching'],
     }
 
     # Run the post_patch_command(s)
@@ -71,6 +72,7 @@ class growell_patch::pre_patch_script (
       command     => "${report_script_loc} -d '${success_data}'",
       refreshonly => true,
       schedule    => $_schedule,
+      tag         => ['growell_patch_pre_patching'],
     }
   }
 
