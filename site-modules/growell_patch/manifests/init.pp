@@ -285,6 +285,9 @@ class growell_patch (
     'linux': {
       "/opt/puppetlabs/${module_name}/reporting.rb"
     }
+    'windows': {
+      "C:/ProgramData/PuppetLabs/${module_name}/reporting.rb"
+    }
   }
   file { "${facts['puppet_vardir']}/../../${module_name}":
     ensure => directory,
