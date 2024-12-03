@@ -45,7 +45,7 @@ class growell_patch::reboot (
     )
     exec { 'Growell_patch - Performing OS reboot':
       command  => "${report_script_loc} -d '${data}'",
-      notify   => Exec['Growell_patch - Patch Reboot',
+      notify   => Exec['Growell_patch - Patch Reboot'],
       schedule => 'Growell_patch - Patch Window',
     }
 
@@ -64,7 +64,7 @@ class growell_patch::reboot (
     )
     exec { 'Growell_patch - Performing OS reboot':
       command  => "${report_script_loc} -d '${data}'",
-      notify   => Reboot['Growell_patch - Patch Reboot',
+      notify   => Reboot['Growell_patch - Patch Reboot'],
       schedule => 'Growell_patch - Patch Window',
     }
 
