@@ -286,6 +286,11 @@ class growell_patch (
       "/opt/puppetlabs/${module_name}/reporting.rb"
     }
   }
+  file { "${facts['puppet_vardir']}/../../${module_name}":
+    ensure => directory,
+    before => File[$report_script_loc],
+  }
+
   file { $report_script_loc:
     ensure  => present,
     mode    => '0700',
@@ -1193,9 +1198,10 @@ class growell_patch (
                 install_options         => $install_options,
                 require                 => Anchor['growell_patch::start'],
                 before                  => Anchor['growell_patch::post'],
-                } -> file { "${facts['puppet_vardir']}/../../${module_name}":
-                  ensure => directory,
-                }
+              }
+                #} -> file { "${facts['puppet_vardir']}/../../${module_name}":
+                #  ensure => directory,
+                #}
             }
             if ($updates_to_install.count > 0) {
               file { 'Growell_patch - Save Patch Run Info':
