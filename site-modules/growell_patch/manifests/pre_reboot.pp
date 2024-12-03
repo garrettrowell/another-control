@@ -12,6 +12,7 @@ class growell_patch::pre_reboot (
   Enum['normal','high'] $priority = 'normal',
   #  Boolean $reboot_if_needed = true,
   Integer $reboot_delay = 60,
+  String $report_script_loc,
 ) {
   $reboot_delay_min = round($reboot_delay / 60)
   case $priority {
@@ -53,11 +54,22 @@ class growell_patch::pre_reboot (
           schedule => $_schedule,
           timeout  => $reboot_delay,
         }
-        notify { $_notify_title:
+        # Record the pre_reboot timestamp
+        $data = stdlib::to_json(
+          {
+            'pre_reboot' => Timestamp.new(),
+          }
+        )
+        exec { $_notify_title:
+          command  => "${report_script_loc} -d '${data}'",
           notify   => Reboot[$_reboot_title],
           schedule => $_schedule,
-          message  => Deferred('growell_patch::reporting', [{'pre_reboot' => Timestamp.new()}])
         }
+        #notify { $_notify_title:
+        #  notify   => Reboot[$_reboot_title],
+        #  schedule => $_schedule,
+        #  message  => Deferred('growell_patch::reporting', [{'pre_reboot' => Timestamp.new()}])
+        #}
       }
     }
     'ifneeded': {

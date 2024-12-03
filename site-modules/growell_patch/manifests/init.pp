@@ -1117,11 +1117,12 @@ class growell_patch (
               #  os           => $0,
               #}
               class { 'growell_patch::pre_reboot':
-                priority    => 'normal',
-                reboot_type => $_pre_reboot,
-                schedule    => 'Growell_patch - Patch Window',
-                before      => Anchor['growell_patch::start'],
-                #    stage  => "${module_name}_pre_reboot",
+                priority          => 'normal',
+                reboot_type       => $_pre_reboot,
+                schedule          => 'Growell_patch - Patch Window',
+                before            => Anchor['growell_patch::start'],
+                report_script_loc => $report_scritp_loc,
+                #    stage        => "${module_name}_pre_reboot",
               }
             }
             default: {
@@ -1139,10 +1140,11 @@ class growell_patch (
               #    os           => $0,
               #  }
               class { 'growell_patch::pre_reboot':
-                priority    => 'high',
-                reboot_type => $_high_prio_pre_reboot,
-                schedule    => 'Growell_patch - High Priority Patch Window',
-                before      => Anchor['growell_patch::start'],
+                priority          => 'high',
+                reboot_type       => $_high_prio_pre_reboot,
+                schedule          => 'Growell_patch - High Priority Patch Window',
+                before            => Anchor['growell_patch::start'],
+                report_script_loc => $report_script_loc,
               }
             }
             default: {
