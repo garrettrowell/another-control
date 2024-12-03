@@ -288,7 +288,7 @@ class growell_patch (
     }
     'windows': {
       $report_script_file = "C:/ProgramData/PuppetLabs/${module_name}/reporting.rb"
-      $report_script_loc = "'C:/Program Files/Puppet Labs/Puppet/puppet/bin/ruby.exe' ${report_script_file}"
+      $report_script_loc = "\"C:/Program Files/Puppet Labs/Puppet/puppet/bin/ruby.exe\" ${report_script_file}"
     }
   }
   file { "${facts['puppet_vardir']}/../../${module_name}":
