@@ -19,7 +19,11 @@ class growell_patch::post_patch_script (
   if $facts['growell_patch_report'].dig('post_patching_script') {
     $cur = growell_patch::within_cur_month($facts['growell_patch_report']['post_patching_script']['timestamp'])
     if $cur {
-      $_needs_ran = Timestamp.new() < Timestamp($facts['growell_patch_report']['post_patching_script']['timestamp'])
+      if $facts['growell_patch_report']['post_patching_script']['status'] == 'success' {
+        $_needs_ran = Timestamp.new() < Timestamp($facts['growell_patch_report']['post_patching_script']['timestamp'])
+      } else {
+        $_needs_ran = true
+      }
     } else {
       $_needs_ran = true
     }

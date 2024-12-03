@@ -659,6 +659,20 @@ class growell_patch (
           }
         )
         if (($_is_patchday or $_is_high_prio_patch_day) and ($_in_patch_window or $_in_high_prio_patch_window)) {
+          if $facts['growell_patch_report'].dig('pre_check') {
+            $cur = growell_patch::within_cur_month($facts['growell_patch_report']['pre_check']['timestamp'])
+            if $cur {
+              if $facts['growell_patch_report']['pre_check']['status'] == 'success' {
+                $_needs_ran = Timestamp.new() < Timestamp($facts['growell_patch_report']['pre_check']['timestamp'])
+              } else {
+                $needs_ran = true
+              }
+            } else {
+              $_needs_ran = true
+            }
+          } else {
+            $_needs_ran = true
+          }
           $_com_pre_check_script = {
             'command' => $_pre_check_script_path,
             'path'    => $_cmd_path,
@@ -666,59 +680,88 @@ class growell_patch (
             'tag'     => ['growell_patch_pre_patching', 'growell_patch_pre_check'],
             'require' => File['pre_check_script'],
           }
+
           if ($updates_to_install.count > 0) {
-            $precheck_report_base = 'Growell_patch - Pre Check'
-            $precheck_failure_data = stdlib::to_json(
-              {
-                'pre_check' => {
-                  'status'    => 'failed',
-                  'timestamp' => Timestamp.new(),
+            if $_needs_ran {
+              $precheck_report_base = 'Growell_patch - Pre Check'
+              $precheck_failure_data = stdlib::to_json(
+                {
+                  'pre_check' => {
+                    'status'    => 'failed',
+                    'timestamp' => Timestamp.new(),
+                  }
                 }
+              )
+              exec { "${precheck_report_base} - failed":
+                command  => "${report_script_loc} -d '${precheck_failure_data}'",
+                schedule => 'Growell_patch - Patch Window',
+                before   => Exec['pre_check_script'],
+                tag      => ['growell_patch_pre_check'],
               }
-            )
-            exec { "${precheck_report_base} - failed":
-              command  => "${report_script_loc} -d '${precheck_failure_data}'",
-              schedule => 'Growell_patch - Patch Window',
-              before   => Exec['pre_check_script'],
-              tag      => ['growell_patch_pre_check'],
-            }
 
-            exec { 'pre_check_script':
-              *        => $_com_pre_check_script,
-              schedule => 'Growell_patch - Patch Window',
-            }
+              exec { 'pre_check_script':
+                *        => $_com_pre_check_script,
+                schedule => 'Growell_patch - Patch Window',
+              }
 
-            $precheck_success_data = stdlib::to_json(
-              {
-                'pre_check' => {
-                  'status'    => 'success',
-                  'timestamp' => Timestamp.new(),
+              $precheck_success_data = stdlib::to_json(
+                {
+                  'pre_check' => {
+                    'status'    => 'success',
+                    'timestamp' => Timestamp.new(),
+                  }
                 }
-              }
-            )
+              )
 
-            exec { "${precheck_report_base} - success":
-              command     => "${report_script_loc} -d '${precheck_success_data}'",
-              refreshonly => true,
-              subscribe   => Exec['pre_check_script'],
-              schedule    => 'Growell_patch - Patch Window',
-              tag         => ['growell_patch_pre_check'],
+              exec { "${precheck_report_base} - success":
+                command     => "${report_script_loc} -d '${precheck_success_data}'",
+                refreshonly => true,
+                subscribe   => Exec['pre_check_script'],
+                schedule    => 'Growell_patch - Patch Window',
+                tag         => ['growell_patch_pre_check'],
+              }
             }
           }
           if ($high_prio_updates_to_install.count > 0) {
-            $precheck_report_base = 'Growell_patch - Pre Check'
-            $precheck_failure_data = stdlib::to_json(
-              {
-                'pre_check' => {
-                  'status'    => 'failed',
-                  'timestamp' => Timestamp.new(),
+            if $_needs_ran {
+              $precheck_report_base = 'Growell_patch - High Priority Pre Check'
+              $precheck_failure_data = stdlib::to_json(
+                {
+                  'pre_check' => {
+                    'status'    => 'failed',
+                    'timestamp' => Timestamp.new(),
+                  }
                 }
+              )
+              exec { "${precheck_report_base} - failed":
+                command  => "${report_script_loc} -d '${precheck_failure_data}'",
+                schedule => 'Growell_patch - High Priority Patch Window',
+                before   => Exec['pre_check_script (High Priority)'],
+                tag      => ['growell_patch_pre_check'],
               }
-            )
 
-            exec { 'pre_check_script (High Priority)':
-              *        => $_com_pre_check_script,
-              schedule => 'Growell_patch - High Priority Patch Window',
+              exec { 'pre_check_script (High Priority)':
+                *        => $_com_pre_check_script,
+                schedule => 'Growell_patch - High Priority Patch Window',
+              }
+
+              $precheck_success_data = stdlib::to_json(
+                {
+                  'pre_check' => {
+                    'status'    => 'success',
+                    'timestamp' => Timestamp.new(),
+                  }
+                }
+              )
+
+              exec { "${precheck_report_base} - success":
+                command     => "${report_script_loc} -d '${precheck_success_data}'",
+                refreshonly => true,
+                subscribe   => Exec['pre_check_script (High Priority)'],
+                schedule    => 'Growell_patch - High Priority Patch Window',
+                tag         => ['growell_patch_pre_check'],
+              }
+
             }
           }
           #exec { 'pre_check_script':
@@ -761,12 +804,12 @@ class growell_patch (
               report_script_loc => $report_script_loc,
             }
           }
-            #            exec { 'post_check_script':
-            #              *        => $_com_post_check_script,
-            #              schedule => 'Growell_patch - Patch Window',
-            #            }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
-            #}
-            #if ($high_prio_updates_to_install.count > 0) {
+          #            exec { 'post_check_script':
+          #              *        => $_com_post_check_script,
+          #              schedule => 'Growell_patch - Patch Window',
+          #            }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
+          #}
+          #if ($high_prio_updates_to_install.count > 0) {
           if $_in_high_prio_patch_window {
             class { "${module_name}::post_check":
               priority          => 'high',
@@ -776,11 +819,11 @@ class growell_patch (
             }
           }
 
-            #            exec { 'post_check_script (High Priority)':
-            #              *        => $_com_post_check_script,
-            #              schedule => 'Growell_patch - High Priority Patch Window',
-            #            }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
-            #}
+          #            exec { 'post_check_script (High Priority)':
+          #              *        => $_com_post_check_script,
+          #              schedule => 'Growell_patch - High Priority Patch Window',
+          #            }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
+          #}
           #          exec { 'post_check_script':
           #            command  => $_post_check_script_path,
           #            path     => $_cmd_path,
@@ -1029,13 +1072,13 @@ class growell_patch (
             exec { 'post_check_script':
               *        => $_com_post_check_script,
               schedule => 'Growell_patch - Patch Window',
-            }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
+              }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
           }
           if ($high_prio_updates_to_install.count > 0) {
             exec { 'post_check_script (High Priority)':
               *        => $_com_post_check_script,
               schedule => 'Growell_patch - High Priority Patch Window',
-            }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
+              }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
           }
           #exec { 'post_check_script':
           #  command  => $_post_check_script_path,
@@ -1242,9 +1285,9 @@ class growell_patch (
                 require                 => Anchor['growell_patch::start'],
                 before                  => Anchor['growell_patch::post'],
               }
-                #} -> file { "${facts['puppet_vardir']}/../../${module_name}":
-                #  ensure => directory,
-                #}
+              #} -> file { "${facts['puppet_vardir']}/../../${module_name}":
+              #  ensure => directory,
+              #}
             }
             if ($updates_to_install.count > 0) {
               file { 'Growell_patch - Save Patch Run Info':

@@ -19,7 +19,11 @@ class growell_patch::post_check (
   if $facts['growell_patch_report'].dig('post_check') {
     $cur = growell_patch::within_cur_month($facts['growell_patch_report']['post_check']['timestamp'])
     if $cur {
-      $_needs_ran = Timestamp.new() < Timestamp($facts['growell_patch_report']['post_check']['timestamp'])
+      if $facts['growell_patch_report']['post_check']['status'] == 'success' {
+        $_needs_ran = Timestamp.new() < Timestamp($facts['growell_patch_report']['post_check']['timestamp'])
+      } else {
+        $_needs_ran = true
+      }
     } else {
       $_needs_ran = true
     }
