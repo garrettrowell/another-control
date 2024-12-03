@@ -1307,6 +1307,7 @@ class growell_patch (
                   post_patch_commands => $_post_patch_commands,
                   priority            => 'normal',
                   stage               => "${module_name}_after_post_reboot",
+                  report_script_loc   => $report_script_loc,
                 }
                 #$_post_patch_commands.each | $cmd, $cmd_opts | {
                 ##                  Exec <| tag == "${module_name}_post_check" |> ->
@@ -1324,6 +1325,7 @@ class growell_patch (
                   post_patch_commands => $_post_patch_commands,
                   priority            => 'high',
                   stage               => "${module_name}_after_post_reboot",
+                  report_script_loc   => $report_script_loc,
                 }
                 #$_post_patch_commands.each | $cmd, $cmd_opts | {
                 ##  Exec <| tag == "${module_name}_post_check" |> ->
