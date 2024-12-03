@@ -1287,9 +1287,10 @@ class growell_patch (
               # Reboot after patching (in later patch_reboot stage)
               if ($updates_to_install.count > 0) and $post_reboot {
                 class { 'growell_patch::reboot':
-                  reboot_if_needed => $post_reboot_if_needed,
-                  schedule         => 'Growell_patch - Patch Window',
-                  stage            => "${module_name}_post_reboot",
+                  reboot_if_needed  => $post_reboot_if_needed,
+                  schedule          => 'Growell_patch - Patch Window',
+                  stage             => "${module_name}_post_reboot",
+                  report_script_loc => $report_script_loc,
                 }
               }
               if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {

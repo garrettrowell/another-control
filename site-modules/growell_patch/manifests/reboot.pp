@@ -10,6 +10,7 @@
 class growell_patch::reboot (
   Boolean $reboot_if_needed = true,
   Integer $reboot_delay = 120
+  String $report_script_loc,
 ) {
   $reboot_delay_min = round($reboot_delay / 60)
   if $reboot_if_needed {
@@ -36,6 +37,18 @@ class growell_patch::reboot (
       logoutput => true,
       schedule  => 'Growell_patch - Patch Window',
     }
+
+    $data = stdlib::to_json(
+      {
+        'post_reboot' => Timestamp.new(),
+      }
+    )
+    exec { 'Growell_patch - Performing OS reboot':
+      command  => "${report_script_loc} -d '${data}'",
+      notify   => Exec['Growell_patch - Patch Reboot',
+      schedule => 'Growell_patch - Patch Window',
+    }
+
   } else {
     # Reboot as part of this Puppet run
     reboot { 'Growell_patch - Patch Reboot':
@@ -43,10 +56,22 @@ class growell_patch::reboot (
       schedule => 'Growell_patch - Patch Window',
       timeout  => $reboot_delay,
     }
-    notify { 'Growell_patch - Performing OS reboot':
-      notify   => Reboot['Growell_patch - Patch Reboot'],
+
+    $data = stdlib::to_json(
+      {
+        'post_reboot' => Timestamp.new(),
+      }
+    )
+    exec { 'Growell_patch - Performing OS reboot':
+      command  => "${report_script_loc} -d '${data}'",
+      notify   => Reboot['Growell_patch - Patch Reboot',
       schedule => 'Growell_patch - Patch Window',
     }
+
+    #notify { 'Growell_patch - Performing OS reboot':
+    #  notify   => Reboot['Growell_patch - Patch Reboot'],
+    #  schedule => 'Growell_patch - Patch Window',
+    #}
   }
 }
 
