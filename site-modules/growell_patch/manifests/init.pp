@@ -293,7 +293,7 @@ class growell_patch (
   }
   file { "${facts['puppet_vardir']}/../../${module_name}":
     ensure => directory,
-    before => File[$report_script_loc],
+    before => File[$report_script_file],
   }
 
   file { $report_script_file:
