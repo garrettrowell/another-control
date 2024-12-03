@@ -58,19 +58,6 @@ class growell_patch (
   # Ensure we work with a $patch_groups array for further processing
   $patch_groups = Array($patch_group, true)
 
-  # Create a reporting script that we can call via Exec resources to keep track of whats happened during the patching process
-  #  $report_script_loc = "${facts['puppet_vardir']}/../../${module_name}/reporting.rb"
-  $report_script_loc = case $_kern {
-    'linux': {
-      "/opt/puppetlabs/${module_name}/reporting.rb"
-    }
-  }
-  file { $report_script_loc:
-    ensure  => present,
-    mode    => '0700',
-    content => epp("${module_name}/reporting.rb.epp"),
-  }
-
   #  # Verify if all of $patch_groups point to a valid patch schedule
   #  $patch_groups.each |$pg| {
   #    unless $patch_schedule[$pg] or $pg in ['always', 'never'] {
@@ -291,6 +278,19 @@ class growell_patch (
   $_high_prio_pre_reboot  = $result['high_prio_patch']['pre_reboot']
   # Avoid having to call $facts['kernel'].downcase a ton of times
   $_kern = $facts['kernel'].downcase
+
+  # Create a reporting script that we can call via Exec resources to keep track of whats happened during the patching process
+  #  $report_script_loc = "${facts['puppet_vardir']}/../../${module_name}/reporting.rb"
+  $report_script_loc = case $_kern {
+    'linux': {
+      "/opt/puppetlabs/${module_name}/reporting.rb"
+    }
+  }
+  file { $report_script_loc:
+    ensure  => present,
+    mode    => '0700',
+    content => epp("${module_name}/reporting.rb.epp"),
+  }
 
   # Configure the agents runtimeout accordingly
   $runtimeout_cfg_section = 'agent'
