@@ -35,12 +35,12 @@ class growell_patch::post_check (
 
   # In the event of a failure this resource will get skipped
   exec { "${_notify_title_base} - success":
-    command     => epp("${module_name}/reporting.rb.epp",
+    command     => "/opt/puppetlabs/puppet/bin/ruby ${epp("${module_name}/reporting.rb.epp",
     { 'data'    => {
       'post_check' => {
         'status'    => 'success',
         'timestamp' => Timestamp.new(),
-      }}}),
+      }}})}",
     refreshonly => true,
     subscribe   => Exec[$_exec_title],
     schedule    => $_schedule,
