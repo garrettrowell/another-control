@@ -1,5 +1,9 @@
 <%- | Hash $data | -%>
-
+<% case $facts['kernel'].downcase { -%>
+<% 'linux': { -%>
+<%= #!/opt/puppetlabs/puppet/bin/ruby %>
+<% } -%>
+<% } -%>
 require 'facter'
 require 'json'
 
