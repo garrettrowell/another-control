@@ -1121,7 +1121,7 @@ class growell_patch (
                 reboot_type       => $_pre_reboot,
                 schedule          => 'Growell_patch - Patch Window',
                 before            => Anchor['growell_patch::start'],
-                report_script_loc => $report_scritp_loc,
+                report_script_loc => $report_script_loc,
                 #    stage        => "${module_name}_pre_reboot",
               }
             }
