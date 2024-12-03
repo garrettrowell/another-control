@@ -14,12 +14,13 @@ OptionParser.new do |opts|
   opts.on('-d', '--data HASH', 'Data') { |v| options[:data] = v }
 end.parse!
 
-vardir = Facter.value(:puppet_vardir)
+vardir = <%= $facts['puppet_vardir'] %>
 report = Facter.value(:growell_patch_report)
+data = JSON.parse(options[:data])
 if report
-  _data = { 'growell_patch_report' => report.merge(options[:data]) }
+  _data = { 'growell_patch_report' => report.merge(data) }
 else
-  _data = { 'growell_patch_report' => options[:data] }
+  _data = { 'growell_patch_report' => data }
 end
 
 File.write("#{vardir}/../../facter/facts.d/growell_patch_report.json", JSON.pretty_generate(_data))
