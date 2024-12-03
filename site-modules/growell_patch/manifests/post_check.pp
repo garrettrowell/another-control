@@ -33,28 +33,36 @@ class growell_patch::post_check (
     *        => $exec_args
   }
 
+  file { '/opt/puppetlabs/growell_patch/reporting.rb':
+    ensure  => present,
+    mode    => '0700',
+    content => epp("${module_name}/reporting.rb.epp"),
+  }
+
+  $data = { 'post_check' => { 'status' => 'success', 'timestamp' => Timestamp.new() } }
   # In the event of a failure this resource will get skipped
   exec { "${_notify_title_base} - success":
-    command     => "/opt/puppetlabs/puppet/bin/ruby ${epp("${module_name}/reporting.rb.epp",
-    { 'data'    => {
-      'post_check' => {
-        'status'    => 'success',
-        'timestamp' => Timestamp.new(),
-      }}})}",
-    refreshonly => true,
-    subscribe   => Exec[$_exec_title],
-    schedule    => $_schedule,
+    command              => "/opt/ppuppetlabs/growell_patch/reporting.rb -d '${data}'",
+    #    command         => "/opt/puppetlabs/puppet/bin/ruby ${epp("${module_name}/reporting.rb.epp",
+    #    { 'data'        => {
+    #      'post_check'  => {
+    #        'status'    => 'success',
+    #        'timestamp' => Timestamp.new(),
+    #      }}})}",
+    refreshonly          => true,
+    subscribe            => Exec[$_exec_title],
+    schedule             => $_schedule,
   }
 
   #notify { "${_notify_title_base} - success":
-  #  require  => Exec[$_exec_title],
-  #  schedule => $_schedule,
-  #  message  => Deferred('growell_patch::reporting',
+  #  require             => Exec[$_exec_title],
+  #  schedule            => $_schedule,
+  #  message             => Deferred('growell_patch::reporting',
   #  [
   #    {
-  #      'post_check' => {
-  #        'status'    => 'success',
-  #        'timestamp' => Timestamp.new()}}])
+  #      'post_check'    => {
+  #        'status'      => 'success',
+  #        'timestamp'   => Timestamp.new()}}])
   #}
 
 }

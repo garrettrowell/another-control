@@ -1,13 +1,25 @@
-<%- | Hash $data | -%>
+<% case $facts['kernel'].downcase { -%>
+<% 'linux': { -%>
+#!/opt/puppetlabs/puppet/bin/ruby
+<% } -%>
+<% } -%>
+
 require 'facter'
 require 'json'
+require 'optparse'
+
+options = {}
+OptionParser.new do |opts|
+  opts.banner = 'Usage: reporting.rb [options]'
+  opts.on('-d', '--data HASH', 'Data') { |v| options[:data] = v }
+end.parse!
 
 vardir = Facter.value(:puppet_vardir)
 report = Facter.value(:growell_patch_report)
 if report
-  _data = { 'growell_patch_report' => report.merge(<%= $data %>) }
+  _data = { 'growell_patch_report' => report.merge(options[:data]) }
 else
-  _date = { 'growell_patch_report' => <%= $data %> }
+  _data = { 'growell_patch_report' => options[:data] }
 end
 
 File.write("#{vardir}/../../facter/facts.d/growell_patch_report.json", JSON.pretty_generate(_data))
