@@ -281,14 +281,6 @@ class growell_patch (
 
   # Create a reporting script that we can call via Exec resources to keep track of whats happened during the patching process
   #  $report_script_loc = "${facts['puppet_vardir']}/../../${module_name}/reporting.rb"
-  $report_script_loc = case $_kern {
-    'linux': {
-      "/opt/puppetlabs/${module_name}/reporting.rb"
-    }
-    'windows': {
-      "C:/ProgramData/PuppetLabs/${module_name}/reporting.rb"
-    }
-  }
   case $_kern {
     'linux': {
       $report_script_loc = "/opt/puppetlabs/${module_name}/reporting.rb"
