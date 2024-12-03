@@ -1253,24 +1253,36 @@ class growell_patch (
           /(windows|linux)/: {
             # Run pre-patch commands if provided
             if ($updates_to_install.count > 0) {
-              $_pre_patch_commands.each | $cmd, $cmd_opts | {
-                exec { "Growell_patch - Before patching - ${cmd}":
-                  *        => delete($cmd_opts, ['before', 'schedule', 'tag']),
-                  before   => Class["${module_name}::${_kern}::patchday"],
-                  schedule => 'Growell_patch - Patch Window',
-                  tag      => ['growell_patch_pre_patching'],
-                }
+              class { "${module_name}::pre_patch_script":
+                pre_patch_commands => $_pre_patch_commands,
+                prioritiy          => 'normal',
+                report_script_loc  => $report_script_loc,
               }
+
+              #$_pre_patch_commands.each | $cmd, $cmd_opts | {
+              #  exec { "Growell_patch - Before patching - ${cmd}":
+              #    *        => delete($cmd_opts, ['before', 'schedule', 'tag']),
+              #    before   => Class["${module_name}::${_kern}::patchday"],
+              #    schedule => 'Growell_patch - Patch Window',
+              #    tag      => ['growell_patch_pre_patching'],
+              #  }
+              #}
             }
             if ($high_prio_updates_to_install.count > 0) {
-              $_pre_patch_commands.each | $cmd, $cmd_opts | {
-                exec { "Growell_patch - Before patching (High Priority) - ${cmd}":
-                  *        => delete($cmd_opts, ['before', 'schedule', 'tag']),
-                  before   => Class["${module_name}::${_kern}::patchday"],
-                  schedule => 'Growell_patch - High Priority Patch Window',
-                  tag      => ['growell_patch_pre_patching'],
-                }
+              class { "${module_name}::pre_patch_script":
+                pre_patch_commands => $_pre_patch_commands,
+                prioritiy          => 'high',
+                report_script_loc  => $report_script_loc,
               }
+
+              #$_pre_patch_commands.each | $cmd, $cmd_opts | {
+              #  exec { "Growell_patch - Before patching (High Priority) - ${cmd}":
+              #    *        => delete($cmd_opts, ['before', 'schedule', 'tag']),
+              #    before   => Class["${module_name}::${_kern}::patchday"],
+              #    schedule => 'Growell_patch - High Priority Patch Window',
+              #    tag      => ['growell_patch_pre_patching'],
+              #  }
+              #}
             }
             # Perform main patching run
             $patch_refresh_actions = $fact_upload ? {
