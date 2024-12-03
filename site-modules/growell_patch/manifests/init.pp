@@ -289,12 +289,22 @@ class growell_patch (
       "C:/ProgramData/PuppetLabs/${module_name}/reporting.rb"
     }
   }
+  case $_kern {
+    'linux': {
+      $report_script_loc = "/opt/puppetlabs/${module_name}/reporting.rb"
+      $report_script_file = $report_script_loc
+    }
+    'windows': {
+      $report_script_file = "C:/ProgramData/PuppetLabs/${module_name}/reporting.rb"
+      $report_script_loc = "'C:/Program Files/Puppet Labs/Puppet/puppet/bin/ruby.exe' ${report_script_file}"
+    }
+  }
   file { "${facts['puppet_vardir']}/../../${module_name}":
     ensure => directory,
     before => File[$report_script_loc],
   }
 
-  file { $report_script_loc:
+  file { $report_script_file:
     ensure  => present,
     mode    => '0700',
     content => epp("${module_name}/reporting.rb.epp"),
