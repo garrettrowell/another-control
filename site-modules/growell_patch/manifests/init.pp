@@ -1353,10 +1353,12 @@ class growell_patch (
           /(windows|linux)/: {
             # Run pre-patch commands if provided
             if ($updates_to_install.count > 0) {
-              class { "${module_name}::pre_patch_script":
-                pre_patch_commands => $_pre_patch_commands,
-                priority           => 'normal',
-                report_script_loc  => $report_script_loc,
+              unless $_pre_patch_commands.empty {
+                class { "${module_name}::pre_patch_script":
+                  pre_patch_commands => $_pre_patch_commands,
+                  priority           => 'normal',
+                  report_script_loc  => $report_script_loc,
+                }
               }
 
               #$_pre_patch_commands.each | $cmd, $cmd_opts | {
@@ -1369,10 +1371,12 @@ class growell_patch (
               #}
             }
             if ($high_prio_updates_to_install.count > 0) {
-              class { "${module_name}::pre_patch_script":
-                pre_patch_commands => $_pre_patch_commands,
-                priority           => 'high',
-                report_script_loc  => $report_script_loc,
+              unless $_pre_patch_commands.empty {
+                class { "${module_name}::pre_patch_script":
+                  pre_patch_commands => $_pre_patch_commands,
+                  priority           => 'high',
+                  report_script_loc  => $report_script_loc,
+                }
               }
 
               #$_pre_patch_commands.each | $cmd, $cmd_opts | {
@@ -1458,11 +1462,13 @@ class growell_patch (
               # Perform post-patching Execs
               #              if ($updates_to_install.count > 0) and $post_reboot {
               if ($_in_patch_window and $post_reboot) {
-                class { "${module_name}::post_patch_script":
-                  post_patch_commands => $_post_patch_commands,
-                  priority            => 'normal',
-                  stage               => "${module_name}_after_post_reboot",
-                  report_script_loc   => $report_script_loc,
+                unless $_post_patch_commands.empty {
+                  class { "${module_name}::post_patch_script":
+                    post_patch_commands => $_post_patch_commands,
+                    priority            => 'normal',
+                    stage               => "${module_name}_after_post_reboot",
+                    report_script_loc   => $report_script_loc,
+                  }
                 }
                 #$_post_patch_commands.each | $cmd, $cmd_opts | {
                 ##                  Exec <| tag == "${module_name}_post_check" |> ->
@@ -1476,11 +1482,13 @@ class growell_patch (
               }
               #              if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
               if ($_in_high_prio_patch_window and $high_prio_post_reboot) {
-                class { "${module_name}::post_patch_script":
-                  post_patch_commands => $_post_patch_commands,
-                  priority            => 'high',
-                  stage               => "${module_name}_after_post_reboot",
-                  report_script_loc   => $report_script_loc,
+                unless $_post_patch_commands.empty {
+                  class { "${module_name}::post_patch_script":
+                    post_patch_commands => $_post_patch_commands,
+                    priority            => 'high',
+                    stage               => "${module_name}_after_post_reboot",
+                    report_script_loc   => $report_script_loc,
+                  }
                 }
                 #$_post_patch_commands.each | $cmd, $cmd_opts | {
                 ##  Exec <| tag == "${module_name}_post_check" |> ->
