@@ -47,7 +47,7 @@ class growell_patch::post_check (
     }
   )
   exec { "${_notify_title_base} - success":
-    command     => "${_report_script_loc} -d '${success_data}'",
+    command     => "${report_script_loc} -d '${success_data}'",
     refreshonly => true,
     subscribe   => Exec[$_exec_title],
     schedule    => $_schedule,
