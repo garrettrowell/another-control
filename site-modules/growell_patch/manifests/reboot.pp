@@ -9,7 +9,7 @@
 #   To override for patching, specify an alternate value by setting the patching_as_code::reboot::reboot_delay parameter in Hiera.
 class growell_patch::reboot (
   Boolean $reboot_if_needed = true,
-  Integer $reboot_delay = 120
+  Integer $reboot_delay = 120,
   String $report_script_loc,
 ) {
   $reboot_delay_min = round($reboot_delay / 60)
