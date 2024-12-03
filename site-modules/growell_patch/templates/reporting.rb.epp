@@ -14,7 +14,7 @@ OptionParser.new do |opts|
   opts.on('-d', '--data HASH', 'Data') { |v| options[:data] = v }
 end.parse!
 
-vardir = <%= $facts['puppet_vardir'] %>
+vardir = '<%= $facts['puppet_vardir'] %>'
 report = Facter.value(:growell_patch_report)
 data = JSON.parse(options[:data])
 if report
