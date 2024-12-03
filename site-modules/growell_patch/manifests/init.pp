@@ -1255,7 +1255,7 @@ class growell_patch (
             if ($updates_to_install.count > 0) {
               class { "${module_name}::pre_patch_script":
                 pre_patch_commands => $_pre_patch_commands,
-                prioritiy          => 'normal',
+                priority           => 'normal',
                 report_script_loc  => $report_script_loc,
               }
 
@@ -1271,7 +1271,7 @@ class growell_patch (
             if ($high_prio_updates_to_install.count > 0) {
               class { "${module_name}::pre_patch_script":
                 pre_patch_commands => $_pre_patch_commands,
-                prioritiy          => 'high',
+                priority           => 'high',
                 report_script_loc  => $report_script_loc,
               }
 
