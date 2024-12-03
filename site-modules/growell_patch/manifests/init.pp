@@ -667,12 +667,53 @@ class growell_patch (
             'require' => File['pre_check_script'],
           }
           if ($updates_to_install.count > 0) {
+            $precheck_report_base = 'Growell_patch - Pre Check'
+            $precheck_failure_data = stdlib::to_json(
+              {
+                'pre_check' => {
+                  'status'    => 'failed',
+                  'timestamp' => Timestamp.new(),
+                }
+              }
+            )
+            exec { "${precheck_report_base} - failed":
+              command  => "${report_script_loc} -d '${precheck_failure_data}'",
+              schedule => 'Growell_patch - Patch Window',
+              before   => Exec['pre_check_script'],
+            }
+
             exec { 'pre_check_script':
               *        => $_com_pre_check_script,
               schedule => 'Growell_patch - Patch Window',
             }
+
+            $precheck_success_data = stdlib::to_json(
+              {
+                'pre_check' => {
+                  'status'    => 'success',
+                  'timestamp' => Timestamp.new(),
+                }
+              }
+            )
+
+            exec { "${precheck_report_base} - success":
+              command     => "${report_script_loc} -d '${precheck_success_data}'",
+              refreshonly => true,
+              subscribe   => Exec['pre_check_script'],
+              schedule    => 'Growell_patch - Patch Window',
+            }
           }
           if ($high_prio_updates_to_install.count > 0) {
+            $precheck_report_base = 'Growell_patch - Pre Check'
+            $precheck_failure_data = stdlib::to_json(
+              {
+                'pre_check' => {
+                  'status'    => 'failed',
+                  'timestamp' => Timestamp.new(),
+                }
+              }
+            )
+
             exec { 'pre_check_script (High Priority)':
               *        => $_com_pre_check_script,
               schedule => 'Growell_patch - High Priority Patch Window',
