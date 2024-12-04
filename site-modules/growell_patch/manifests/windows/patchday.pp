@@ -15,8 +15,9 @@ class growell_patch::windows::patchday (
   if $updates.count > 0 {
     $updates.each | $kb | {
       growell_patch::kb { $kb:
-        ensure      => 'present',
-        maintwindow => 'Growell_patch - Patch Window',
+        ensure            => 'present',
+        maintwindow       => 'Growell_patch - Patch Window',
+        report_script_loc => $report_script_loc,
       }
     }
   }
@@ -24,8 +25,9 @@ class growell_patch::windows::patchday (
   if $high_prio_updates.count > 0 {
     $high_prio_updates.each | $kb | {
       growell_patch::kb { $kb:
-        ensure      => 'present',
-        maintwindow => 'Growell_patch - High Priority Patch Window',
+        ensure            => 'present',
+        maintwindow       => 'Growell_patch - High Priority Patch Window',
+        report_script_loc => $report_script_loc,
       }
     }
   }

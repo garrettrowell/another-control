@@ -11,7 +11,8 @@
 define growell_patch::kb (
   String $ensure                = 'enabled',
   String $kb                    = $name,
-  Optional[String] $maintwindow = undef
+  Optional[String] $maintwindow = undef,
+  String $report_script_loc,
 ) {
   require growell_patch::wu
 
@@ -39,6 +40,19 @@ define growell_patch::kb (
             schedule  => $maintwindow,
           }
         }
+      }
+      $install_data = stdlib::to_json(
+        {
+          'updates_installed' => {
+            $kb => Timestamp.new(),
+          }
+        }
+      )
+
+      exec { "${kb} - Installed":
+        command  => "${report_script_loc} -d '${install_data}'",
+        require  => Exec["Install ${kb}"],
+        schedule => $maintwindow,
       }
     }
     default: {
