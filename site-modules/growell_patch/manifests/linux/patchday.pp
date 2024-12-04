@@ -9,7 +9,8 @@
 class growell_patch::linux::patchday (
   Array $updates,
   Array $high_prio_updates = [],
-  Array $install_options = []
+  Array $install_options = [],
+  String $report_script_loc,
 ) {
   case $facts['package_provider'] {
     'yum': {
@@ -46,6 +47,20 @@ class growell_patch::linux::patchday (
         patch_window    => 'Growell_patch - Patch Window',
         install_options => $install_options,
         require         => Exec['Growell_patch - Clean Cache'],
+      }
+
+      $install_data = stdlib::to_json(
+        {
+          'updates_installed' => {
+            $package => Timestamp.now(),
+          }
+        }
+      )
+
+      exec { "${package} - Installed":
+        command  => "${report_script_loc} -d '${install_data}'",
+        require  => Patch_package[$package],
+        schedule => 'Growell_patch - Patch Window',
       }
     }
   }

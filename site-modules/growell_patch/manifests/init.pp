@@ -1395,11 +1395,12 @@ class growell_patch (
             }
             if ($updates_to_install.count + $high_prio_updates_to_install.count > 0) {
               class { "${module_name}::${_kern}::patchday":
-                updates                 => $updates_to_install.unique,
-                high_prio_updates       => $high_prio_updates_to_install.unique,
-                install_options         => $install_options,
-                require                 => Anchor['growell_patch::start'],
-                before                  => Anchor['growell_patch::post'],
+                updates           => $updates_to_install.unique,
+                high_prio_updates => $high_prio_updates_to_install.unique,
+                install_options   => $install_options,
+                report_script_loc => $report_script_loc,
+                require           => Anchor['growell_patch::start'],
+                before            => Anchor['growell_patch::post'],
               }
               #} -> file { "${facts['puppet_vardir']}/../../${module_name}":
               #  ensure => directory,

@@ -10,6 +10,7 @@ class growell_patch::windows::patchday (
   Array $updates,
   Array $high_prio_updates = [],
   Array $install_options = [],
+  String $report_script_loc,
 ) {
   if $updates.count > 0 {
     $updates.each | $kb | {
