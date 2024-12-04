@@ -1,1 +1,1 @@
-true
+exit 0
