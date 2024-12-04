@@ -52,7 +52,7 @@ class growell_patch::linux::patchday (
       $install_data = stdlib::to_json(
         {
           'updates_installed' => {
-            $package => Timestamp.now(),
+            $package => Timestamp.new(),
           }
         }
       )
