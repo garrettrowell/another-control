@@ -4,7 +4,7 @@ class growell_patch::wu () {
     ensure             => directory,
     recurse            => true,
     source_permissions => ignore,
-    source             => "puppet:///modules/${module_name}",
+    source             => "puppet:///modules/${module_name}/PSWindowsUpdate",
   }
   -> file { 'C:\\ProgramData\\InstalledUpdates':
     ensure             => directory,
