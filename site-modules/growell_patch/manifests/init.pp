@@ -956,6 +956,19 @@ class growell_patch (
               timeout  => 14400,
               tag      => ["${module_name}-prefetch-kb"],
             }
+            $prefetch_data = stdlib::to_json(
+              {
+                'prefetch_kbs' => {
+                  $kb => Timestamp.new(),
+                }
+              }
+            )
+
+            exec { "${kb} - Prefetch":
+              command  => "${report_script_loc} -d '${prefetch_data}'",
+              require  => Exec["prefetch ${kb}"],
+              #schedule => 'Growell_patch - Patch Window',
+            }
           }
         }
       }
