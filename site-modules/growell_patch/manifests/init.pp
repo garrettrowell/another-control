@@ -1406,40 +1406,46 @@ class growell_patch (
               #}
             }
             if ($updates_to_install.count > 0) {
-              file { 'Growell_patch - Save Patch Run Info':
-                ensure    => file,
-                path      => "${facts['puppet_vardir']}/../../${module_name}/last_run",
-                show_diff => false,
-                content   => Deferred('growell_patch::last_run', [
-                  $updates_to_install.unique,
-                  ]),
-                  schedule  => 'Growell_patch - Patch Window',
-                  require   => File["${facts['puppet_vardir']}/../../${module_name}"],
-                  before    => Anchor['growell_patch::post'],
-                  } -> notify { 'Growell_patch - Update Fact':
-                    message  => 'Patches installed, refreshing patching facts...',
-                    notify   => $patch_refresh_actions,
-                    schedule => 'Growell_patch - Patch Window',
-                    before   => Anchor['growell_patch::post'],
-                  }
+              #file { 'Growell_patch - Save Patch Run Info':
+              #  ensure    => file,
+              #  path      => "${facts['puppet_vardir']}/../../${module_name}/last_run",
+              #  show_diff => false,
+              #  content   => Deferred('growell_patch::last_run', [
+              #    $updates_to_install.unique,
+              #  ]
+              #  ),
+              #  schedule  => 'Growell_patch - Patch Window',
+              #  require   => File["${facts['puppet_vardir']}/../../${module_name}"],
+              #  before    => Anchor['growell_patch::post'],
+              #} ->
+              notify { 'Growell_patch - Update Fact':
+                message  => 'Patches installed, refreshing patching facts...',
+                notify   => $patch_refresh_actions,
+                schedule => 'Growell_patch - Patch Window',
+                before   => Anchor['growell_patch::post'],
+                require  => Class["${module_name}::${_kern}::patchday"],
+              }
             }
             if ($high_prio_updates_to_install.count > 0) {
-              file { 'Growell_patch - Save High Priority Patch Run Info':
-                ensure    => file,
-                path      => "${facts['puppet_vardir']}/../../${module_name}/high_prio_last_run",
-                show_diff => false,
-                content   => Deferred('growell_patch::high_prio_last_run', [
-                  $high_prio_updates_to_install.unique,
-                  ]),
-                  schedule  => 'Growell_patch - High Priority Patch Window',
-                  require   => File["${facts['puppet_vardir']}/../../${module_name}"],
-                  before    => Anchor['growell_patch::post'],
-                  } -> notify { 'Growell_patch - Update Fact (High Priority)':
-                    message  => 'Patches installed, refreshing patching facts...',
-                    notify   => $patch_refresh_actions,
-                    schedule => 'Growell_patch - High Priority Patch Window',
-                    before   => Anchor['growell_patch::post'],
-                  }
+              #file { 'Growell_patch - Save High Priority Patch Run Info':
+              #  ensure    => file,
+              #  path      => "${facts['puppet_vardir']}/../../${module_name}/high_prio_last_run",
+              #  show_diff => false,
+              #  content   => Deferred('growell_patch::high_prio_last_run', [
+              #    $high_prio_updates_to_install.unique,
+              #    ]),
+              #    schedule  => 'Growell_patch - High Priority Patch Window',
+              #    require   => File["${facts['puppet_vardir']}/../../${module_name}"],
+              #    before    => Anchor['growell_patch::post'],
+              #    } ->
+
+              notify { 'Growell_patch - Update Fact (High Priority)':
+                message  => 'Patches installed, refreshing patching facts...',
+                notify   => $patch_refresh_actions,
+                schedule => 'Growell_patch - High Priority Patch Window',
+                before   => Anchor['growell_patch::post'],
+                require  => Class["${module_name}::${_kern}::patchday"],
+              }
             }
             anchor { 'growell_patch::post': } #lint:ignore:anchor_resource
             if ($post_reboot and $_is_patchday) or ($high_prio_post_reboot and ($high_prio_updates_to_install.count > 0)) { #lint:ignore:140chars
