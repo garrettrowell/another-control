@@ -6,7 +6,7 @@ plan growell_patch::patch_now(
   # collect facts
   run_plan('facts', 'targets' => $targets, '_catch_errors' => true)
 
-  out::message($targets.facts)
+  out::message(get_targets($targets).facts)
 
   # patch now
   $results = apply($targets, '_description' => 'Main Patching Run', '_catch_errors' => true) {
