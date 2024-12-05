@@ -140,6 +140,13 @@ plan growell_patch::patch_now(
     out::message($result)
   }
 
+  # re-collect facts to pickup changes in patching facts
+  run_plan(
+    'facts',
+    'targets' => $targets,
+    '_catch_errors' => true
+  )
+
   # Post Checks
   # Post Patching Scripts (if they exist)
   $post_patch_resultset = apply(
