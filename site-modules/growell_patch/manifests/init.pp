@@ -1334,20 +1334,23 @@ class growell_patch (
             }
             anchor { 'growell_patch::post': } #lint:ignore:anchor_resource
             if ($post_reboot and $_is_patchday) or ($high_prio_post_reboot and ($high_prio_updates_to_install.count > 0)) { #lint:ignore:140chars
-              # Reboot after patching (in later patch_reboot stage)
-              if ($updates_to_install.count > 0) and $post_reboot {
-                class { 'growell_patch::reboot':
-                  reboot_if_needed  => $post_reboot_if_needed,
-                  schedule          => 'Growell_patch - Patch Window',
-                  stage             => "${module_name}_post_reboot",
-                  report_script_loc => $report_script_loc,
+              # Only post_reboot if this is a normal puppet run. if being ran as a plan we handle it elsewhere
+              unless $run_as_plan {
+                # Reboot after patching (in later patch_reboot stage)
+                if ($updates_to_install.count > 0) and $post_reboot {
+                  class { 'growell_patch::reboot':
+                    reboot_if_needed  => $post_reboot_if_needed,
+                    schedule          => 'Growell_patch - Patch Window',
+                    stage             => "${module_name}_post_reboot",
+                    report_script_loc => $report_script_loc,
+                  }
                 }
-              }
-              if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
-                class { 'growell_patch::high_prio_reboot':
-                  reboot_if_needed => $high_prio_post_reboot_if_needed,
-                  schedule         => 'Growell_patch - High Priority Patch Window',
-                  stage            => "${module_name}_post_reboot",
+                if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
+                  class { 'growell_patch::high_prio_reboot':
+                    reboot_if_needed => $high_prio_post_reboot_if_needed,
+                    schedule         => 'Growell_patch - High Priority Patch Window',
+                    stage            => "${module_name}_post_reboot",
+                  }
                 }
               }
               # Perform post-patching Execs
