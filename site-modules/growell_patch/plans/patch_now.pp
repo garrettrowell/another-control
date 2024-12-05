@@ -114,6 +114,7 @@ plan growell_patch::patch_now(
     class { 'growell_patch::reboot':
       reboot_if_needed  => $_post_reboot,
       reboot_delay      => 0,
+      run_as_plan       => true,
       report_script_loc => $report_script_loc,
     }
   }
