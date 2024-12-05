@@ -47,10 +47,11 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         }
       })
     elsif patch_group.include? 'always'
-      bool_patch_day = true
-      active_pg      = 'always'
-      post_reboot    = 'ifneeded'
-      pre_reboot     = 'ifneeded'
+      bool_patch_day  = true
+      active_pg       = 'always'
+      post_reboot     = 'ifneeded'
+      pre_reboot      = 'ifneeded'
+      in_patch_window = true
       call_function('create_resources', 'schedule', {
         'Growell_patch - Patch Window' => {
           'range'  => '00:00 - 23:59',
