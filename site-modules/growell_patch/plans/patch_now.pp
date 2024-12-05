@@ -147,6 +147,12 @@ plan growell_patch::patch_now(
     '_catch_errors' => true
   )
 
+  # DEBUG
+  # print out facts for each target
+  get_targets($targets).each |$t| {
+    out::message($t.facts)
+  }
+
   # Post Checks
   # Post Patching Scripts (if they exist)
   $post_patch_resultset = apply(
