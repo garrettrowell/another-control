@@ -6,5 +6,5 @@ growell_patch::post_check_script: 'growell_nonprod/windows/true.ps1'
 growell_patch::pin_blocklist: false
 growell_patch::windows_prefetch_before: '02:00'
 growell_patch::blocklist_mode: 'strict'
-growell_patch::blocklist:
-  - 'KB2267602'
+#growell_patch::blocklist:
+#  - 'KB2267602'

@@ -280,7 +280,6 @@ class growell_patch (
   $_kern = $facts['kernel'].downcase
 
   # Create a reporting script that we can call via Exec resources to keep track of whats happened during the patching process
-  #  $report_script_loc = "${facts['puppet_vardir']}/../../${module_name}/reporting.rb"
   case $_kern {
     'linux': {
       $report_script_loc = "/opt/puppetlabs/${module_name}/reporting.rb"
@@ -524,8 +523,6 @@ class growell_patch (
             'apt': {
               apt::mark { $_to_unpin:
                 setting => 'unhold',
-                #before  => Class["${module_name}::${_kern}::patchday"],
-                #                before  => Class['patching_as_code'],
                 notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
               }
             }
@@ -536,8 +533,6 @@ class growell_patch (
                   version => '*',
                   release => '*',
                   epoch   => 0,
-                  #before  => Class["${module_name}::${_kern}::patchday"],
-                  #    before  => Class['patching_as_code'],
                   notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
                 }
               }
@@ -547,8 +542,6 @@ class growell_patch (
                 exec { "${module_name}-removelock-${pin}":
                   command => "zypper removelock ${pin}",
                   path    => $_cmd_path,
-                  #before  => Class["${module_name}::${_kern}::patchday"],
-                  #before  => Class['patching_as_code'],
                   notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
                 }
               }
@@ -566,8 +559,6 @@ class growell_patch (
             'apt': {
               apt::mark { $_blocklist:
                 setting => 'hold',
-                #before  => Class["${module_name}::${_kern}::patchday"],
-                # before  => Class['patching_as_code'],
                 notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
               }
             }
@@ -577,8 +568,6 @@ class growell_patch (
                 version => '*',
                 release => '*',
                 epoch   => 0,
-                #before  => Class["${module_name}::${_kern}::patchday"],
-                #before  => Class['patching_as_code'],
                 notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
               }
             }
@@ -587,8 +576,6 @@ class growell_patch (
                 exec { "${module_name}-addlock-${pin}":
                   command => "zypper addlock ${pin}",
                   path    => $_cmd_path,
-                  #before  => Class["${module_name}::${_kern}::patchday"],
-                  # before  => Class['patching_as_code'],
                   notify  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
                 }
               }
@@ -769,15 +756,6 @@ class growell_patch (
 
             }
           }
-          #exec { 'pre_check_script':
-          #  command  => $_pre_check_script_path,
-          #  path     => $_cmd_path,
-          #  before   => Class["${module_name}::${facts['kernel'].downcase}::patchday"],
-          #  schedule => 'Growell_patch - Patch Window',
-          #  tag      => ['growell_patch_pre_patching'],
-          #  require  => File['pre_check_script'],
-          #  #before  => Class['patching_as_code'],
-          #}
         }
       }
 
@@ -800,7 +778,6 @@ class growell_patch (
             'require' => [File['post_check_script'], Anchor['growell_patch::post']],
             'tag'     => ['growell_patch_post_patching', "${module_name}_post_check"],
           }
-          #if ($updates_to_install.count > 0) {
           if $_in_patch_window {
             class { "${module_name}::post_check":
               priority          => 'normal',
@@ -809,12 +786,6 @@ class growell_patch (
               report_script_loc => $report_script_loc,
             }
           }
-          #            exec { 'post_check_script':
-          #              *        => $_com_post_check_script,
-          #              schedule => 'Growell_patch - Patch Window',
-          #            }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
-          #}
-          #if ($high_prio_updates_to_install.count > 0) {
           if $_in_high_prio_patch_window {
             class { "${module_name}::post_check":
               priority          => 'high',
@@ -823,19 +794,6 @@ class growell_patch (
               report_script_loc => $report_script_loc,
             }
           }
-
-          #            exec { 'post_check_script (High Priority)':
-          #              *        => $_com_post_check_script,
-          #              schedule => 'Growell_patch - High Priority Patch Window',
-          #            }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
-          #}
-          #          exec { 'post_check_script':
-          #            command  => $_post_check_script_path,
-          #            path     => $_cmd_path,
-          #            schedule => 'Growell_patch - Patch Window',
-          #            require  => [File['post_check_script'], Anchor['growell_patch::post']],
-          #            tag      => ['growell_patch_post_patching']
-          #          } -> Exec <| tag == 'growell_patch_pre_reboot' |>
         }
       }
     }
@@ -866,7 +824,6 @@ class growell_patch (
           data   => $wsus_url,
           tag    => ["${module_name}-WUServer", "${module_name}_reg"],
           before => Class["${module_name}::${_kern}::patchday"],
-          #    before => Class['patching_as_code'],
           notify => Service['wuauserv'],
         }
 
@@ -876,7 +833,6 @@ class growell_patch (
             data   => 1,
             tag    => ["${module_name}-UseWUServer", "${module_name}_reg"],
             before => Class["${module_name}::${_kern}::patchday"],
-            #  before => Class['patching_as_code'],
             notify => Service['wuauserv'],
           }
         } else {
@@ -886,7 +842,6 @@ class growell_patch (
             data   => 1,
             tag    => ["${module_name}-UseWUServer", "${module_name}_reg"],
             before => Class["${module_name}::${_kern}::patchday"],
-            #before => Class['patching_as_code'],
             notify => Service['wuauserv'],
           }
         }
@@ -922,7 +877,6 @@ class growell_patch (
                 unless   => epp("${module_name}/kb_is_unhidden.ps1.epp", { 'kb' => $kb }),
                 provider => 'powershell',
                 before   => Class["${module_name}::${_kern}::patchday"],
-                #    before   => Class['patching_as_code'],
                 notify   => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
               }
             }
@@ -938,7 +892,6 @@ class growell_patch (
               unless   => epp("${module_name}/kb_is_hidden.ps1.epp", { 'kb' => $kb }),
               provider => 'powershell',
               before   => Class["${module_name}::${_kern}::patchday"],
-              #before   => Class['patching_as_code'],
               notify   => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
             }
           }
@@ -970,7 +923,6 @@ class growell_patch (
             exec { "${kb} - Prefetch":
               command  => "${report_script_loc} -d '${prefetch_data}'",
               require  => Exec["prefetch ${kb}"],
-              #schedule => 'Growell_patch - Patch Window',
             }
           }
         }
@@ -1143,12 +1095,6 @@ class growell_patch (
               }
             }
           }
-          #          exec { 'pre_check_script':
-          #            command  => $_pre_check_script_path,
-          #            provider => powershell,
-          #            require  => File['pre_check_script'],
-          #            #before   => Class['patching_as_code'],
-          #          }
         }
       }
 
@@ -1178,10 +1124,6 @@ class growell_patch (
               stage             => "${module_name}_after_post_reboot",
               report_script_loc => $report_script_loc,
             }
-            # exec { 'post_check_script':
-            #   *        => $_com_post_check_script,
-            #   schedule => 'Growell_patch - Patch Window',
-            #   }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
           }
           if $_in_high_prio_patch_window {
             class { "${module_name}::post_check":
@@ -1190,18 +1132,7 @@ class growell_patch (
               stage             => "${module_name}_after_post_reboot",
               report_script_loc => $report_script_loc,
             }
-
-            #exec { 'post_check_script (High Priority)':
-            #  *        => $_com_post_check_script,
-            #  schedule => 'Growell_patch - High Priority Patch Window',
-            #  }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
           }
-          #exec { 'post_check_script':
-          #  command  => $_post_check_script_path,
-          #  provider => powershell,
-          #  require  => File['post_check_script'],
-          #  #require => [File['post_check_script'], Class['patching_as_code']],
-          #}
         }
       }
     }
@@ -1212,7 +1143,6 @@ class growell_patch (
   file {
     default:
       require => File[$_script_base],
-      #before  => Anchor["${module_name}::start"],
       ;
     'pre_patch_script':
       path => $_pre_patch_script_path,
@@ -1274,21 +1204,12 @@ class growell_patch (
     'ifneeded': { true }
     default: { false }
   }
-  #  $pre_reboot_if_needed = case $_pre_reboot {
-  #    'ifneeded': { true }
-  #    default: { false }
-  #  }
   $high_prio_pre_reboot = case $_high_prio_pre_reboot {
     'always': { true }
     'never': { false }
     'ifneeded': { true }
     default: { false }
   }
-  #$high_prio_pre_reboot_if_needed = case $_high_prio_pre_reboot {
-  #  'ifneeded': { true }
-  #  default: { false }
-  #}
-  # Post reboot
   $post_reboot = case $_post_reboot {
     'always': { true }
     'never': { false }
@@ -1319,17 +1240,12 @@ class growell_patch (
           # Reboot the node first if a reboot is already pending
           case $_kern {
             /(windows|linux)/: {
-              #reboot_if_pending { 'Growell_patch':
-              #  patch_window => 'Growell_patch - Patch Window',
-              #  os           => $0,
-              #}
               class { 'growell_patch::pre_reboot':
                 priority          => 'normal',
                 reboot_type       => $_pre_reboot,
                 schedule          => 'Growell_patch - Patch Window',
                 before            => Anchor['growell_patch::start'],
                 report_script_loc => $report_script_loc,
-                #    stage        => "${module_name}_pre_reboot",
               }
             }
             default: {
@@ -1342,10 +1258,6 @@ class growell_patch (
           # Reboot the node first if a reboot is already pending
           case $_kern {
             /(windows|linux)/: {
-              #  reboot_if_pending { 'Growell_patch High Priority':
-              #    patch_window => 'Growell_patch - High Priority Patch Window',
-              #    os           => $0,
-              #  }
               class { 'growell_patch::pre_reboot':
                 priority          => 'high',
                 reboot_type       => $_high_prio_pre_reboot,
@@ -1376,15 +1288,6 @@ class growell_patch (
                   report_script_loc  => $report_script_loc,
                 }
               }
-
-              #$_pre_patch_commands.each | $cmd, $cmd_opts | {
-              #  exec { "Growell_patch - Before patching - ${cmd}":
-              #    *        => delete($cmd_opts, ['before', 'schedule', 'tag']),
-              #    before   => Class["${module_name}::${_kern}::patchday"],
-              #    schedule => 'Growell_patch - Patch Window',
-              #    tag      => ['growell_patch_pre_patching'],
-              #  }
-              #}
             }
             if ($high_prio_updates_to_install.count > 0) {
               unless $_pre_patch_commands.empty {
@@ -1394,15 +1297,6 @@ class growell_patch (
                   report_script_loc  => $report_script_loc,
                 }
               }
-
-              #$_pre_patch_commands.each | $cmd, $cmd_opts | {
-              #  exec { "Growell_patch - Before patching (High Priority) - ${cmd}":
-              #    *        => delete($cmd_opts, ['before', 'schedule', 'tag']),
-              #    before   => Class["${module_name}::${_kern}::patchday"],
-              #    schedule => 'Growell_patch - High Priority Patch Window',
-              #    tag      => ['growell_patch_pre_patching'],
-              #  }
-              #}
             }
             # Perform main patching run
             $patch_refresh_actions = $fact_upload ? {
@@ -1418,23 +1312,8 @@ class growell_patch (
                 require           => Anchor['growell_patch::start'],
                 before            => Anchor['growell_patch::post'],
               }
-              #} -> file { "${facts['puppet_vardir']}/../../${module_name}":
-              #  ensure => directory,
-              #}
             }
             if ($updates_to_install.count > 0) {
-              #file { 'Growell_patch - Save Patch Run Info':
-              #  ensure    => file,
-              #  path      => "${facts['puppet_vardir']}/../../${module_name}/last_run",
-              #  show_diff => false,
-              #  content   => Deferred('growell_patch::last_run', [
-              #    $updates_to_install.unique,
-              #  ]
-              #  ),
-              #  schedule  => 'Growell_patch - Patch Window',
-              #  require   => File["${facts['puppet_vardir']}/../../${module_name}"],
-              #  before    => Anchor['growell_patch::post'],
-              #} ->
               notify { 'Growell_patch - Update Fact':
                 message  => 'Patches installed, refreshing patching facts...',
                 notify   => $patch_refresh_actions,
@@ -1444,18 +1323,6 @@ class growell_patch (
               }
             }
             if ($high_prio_updates_to_install.count > 0) {
-              #file { 'Growell_patch - Save High Priority Patch Run Info':
-              #  ensure    => file,
-              #  path      => "${facts['puppet_vardir']}/../../${module_name}/high_prio_last_run",
-              #  show_diff => false,
-              #  content   => Deferred('growell_patch::high_prio_last_run', [
-              #    $high_prio_updates_to_install.unique,
-              #    ]),
-              #    schedule  => 'Growell_patch - High Priority Patch Window',
-              #    require   => File["${facts['puppet_vardir']}/../../${module_name}"],
-              #    before    => Anchor['growell_patch::post'],
-              #    } ->
-
               notify { 'Growell_patch - Update Fact (High Priority)':
                 message  => 'Patches installed, refreshing patching facts...',
                 notify   => $patch_refresh_actions,
@@ -1483,7 +1350,6 @@ class growell_patch (
                 }
               }
               # Perform post-patching Execs
-              #              if ($updates_to_install.count > 0) and $post_reboot {
               if ($_in_patch_window and $post_reboot) {
                 unless $_post_patch_commands.empty {
                   class { "${module_name}::post_patch_script":
@@ -1493,17 +1359,7 @@ class growell_patch (
                     report_script_loc   => $report_script_loc,
                   }
                 }
-                #$_post_patch_commands.each | $cmd, $cmd_opts | {
-                ##                  Exec <| tag == "${module_name}_post_check" |> ->
-                #  exec { "Growell_patch - After patching - ${cmd}":
-                #    *        => delete($cmd_opts, ['require', 'before', 'schedule', 'tag']),
-                #    require  => Anchor['growell_patch::post'],
-                #    schedule => 'Growell_patch - Patch Window',
-                #    tag      => ['growell_patch_post_patching'],
-                #  }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
-                #}
               }
-              #              if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
               if ($_in_high_prio_patch_window and $high_prio_post_reboot) {
                 unless $_post_patch_commands.empty {
                   class { "${module_name}::post_patch_script":
@@ -1513,15 +1369,6 @@ class growell_patch (
                     report_script_loc   => $report_script_loc,
                   }
                 }
-                #$_post_patch_commands.each | $cmd, $cmd_opts | {
-                ##  Exec <| tag == "${module_name}_post_check" |> ->
-                #  exec { "Growell_patch - After patching (High Priority) - ${cmd}":
-                #    *        => delete($cmd_opts, ['require', 'before', 'schedule', 'tag']),
-                #    require  => Anchor['growell_patch::post'],
-                #    schedule => 'Growell_patch - High Priority Patch Window',
-                #    tag      => ['growell_patch_post_patching'],
-                #  }# -> Exec <| tag == 'growell_patch_pre_reboot' |>
-                #}
               }
               # Define pre-reboot Execs
               case $facts['kernel'].downcase() {
@@ -1621,22 +1468,4 @@ class growell_patch (
       }
     }
   }
-
-  #  # Finally we have the information to pass to 'patching_as_code'
-  #  class { 'patching_as_code':
-  #    classify_pe_patch         => true,
-  #    enable_patching           => $enable_patching,
-  #    security_only             => $security_only,
-  #    high_priority_only        => $high_priority_only,
-  #    patch_group               => $_patch_group,
-  #    pre_patch_commands        => $_pre_patch_commands,
-  #    post_patch_commands       => $_post_patch_commands,
-  #    pre_reboot_commands       => $_pre_reboot_commands,
-  #    install_options           => $install_options,
-  #    allowlist                 => $allowlist,
-  #    blocklist                 => $_blocklist,
-  #    patch_schedule            => $_patch_schedule,
-  #    high_priority_patch_group => $high_priority_patch_group,
-  #    high_priority_list        => $high_priority_list,
-  #  }
 }
