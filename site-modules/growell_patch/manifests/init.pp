@@ -851,6 +851,9 @@ class growell_patch (
         mode   => '0770',
       }
 
+      # make sure the PSWindowsUpdate powershell module gets installed before patchday
+      include growell_patch::wu
+
       # Make sure wsus server is used assuming wsus_url is set
       #
       # https://github.com/vFense/vFenseAgent-win/wiki/Registry-keys-for-configuring-Automatic-Updates-&-WSUS
