@@ -123,7 +123,7 @@ plan growell_patch::patch_now(
     out::message($result.report)
   }
   $pre_reboot_wait_resultset.each |$result| {
-    out::message($result.report)
+    out::message($result.results)
   }
   $patch_resultset.each |$result| {
     out::message($result.report)
@@ -132,7 +132,7 @@ plan growell_patch::patch_now(
     out::message($result.report)
   }
   $post_reboot_wait_resultset.each |$result| {
-    out::message($result.report)
+    out::message($result.results)
   }
   $post_patch_resultset.each |$result| {
     out::message($result.report)
