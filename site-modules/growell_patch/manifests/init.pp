@@ -779,7 +779,7 @@ class growell_patch (
             'require' => [File['post_check_script'], Anchor['growell_patch::post']],
             'tag'     => ['growell_patch_post_patching', "${module_name}_post_check"],
           }
-          if ($run_as_plan and $facts['growell_patch_report'].dig('post_reboot')) {
+          if ($run_as_plan and $facts['growell_patch_report'].dig('post_reboot') != undef) {
             if $_in_patch_window {
               class { "${module_name}::post_check":
                 priority          => 'normal',
@@ -1137,7 +1137,7 @@ class growell_patch (
             'require'  => [File['post_check_script'], Anchor['growell_patch::post']],
             'tag'      => ['growell_patch_post_patching', "${module_name}_post_check"],
           }
-          if ($run_as_plan and $facts['growell_patch_report'].dig('post_reboot')) {
+          if ($run_as_plan and $facts['growell_patch_report'].dig('post_reboot') != undef) {
             if $_in_patch_window {
               class { "${module_name}::post_check":
                 priority          => 'normal',
@@ -1392,7 +1392,7 @@ class growell_patch (
                 }
               }
               # Perform post-patching Execs
-              if ($run_as_plan and $facts['growell_patch_report'].dig('post_reboot')) {
+              if ($run_as_plan and $facts['growell_patch_report'].dig('post_reboot') != undef) {
                 # If running as a plan we need to check that the post_reboot actually happened
                 if ($_in_patch_window and $post_reboot) {
                   unless $_post_patch_commands.empty {
