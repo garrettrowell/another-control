@@ -11,8 +11,13 @@ class growell_patch::reboot (
   Boolean $reboot_if_needed = true,
   Integer $reboot_delay = 120,
   String $report_script_loc,
+  Boolean $run_as_plan = false,
 ) {
   $reboot_delay_min = round($reboot_delay / 60)
+  $_schedule = $run_as_plan ? {
+    false => 'Growell_patch - Patch Window',
+    true  => undef,
+  }
   if $reboot_if_needed {
     # Define an Exec to perform the reboot shortly after the Puppet run completes
     case $facts['kernel'].downcase() {
@@ -35,7 +40,7 @@ class growell_patch::reboot (
       onlyif    => $reboot_logic_onlyif,
       provider  => $reboot_logic_provider,
       logoutput => true,
-      schedule  => 'Growell_patch - Patch Window',
+      schedule  => $_schedule,
     }
 
     $data = stdlib::to_json(
@@ -46,14 +51,14 @@ class growell_patch::reboot (
     exec { 'Growell_patch - Performing OS reboot':
       command  => "${report_script_loc} -d '${data}'",
       notify   => Exec['Growell_patch - Patch Reboot'],
-      schedule => 'Growell_patch - Patch Window',
+      schedule => $_schedule,
     }
 
   } else {
     # Reboot as part of this Puppet run
     reboot { 'Growell_patch - Patch Reboot':
       apply    => 'immediately',
-      schedule => 'Growell_patch - Patch Window',
+      schedule => $_schedule,
       timeout  => $reboot_delay,
     }
 
@@ -65,13 +70,7 @@ class growell_patch::reboot (
     exec { 'Growell_patch - Performing OS reboot':
       command  => "${report_script_loc} -d '${data}'",
       notify   => Reboot['Growell_patch - Patch Reboot'],
-      schedule => 'Growell_patch - Patch Window',
+      schedule => $_schedule,
     }
-
-    #notify { 'Growell_patch - Performing OS reboot':
-    #  notify   => Reboot['Growell_patch - Patch Reboot'],
-    #  schedule => 'Growell_patch - Patch Window',
-    #}
   }
 }
-
