@@ -44,6 +44,14 @@ plan growell_patch::patch_now(
     }
   }
 
+  # basic output
+  $pre_reboot_resultset.each |$result| {
+    out::message($result.report)
+  }
+
+  # wait 5 sec so the reboot hopefully takes hold
+  ctrl::sleep(5)
+
   # using the reboot plan would avoid having to do this, and likely do a better job at handling
   $pre_reboot_wait_resultset = wait_until_available(
     $targets,
@@ -51,6 +59,11 @@ plan growell_patch::patch_now(
     retry_interval => 1,
     _catch_errors  => true,
   )
+
+  # basic output
+  $pre_reboot_wait_resultset.each |$result| {
+    out::message($result)
+  }
 
   # Pre Checks
   # Pre Patching Scripts (if they exist)
@@ -64,6 +77,11 @@ plan growell_patch::patch_now(
       patch_group => 'always',
       run_as_plan => true,
     }
+  }
+
+  # basic output
+  $patch_resultset.each |$result| {
+    out::message($result.report)
   }
 
   # Post Reboot (yes, no, if needed)
@@ -99,6 +117,14 @@ plan growell_patch::patch_now(
     }
   }
 
+  # basic output
+  $post_reboot_resultset.each |$result| {
+    out::message($result.report)
+  }
+
+  # wait 5 sec so the reboot hopefully takes hold
+  ctrl::sleep(5)
+
   # using the reboot plan would avoid having to do this, and likely do a better job at handling
   $post_reboot_wait_resultset = wait_until_available(
     $targets,
@@ -106,6 +132,11 @@ plan growell_patch::patch_now(
     retry_interval => 1,
     _catch_errors  => true,
   )
+
+  # basic output
+  $post_reboot_wait_resultset.each |$result| {
+    out::message($result)
+  }
 
   # Post Checks
   # Post Patching Scripts (if they exist)
@@ -121,21 +152,6 @@ plan growell_patch::patch_now(
   }
 
   # basic output
-  $pre_reboot_resultset.each |$result| {
-    out::message($result.report)
-  }
-  $pre_reboot_wait_resultset.each |$result| {
-    out::message($result)
-  }
-  $patch_resultset.each |$result| {
-    out::message($result.report)
-  }
-  $post_reboot_resultset.each |$result| {
-    out::message($result.report)
-  }
-  $post_reboot_wait_resultset.each |$result| {
-    out::message($result)
-  }
   $post_patch_resultset.each |$result| {
     out::message($result.report)
   }
