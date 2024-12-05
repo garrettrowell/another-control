@@ -779,20 +779,39 @@ class growell_patch (
             'require' => [File['post_check_script'], Anchor['growell_patch::post']],
             'tag'     => ['growell_patch_post_patching', "${module_name}_post_check"],
           }
-          if $_in_patch_window {
-            class { "${module_name}::post_check":
-              priority          => 'normal',
-              exec_args         => $_com_post_check_script,
-              stage             => "${module_name}_after_post_reboot",
-              report_script_loc => $report_script_loc,
+          if ($run_as_plan and $facts['growell_patch_report'].dig('post_reboot')) {
+            if $_in_patch_window {
+              class { "${module_name}::post_check":
+                priority          => 'normal',
+                exec_args         => $_com_post_check_script,
+                stage             => "${module_name}_after_post_reboot",
+                report_script_loc => $report_script_loc,
+              }
             }
-          }
-          if $_in_high_prio_patch_window {
-            class { "${module_name}::post_check":
-              priority          => 'high',
-              exec_args         => $_com_post_check_script,
-              stage             => "${module_name}_after_post_reboot",
-              report_script_loc => $report_script_loc,
+            if $_in_high_prio_patch_window {
+              class { "${module_name}::post_check":
+                priority          => 'high',
+                exec_args         => $_com_post_check_script,
+                stage             => "${module_name}_after_post_reboot",
+                report_script_loc => $report_script_loc,
+              }
+            }
+          } else {
+            if $_in_patch_window {
+              class { "${module_name}::post_check":
+                priority          => 'normal',
+                exec_args         => $_com_post_check_script,
+                stage             => "${module_name}_after_post_reboot",
+                report_script_loc => $report_script_loc,
+              }
+            }
+            if $_in_high_prio_patch_window {
+              class { "${module_name}::post_check":
+                priority          => 'high',
+                exec_args         => $_com_post_check_script,
+                stage             => "${module_name}_after_post_reboot",
+                report_script_loc => $report_script_loc,
+              }
             }
           }
         }
@@ -1118,20 +1137,39 @@ class growell_patch (
             'require'  => [File['post_check_script'], Anchor['growell_patch::post']],
             'tag'      => ['growell_patch_post_patching', "${module_name}_post_check"],
           }
-          if $_in_patch_window {
-            class { "${module_name}::post_check":
-              priority          => 'normal',
-              exec_args         => $_com_post_check_script,
-              stage             => "${module_name}_after_post_reboot",
-              report_script_loc => $report_script_loc,
+          if ($run_as_plan and $facts['growell_patch_report'].dig('post_reboot')) {
+            if $_in_patch_window {
+              class { "${module_name}::post_check":
+                priority          => 'normal',
+                exec_args         => $_com_post_check_script,
+                stage             => "${module_name}_after_post_reboot",
+                report_script_loc => $report_script_loc,
+              }
             }
-          }
-          if $_in_high_prio_patch_window {
-            class { "${module_name}::post_check":
-              priority          => 'normal',
-              exec_args         => $_com_post_check_script,
-              stage             => "${module_name}_after_post_reboot",
-              report_script_loc => $report_script_loc,
+            if $_in_high_prio_patch_window {
+              class { "${module_name}::post_check":
+                priority          => 'normal',
+                exec_args         => $_com_post_check_script,
+                stage             => "${module_name}_after_post_reboot",
+                report_script_loc => $report_script_loc,
+              }
+            }
+          } else {
+            if $_in_patch_window {
+              class { "${module_name}::post_check":
+                priority          => 'normal',
+                exec_args         => $_com_post_check_script,
+                stage             => "${module_name}_after_post_reboot",
+                report_script_loc => $report_script_loc,
+              }
+            }
+            if $_in_high_prio_patch_window {
+              class { "${module_name}::post_check":
+                priority          => 'normal',
+                exec_args         => $_com_post_check_script,
+                stage             => "${module_name}_after_post_reboot",
+                report_script_loc => $report_script_loc,
+              }
             }
           }
         }
@@ -1354,23 +1392,48 @@ class growell_patch (
                 }
               }
               # Perform post-patching Execs
-              if ($_in_patch_window and $post_reboot) {
-                unless $_post_patch_commands.empty {
-                  class { "${module_name}::post_patch_script":
-                    post_patch_commands => $_post_patch_commands,
-                    priority            => 'normal',
-                    stage               => "${module_name}_after_post_reboot",
-                    report_script_loc   => $report_script_loc,
+              if ($run_as_plan and $facts['growell_patch_report'].dig('post_reboot')) {
+                # If running as a plan we need to check that the post_reboot actually happened
+                if ($_in_patch_window and $post_reboot) {
+                  unless $_post_patch_commands.empty {
+                    class { "${module_name}::post_patch_script":
+                      post_patch_commands => $_post_patch_commands,
+                      priority            => 'normal',
+                      stage               => "${module_name}_after_post_reboot",
+                      report_script_loc   => $report_script_loc,
+                    }
                   }
                 }
-              }
-              if ($_in_high_prio_patch_window and $high_prio_post_reboot) {
-                unless $_post_patch_commands.empty {
-                  class { "${module_name}::post_patch_script":
-                    post_patch_commands => $_post_patch_commands,
-                    priority            => 'high',
-                    stage               => "${module_name}_after_post_reboot",
-                    report_script_loc   => $report_script_loc,
+                if ($_in_high_prio_patch_window and $high_prio_post_reboot) {
+                  unless $_post_patch_commands.empty {
+                    class { "${module_name}::post_patch_script":
+                      post_patch_commands => $_post_patch_commands,
+                      priority            => 'high',
+                      stage               => "${module_name}_after_post_reboot",
+                      report_script_loc   => $report_script_loc,
+                    }
+                  }
+                }
+              } else {
+                # This is a normal puppet run
+                if ($_in_patch_window and $post_reboot) {
+                  unless $_post_patch_commands.empty {
+                    class { "${module_name}::post_patch_script":
+                      post_patch_commands => $_post_patch_commands,
+                      priority            => 'normal',
+                      stage               => "${module_name}_after_post_reboot",
+                      report_script_loc   => $report_script_loc,
+                    }
+                  }
+                }
+                if ($_in_high_prio_patch_window and $high_prio_post_reboot) {
+                  unless $_post_patch_commands.empty {
+                    class { "${module_name}::post_patch_script":
+                      post_patch_commands => $_post_patch_commands,
+                      priority            => 'high',
+                      stage               => "${module_name}_after_post_reboot",
+                      report_script_loc   => $report_script_loc,
+                    }
                   }
                 }
               }
