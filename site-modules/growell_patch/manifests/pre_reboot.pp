@@ -13,18 +13,25 @@ class growell_patch::pre_reboot (
   #  Boolean $reboot_if_needed = true,
   Integer $reboot_delay = 60,
   String $report_script_loc,
+  Boolean $run_as_plan = false,
 ) {
   $reboot_delay_min = round($reboot_delay / 60)
   case $priority {
     'normal': {
       $_reboot_title = 'Growell_patch - Pre Patch Reboot'
-      $_schedule = 'Growell_patch - Patch Window'
+      $_schedule = $run_as_plan ?{
+        false => 'Growell_patch - Patch Window',
+        true  => undef,
+      }
       $_notify_title = 'Growell_patch - Performing Pre Patch OS reboot'
       $_reboot_if_pending_title = 'Growell_patch'
     }
     'high': {
       $_reboot_title = 'Growell_patch - High Priority Pre Patch Reboot'
-      $_schedule = 'Growell_patch - High Priority Patch Window'
+      $_schedule = $run_as_plan ? {
+        false => 'Growell_patch - High Priority Patch Window',
+        true  => undef,
+      }
       $_notify_title = 'Growell_patch - Performing High Priority Pre Patch OS reboot'
       $_reboot_if_pending_title = 'Growell_patch High Priority'
     }

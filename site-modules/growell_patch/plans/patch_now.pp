@@ -38,6 +38,7 @@ plan growell_patch::patch_now(
     class { 'growell_patch::pre_reboot':
       reboot_type       => $pre_reboot,
       priority          => 'normal',
+      run_as_plan       => true,
       report_script_loc => $report_script_loc,
     }
   }
