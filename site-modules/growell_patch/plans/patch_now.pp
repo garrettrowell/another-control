@@ -27,16 +27,17 @@ plan growell_patch::patch_now(
     # there's gotta be a better way than copy/pasting this from init.pp
     case $facts['kernel'].downcase {
       'linux': {
-        $report_script_loc = "/opt/puppetlabs/${module_name}/reporting.rb"
+        $report_script_loc = "/opt/puppetlabs/growell_patch/reporting.rb"
         $report_script_file = $report_script_loc
       }
       'windows': {
-        $report_script_file = "C:/ProgramData/PuppetLabs/${module_name}/reporting.rb"
+        $report_script_file = "C:/ProgramData/PuppetLabs/growell_patch/reporting.rb"
         $report_script_loc = "\"C:/Program Files/Puppet Labs/Puppet/puppet/bin/ruby.exe\" ${report_script_file}"
       }
     }
     class { 'growell_patch::pre_reboot':
       reboot_type       => $pre_reboot,
+      reboot_delay      => 0,
       priority          => 'normal',
       run_as_plan       => true,
       report_script_loc => $report_script_loc,
@@ -76,11 +77,11 @@ plan growell_patch::patch_now(
     # there's gotta be a better way than copy/pasting this from init.pp
     case $facts['kernel'].downcase {
       'linux': {
-        $report_script_loc = "/opt/puppetlabs/${module_name}/reporting.rb"
+        $report_script_loc = "/opt/puppetlabs/growell_patch/reporting.rb"
         $report_script_file = $report_script_loc
       }
       'windows': {
-        $report_script_file = "C:/ProgramData/PuppetLabs/${module_name}/reporting.rb"
+        $report_script_file = "C:/ProgramData/PuppetLabs/growell_patch/reporting.rb"
         $report_script_loc = "\"C:/Program Files/Puppet Labs/Puppet/puppet/bin/ruby.exe\" ${report_script_file}"
       }
     }
