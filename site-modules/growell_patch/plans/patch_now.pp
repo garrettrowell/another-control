@@ -261,5 +261,18 @@ plan growell_patch::patch_now(
     out::message($result.report)
   }
 
+  # Determine for which nodes the pre_patching script (if it exists) ran successfully
+  # This exec only fires if the script was successful
+  $post_patching_script_success = $post_patch_resultset.ok_set.filter_set |$vals| {
+    'Exec[Growell_patch - Post Patching Script - success]' in $vals.to_data['value']['report']['resource_statuses'].keys
+  }
+  # Determine for which nodes the pre_check ran successfully
+  # This exec only fires if the pre_check was successful
+  $post_check_success = $post_patch_resultset.ok_set.filter_set |$vals| {
+    'Exec[Growell_patch - Post Check - success]' in $vals.to_data['value']['report']['resource_statuses'].keys
+  }
+
+  out::message("post_patch_script: ${post_patching_script_success}")
+  out::message("post_check: ${post_check_success}")
 
 }
