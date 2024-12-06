@@ -275,4 +275,17 @@ plan growell_patch::patch_now(
   out::message("post_patch_script: ${post_patching_script_success}")
   out::message("post_check: ${post_check_success}")
 
+  # Actually output results
+  return({
+    'pre_reboot_success'           => $patching_ready,
+    'pre_patching_script_success'  => $pre_patching_script_success,
+    'pre_check_success'            => $pre_check_success,
+    'patch_install_success'        => $patch_status['patch_success'],
+    'patch_install_failed'         => $patch_status['patch_failed'],
+    'patch_nothing_to_install'     => $patch_status['nothing_to_install'],
+    'post_reboot_success'          => $post_patch_ready,
+    'post_patching_script_success' => $post_patching_script_success,
+    'post_check_success'           => $post_check_success,
+  })
+
 }
