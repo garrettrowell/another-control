@@ -110,7 +110,7 @@ plan growell_patch::patch_now(
     'Exec[Growell_patch - Pre Check - success]' in $vals.to_data['value']['report']['resource_statuses'].keys
   }
   # Determine if all updates installed correctly, or if any failed, or if there simply were none
-  $patch_status = $patch_resultset.results.to_data.reduce({'patch_success' => [], 'patch_failed' => [], 'nothing_to_patch' => []}) |$memo, $node| {
+  $patch_status = $patch_resultset.to_data.reduce({'patch_success' => [], 'patch_failed' => [], 'nothing_to_patch' => []}) |$memo, $node| {
     $resources = $node['value']['report']['resource_statuses']
     $failed_packages = $resources.filter |$k, $v| {
       ($v['resource_type'] == 'Package') and ('patchday' in $v['tags']) and ($v['failed'] == 'true')
