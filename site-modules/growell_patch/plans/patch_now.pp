@@ -100,16 +100,49 @@ plan growell_patch::patch_now(
   }
 
   # Determine for which nodes the pre_patching script (if it exists) ran successfully
+  # This exec only fires if the script was successful
   $pre_patching_script_success = $patch_resultset.ok_set.filter_set |$vals| {
     'Exec[Growell_patch - Pre Patching Script - success]' in $vals.to_data['value']['report']['resource_statuses'].keys
   }
   # Determine for which nodes the pre_check ran successfully
+  # This exec only fires if the pre_check was successful
   $pre_check_success = $patch_resultset.ok_set.filter_set |$vals| {
     'Exec[Growell_patch - Pre Check - success]' in $vals.to_data['value']['report']['resource_statuses'].keys
+  }
+  # Determine if all updates installed correctly, or if any failed, or if there simply were none
+  $patch_status = $patch_resultset.results.to_data.reduce({'patch_success' => [], 'patch_failed' => [], 'nothing_to_patch' => []}) |$memo, $node| {
+    $resources = $node['value']['report']['resource_statuses']
+    $failed_packages = $resources.filter |$k, $v| {
+      ($v['resource_type'] == 'Package') and ('patchday' in $v['tags']) and ($v['failed'] == 'true')
+    }
+    $installed_packages = $resources.filter |$k, $v| {
+      ($v['resource_type'] == 'Package') and ('patchday' in $v['tags']) and ($v['failed'] == 'false')
+    }
+
+    if $failed_packages.keys.count > 0 {
+      $patch_failed_memo = $memo['patch_failed'] + $node['target']
+      $patch_success_memo = $memo['patch_success']
+      $nothing_to_patch_memo = $memo['nothing_to_patch']
+    } elsif $installed_packages.keys.count > 0 and $failed_packages.keys.empty {
+      $patch_failed_memo = $memo['patch_failed']
+      $patch_success_memo = $memo['patch_success'] + $node['target']
+      $nothing_to_patch_memo = $memo['nothing_to_patch']
+    } else {
+      $nothing_to_patch_memo = $memo['nothing_to_patch'] + $node['target']
+      $patch_failed_memo = $memo['patch_failed']
+      $patch_success_memo = $memo['patch_success']
+    }
+
+    ({
+      'patch_success' => $patch_success_memo,
+      'patch_failed' => $patch_failed_memo,
+      'nothing_to_patch' => $nothing_to_patch_memo,
+    })
   }
 
   out::message("pre_patch_script_success: ${pre_patching_script_success.names}")
   out::message("pre_check_success: ${pre_check_success.names}")
+  out::message("patch_status: ${patch_status}")
 
   # Post Reboot (yes, no, if needed)
   # Do it this way because the reboot task/plan (puppetlabs/reboot) do not support ifneeded
