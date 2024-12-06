@@ -81,27 +81,27 @@ plan growell_patch::patch_now(
   }
   out::message($patching_ready)
 
-  # wait 5 sec so the reboot hopefully takes hold
-  ctrl::sleep(5)
-
-  # using the reboot plan would avoid having to do this, and likely do a better job at handling
-  $pre_reboot_wait_resultset = wait_until_available(
-    $targets,
-    wait_time      => 120,
-    retry_interval => 1,
-    _catch_errors  => true,
-  )
-
-  # basic output
-  $pre_reboot_wait_resultset.each |$result| {
-    out::message($result)
-  }
+  #  # wait 5 sec so the reboot hopefully takes hold
+  #  ctrl::sleep(5)
+  #
+  #  # using the reboot plan would avoid having to do this, and likely do a better job at handling
+  #  $pre_reboot_wait_resultset = wait_until_available(
+  #    $targets,
+  #    wait_time      => 120,
+  #    retry_interval => 1,
+  #    _catch_errors  => true,
+  #  )
+  #
+  #  # basic output
+  #  $pre_reboot_wait_resultset.each |$result| {
+  #    out::message($result)
+  #  }
 
   # Pre Checks
   # Pre Patching Scripts (if they exist)
   # Main Patching Process
   $patch_resultset = apply(
-    $targets,
+    $patching_ready,
     '_description' => 'Main Patching Run',
     '_catch_errors' => true
   ) {
