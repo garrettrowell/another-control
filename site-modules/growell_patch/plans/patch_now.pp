@@ -110,8 +110,8 @@ plan growell_patch::patch_now(
     'Exec[Growell_patch - Pre Check - success]' in $vals['value']['report']['resource_statuses'].keys
   }
 
-  out::message("pre_patch_success: ${pre_patching_script_success.names}")
-  out::message("pre_check_success: ${pre_check_script_success.names}")
+  out::message("pre_patch_success: ${pre_patching_script_success}")
+  out::message("pre_check_success: ${pre_check_script_success}")
 
   # Post Reboot (yes, no, if needed)
   # Do it this way because the reboot task/plan (puppetlabs/reboot) do not support ifneeded
