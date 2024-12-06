@@ -64,7 +64,7 @@ plan growell_patch::patch_now(
 
   ## DEBUG
   out::message($pre_reboot_success)
-  out::message($pre_reboot_sucess_ran)
+  out::message($pre_reboot_success_ran)
 
   # basic output
   $pre_reboot_resultset.each |$result| {
