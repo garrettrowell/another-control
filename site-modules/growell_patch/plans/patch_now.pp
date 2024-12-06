@@ -57,22 +57,29 @@ plan growell_patch::patch_now(
     }
   }
 
-  $pre_reboot_success = $pre_reboot_resultset.ok_set
-
-  ## DEBUG
-  out::message($pre_reboot_success)
-
-  $pre_reboot_success_ran = $pre_reboot_resultset.ok_set.to_data.filter |$index, $vals| {
+  # Determine which nodes should be rebooting
+  $pre_reboot_initiated = $pre_reboot_resultset.ok_set.to_data.filter |$index, $vals| {
     'Reboot[Growell_patch - Pre Patch Reboot]' in $vals['value']['report']['resource_statuses'].keys and $vals['value']['report']['resource_statuses']['Reboot[Growell_patch - Pre Patch Reboot]']['changed'] == true
   }
 
-  ## DEBUG
-  out::message($pre_reboot_success_ran)
+  # If the pre_reboot apply succeeds but the resources are not in the catalog, go ahead and continue with the process
+  if $pre_reboot_initiated.empty {
+    $patching_ready = $pre_reboot_resultset.ok_set.names
+  } else {
+    $pre_reboot_wait_results = run_plan(
+      'pe_patch::wait_for_reboot',
+      target_info      => $begin_boot_time_target_info,
+      reboot_wait_time => 600,
+    )
+    $pre_reboot_timed_out = $wait_results['pending']
+    $patching_ready = $pre_reboot_resultset.ok_set - $pre_reboot_timed_out
+  }
 
   # basic output
   $pre_reboot_resultset.each |$result| {
     out::message($result.report)
   }
+  out::message($patching_ready)
 
   # wait 5 sec so the reboot hopefully takes hold
   ctrl::sleep(5)
