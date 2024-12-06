@@ -26,6 +26,7 @@ plan growell_patch::patch_now(
     [$item.target.name, $item.message]
   })
 
+  ## DEBUG
   out::message($begin_boot_time_target_info)
 
   # Pre Reboot (yes, no, if needed)
@@ -55,6 +56,11 @@ plan growell_patch::patch_now(
       report_script_loc => $report_script_loc,
     }
   }
+
+  $pre_reboot_success = $pre_reboot_resultset.ok_set
+
+  ## DEBUG
+  out::message($pre_reboot_success)
 
   # basic output
   $pre_reboot_resultset.each |$result| {
