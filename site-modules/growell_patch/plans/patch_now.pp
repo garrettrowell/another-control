@@ -278,14 +278,14 @@ plan growell_patch::patch_now(
   # Actually output results
   return({
     'pre_reboot_success'           => $patching_ready,
-    'pre_patching_script_success'  => $pre_patching_script_success.results.names,
-    'pre_check_success'            => $pre_check_success.results.names,
+    'pre_patching_script_success'  => $pre_patching_script_success.names,
+    'pre_check_success'            => $pre_check_success.names,
     'patch_install_success'        => $patch_status['patch_success'],
     'patch_install_failed'         => $patch_status['patch_failed'],
     'patch_nothing_to_install'     => $patch_status['nothing_to_install'],
     'post_reboot_success'          => $post_patch_ready,
-    'post_patching_script_success' => $post_patching_script_success.results.names,
-    'post_check_success'           => $post_check_success.results.names,
+    'post_patching_script_success' => $post_patching_script_success.names,
+    'post_check_success'           => $post_check_success.names,
   })
 
 }
