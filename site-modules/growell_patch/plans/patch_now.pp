@@ -72,7 +72,7 @@ plan growell_patch::patch_now(
       reboot_wait_time => 600,
     )
     $pre_reboot_timed_out = $pre_reboot_wait_results['pending']
-    $patching_ready = $pre_reboot_resultset.ok_set - $pre_reboot_timed_out
+    $patching_ready = $pre_reboot_resultset.ok_set.names - $pre_reboot_timed_out
   }
 
   # basic output
