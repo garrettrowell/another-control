@@ -16,6 +16,18 @@ plan growell_patch::patch_now(
     out::message($t.facts)
   }
 
+  # So we can detect when a node has rebooted
+  # Lifted from pe_patch::group_patching
+  $begin_boot_time_results = without_default_logging() || {
+    run_task('pe_patch::last_boot_time', $targets, '_catch_errors' => true)
+  }
+
+  $begin_boot_time_target_info = Hash($begin_boot_time_results.results.map |$item| {
+    [$item.target.name, $item.message]
+  })
+
+  out::message($begin_boot_time_target_info)
+
   # Pre Reboot (yes, no, if needed)
   # Do it this way because the reboot task/plan (puppetlabs/reboot) do not support ifneeded
   # though by using an apply, we will have to parse result for expected errors ie: apply will fail due to the node rebooting
