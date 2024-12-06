@@ -203,7 +203,7 @@ plan growell_patch::patch_now(
 
   # If the post_reboot apply succeeds but the resources are not in the catalog, go ahead and continue with the process
   if $post_reboot_initiated.empty {
-    $patching_ready = $post_reboot_resultset.ok_set.names
+    $post_patch_ready = $post_reboot_resultset.ok_set.names
   } else {
     $post_reboot_wait_results = run_plan(
       'pe_patch::wait_for_reboot',
@@ -211,7 +211,7 @@ plan growell_patch::patch_now(
       reboot_wait_time => 600,
     )
     $post_reboot_timed_out = $post_reboot_wait_results['pending']
-    $patching_ready = $post_reboot_resultset.ok_set.names - $post_reboot_timed_out
+    $post_patch_ready = $post_reboot_resultset.ok_set.names - $post_reboot_timed_out
   }
 
   #  # wait 5 sec so the reboot hopefully takes hold
@@ -233,7 +233,7 @@ plan growell_patch::patch_now(
   # re-collect facts to pickup changes in patching facts
   run_plan(
     'facts',
-    'targets' => $targets,
+    'targets' => $post_patch_ready,
     '_catch_errors' => true
   )
 
@@ -246,7 +246,7 @@ plan growell_patch::patch_now(
   # Post Checks
   # Post Patching Scripts (if they exist)
   $post_patch_resultset = apply(
-    $targets,
+    $post_patch_ready,
     '_description' => 'Post Patching Validation',
     '_catch_errors' => true
   ) {
