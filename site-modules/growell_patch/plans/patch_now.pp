@@ -102,16 +102,16 @@ plan growell_patch::patch_now(
   }
 
   # Determine for which nodes the pre_patching script (if it exists) ran successfully
-  $pre_patching_script_success = $patch_resultset.ok_set.to_data.filter |$index, $vals| {
+  $pre_patching_script_success = $patch_resultset.ok_set.filter_set |$index, $vals| {
     'Exec[Growell_patch - Pre Patching Script - success]' in $vals['value']['report']['resource_statuses'].keys
   }
   # Determine for which nodes the pre_check ran successfully
-  $pre_check_success = $patch_resultset.ok_set.to_data.filter |$index, $vals| {
+  $pre_check_success = $patch_resultset.ok_set.filter_set |$index, $vals| {
     'Exec[Growell_patch - Pre Check - success]' in $vals['value']['report']['resource_statuses'].keys
   }
 
-  out::message("pre_patch_script_success: ${pre_patching_script_success}")
-  out::message("pre_check_success: ${pre_check_success}")
+  out::message("pre_patch_script_success: ${pre_patching_script_success.names}")
+  out::message("pre_check_success: ${pre_check_success.names}")
 
   # Post Reboot (yes, no, if needed)
   # Do it this way because the reboot task/plan (puppetlabs/reboot) do not support ifneeded
