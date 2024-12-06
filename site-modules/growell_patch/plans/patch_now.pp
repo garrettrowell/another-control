@@ -110,6 +110,7 @@ plan growell_patch::patch_now(
     'Exec[Growell_patch - Pre Check - success]' in $vals.to_data['value']['report']['resource_statuses'].keys
   }
   # Determine if all updates installed correctly, or if any failed, or if there simply were none
+  # When all updates installed correctly, or there were none, any pre_patching script was successful as well as the pre_check
   $patch_status = $patch_resultset.to_data.reduce({'patch_success' => [], 'patch_failed' => [], 'nothing_to_patch' => []}) |$memo, $node| {
     $resources = $node['value']['report']['resource_statuses']
     $failed_packages = $resources.filter |$k, $v| {
@@ -148,7 +149,7 @@ plan growell_patch::patch_now(
   # Do it this way because the reboot task/plan (puppetlabs/reboot) do not support ifneeded
   # though by using an apply, we will have to parse result for expected errors ie: apply will fail due to the node rebooting
   $post_reboot_resultset = apply(
-    $targets,
+    $patch_status['patch_success'] + $patch_status['nothing_to_patch'],
     '_description'  => 'Post Reboot',
     '_catch_errors' => true,
   ) {
