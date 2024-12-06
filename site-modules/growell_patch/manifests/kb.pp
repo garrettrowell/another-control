@@ -50,9 +50,10 @@ define growell_patch::kb (
       )
 
       exec { "${kb} - Installed":
-        command  => "${report_script_loc} -d '${install_data}'",
-        require  => Exec["Install ${kb}"],
-        schedule => $maintwindow,
+        command     => "${report_script_loc} -d '${install_data}'",
+        subscribe   => Exec["Install ${kb}"],
+        refreshonly => true,
+        schedule    => $maintwindow,
       }
     }
     default: {

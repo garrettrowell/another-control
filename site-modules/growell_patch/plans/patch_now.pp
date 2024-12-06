@@ -30,8 +30,6 @@ plan growell_patch::patch_now(
   out::message($begin_boot_time_target_info)
 
   # Pre Reboot (yes, no, if needed)
-  # Do it this way because the reboot task/plan (puppetlabs/reboot) do not support ifneeded
-  # though by using an apply, we will have to parse result for expected errors ie: apply will fail due to the node rebooting
   $pre_reboot_resultset = apply(
     $targets,
     '_description'  => 'Pre Reboot',

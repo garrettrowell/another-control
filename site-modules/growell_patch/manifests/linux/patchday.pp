@@ -58,9 +58,10 @@ class growell_patch::linux::patchday (
       )
 
       exec { "${package} - Installed":
-        command  => "${report_script_loc} -d '${install_data}'",
-        require  => Patch_package[$package],
-        schedule => 'Growell_patch - Patch Window',
+        command     => "${report_script_loc} -d '${install_data}'",
+        subscribe   => Patch_package[$package],
+        refreshonly => true,
+        schedule    => 'Growell_patch - Patch Window',
       }
     }
   }
@@ -78,6 +79,22 @@ class growell_patch::linux::patchday (
         install_options => $install_options,
         require         => Exec['Growell_patch - Clean Cache (High Priority)'],
       }
+
+      $install_data = stdlib::to_json(
+        {
+          'updates_installed' => {
+            $package => Timestamp.new(),
+          }
+        }
+      )
+
+      exec { "${package} - Installed (High Priority)":
+        command     => "${report_script_loc} -d '${install_data}'",
+        subscribe   => Patch_package[$package],
+        refreshonly => true,
+        schedule    => 'Growell_patch - High Priority Patch Window',
+      }
+
     }
   }
 
