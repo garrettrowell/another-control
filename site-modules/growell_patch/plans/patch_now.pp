@@ -58,7 +58,7 @@ plan growell_patch::patch_now(
   }
 
   $pre_reboot_success = $pre_reboot_resultset.to_data
-  $res = $pre_reboot_resultset.filter |$index, $vals| {
+  $res = $pre_reboot_resultset.ok_set.filter_set |$index, $vals| {
     'Reboot[Growell_patch - Pre Patch Reboot]' in $vals['value']['report']['resource_statuses'].keys and $vals['value']['report']['resource_statuses']['Reboot[Growell_patch - Pre Patch Reboot]']['changed'] == true
   }
   #  $pre_reboot_success_ran = $pre_reboot_success.filter |$items| {
