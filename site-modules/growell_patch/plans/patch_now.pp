@@ -113,10 +113,10 @@ plan growell_patch::patch_now(
   $patch_status = $patch_resultset.to_data.reduce({'patch_success' => [], 'patch_failed' => [], 'nothing_to_patch' => []}) |$memo, $node| {
     $resources = $node['value']['report']['resource_statuses']
     $failed_packages = $resources.filter |$k, $v| {
-      ($v['resource_type'] == 'Package') and ('patchday' in $v['tags']) and ($v['failed'] == 'true')
+      ($v['resource_type'] == 'Package') and ('patchday' in $v['tags']) and ($v['failed'] == true)
     }
     $installed_packages = $resources.filter |$k, $v| {
-      ($v['resource_type'] == 'Package') and ('patchday' in $v['tags']) and ($v['failed'] == 'false')
+      ($v['resource_type'] == 'Package') and ('patchday' in $v['tags']) and ($v['failed'] == false)
     }
 
     if $failed_packages.keys.count > 0 {
@@ -127,7 +127,7 @@ plan growell_patch::patch_now(
       $patch_failed_memo = $memo['patch_failed']
       $patch_success_memo = $memo['patch_success'] + $node['target']
       $nothing_to_patch_memo = $memo['nothing_to_patch']
-    } else {
+    } elsif $installed_packages.keys.count.empty and $failed_packages.keys.empty {
       $nothing_to_patch_memo = $memo['nothing_to_patch'] + $node['target']
       $patch_failed_memo = $memo['patch_failed']
       $patch_success_memo = $memo['patch_success']
