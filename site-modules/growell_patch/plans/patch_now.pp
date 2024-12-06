@@ -80,6 +80,17 @@ plan growell_patch::patch_now(
   ## DEBUG
   out::message("patching_ready: ${patching_ready}")
 
+  # So we can detect when a node has rebooted again
+  # Lifted from pe_patch::group_patching
+  $middle_boot_time_results = without_default_logging() || {
+    run_task('pe_patch::last_boot_time', $patching_ready, '_catch_errors' => true)
+  }
+
+  $middle_boot_time_target_info = Hash($middle_boot_time_results.results.map |$item| {
+    [$item.target.name, $item.message]
+  })
+
+
   # Pre Checks
   # Pre Patching Scripts (if they exist)
   # Main Patching Process
@@ -185,21 +196,39 @@ plan growell_patch::patch_now(
     out::message($result.report)
   }
 
-  # wait 5 sec so the reboot hopefully takes hold
-  ctrl::sleep(5)
-
-  # using the reboot plan would avoid having to do this, and likely do a better job at handling
-  $post_reboot_wait_resultset = wait_until_available(
-    $targets,
-    wait_time      => 120,
-    retry_interval => 1,
-    _catch_errors  => true,
-  )
-
-  # basic output
-  $post_reboot_wait_resultset.each |$result| {
-    out::message($result)
+  # Determine which nodes should be rebooting
+  $post_reboot_initiated = $post_reboot_resultset.ok_set.to_data.filter |$index, $vals| {
+    'Reboot[Growell_patch - Patch Reboot]' in $vals['value']['report']['resource_statuses'].keys and $vals['value']['report']['resource_statuses']['Reboot[Growell_patch - Patch Reboot]']['changed'] == true
   }
+
+  # If the post_reboot apply succeeds but the resources are not in the catalog, go ahead and continue with the process
+  if $post_reboot_initiated.empty {
+    $patching_ready = $post_reboot_resultset.ok_set.names
+  } else {
+    $post_reboot_wait_results = run_plan(
+      'pe_patch::wait_for_reboot',
+      target_info      => $middle_boot_time_target_info,
+      reboot_wait_time => 600,
+    )
+    $post_reboot_timed_out = $post_reboot_wait_results['pending']
+    $patching_ready = $post_reboot_resultset.ok_set.names - $post_reboot_timed_out
+  }
+
+  #  # wait 5 sec so the reboot hopefully takes hold
+  #  ctrl::sleep(5)
+  #
+  #  # using the reboot plan would avoid having to do this, and likely do a better job at handling
+  #  $post_reboot_wait_resultset = wait_until_available(
+  #    $targets,
+  #    wait_time      => 120,
+  #    retry_interval => 1,
+  #    _catch_errors  => true,
+  #  )
+  #
+  #  # basic output
+  #  $post_reboot_wait_resultset.each |$result| {
+  #    out::message($result)
+  #  }
 
   # re-collect facts to pickup changes in patching facts
   run_plan(
