@@ -127,12 +127,12 @@ plan growell_patch::patch_now(
     $failed_packages = $resources.filter |$k, $v| {
       ((($v['resource_type'] == 'Package') and ('patchday' in $v['tags']) and ($v['failed'] == true)) # This is Linux
       or
-      (($v['resource_type'] == 'Exec') and (['patchday', 'kb'] in $v['tags']) and ($v['failed'] == true))) # This is Windows
+      (($v['resource_type'] == 'Exec') and ('patchday' in $v['tags']) and ($v['failed'] == true))) # This is Windows
     }
     $installed_packages = $resources.filter |$k, $v| {
       ((($v['resource_type'] == 'Package') and ('patchday' in $v['tags']) and ($v['failed'] == false)) # This is Linux
       or
-      (($v['resource_type'] == 'Exec') and (['patchday', 'kb'] in $v['tags']) and ($v['failed'] == false))) # This is Windows
+      (($v['resource_type'] == 'Exec') and ('patchday' in $v['tags']) and ($v['failed'] == false))) # This is Windows
     }
 
     if $failed_packages.keys.count > 0 {
