@@ -125,14 +125,14 @@ plan growell_patch::patch_now(
   $patch_status = $patch_resultset.to_data.reduce({'patch_success' => [], 'patch_failed' => [], 'nothing_to_patch' => []}) |$memo, $node| {
     $resources = $node['value']['report']['resource_statuses']
     $failed_packages = $resources.filter |$k, $v| {
-      (($v['resource_type'] == 'Package') and ('patchday' in $v['tags']) and ($v['failed'] == true)) # This is Linux
+      ((($v['resource_type'] == 'Package') and ('patchday' in $v['tags']) and ($v['failed'] == true)) # This is Linux
       or
-      (($v['resource_type' == 'Exec') and (['patchday', 'kb'] in $v['tags']) and ($v['failed'] == true)) # This is Windows
+      (($v['resource_type'] == 'Exec') and (['patchday', 'kb'] in $v['tags']) and ($v['failed'] == true))) # This is Windows
     }
     $installed_packages = $resources.filter |$k, $v| {
-      (($v['resource_type'] == 'Package') and ('patchday' in $v['tags']) and ($v['failed'] == false)) # This is Linux
+      ((($v['resource_type'] == 'Package') and ('patchday' in $v['tags']) and ($v['failed'] == false)) # This is Linux
       or
-      (($v['resource_type' == 'Exec') and (['patchday', 'kb'] in $v['tags']) and ($v['failed'] == false)) # This is Windows
+      (($v['resource_type'] == 'Exec') and (['patchday', 'kb'] in $v['tags']) and ($v['failed'] == false))) # This is Windows
     }
 
     if $failed_packages.keys.count > 0 {
