@@ -39,10 +39,20 @@ class growell_patch::post_reboot (
 
   case $reboot_type {
     'never': {
+      # Post checks + scripts look for our 'post_reboot' fact so we need to write it
+      $data = stdlib::to_json(
+        {
+          'post_reboot' => Timestamp.new(),
+        }
+      )
+      exec { $_notify_title:
+        command  => "${report_script_loc} -d '${data}'",
+        schedule => $_schedule,
+      }
     }
     'always': {
       if $facts['growell_patch_report'].dig('post_reboot') {
-        # check if pre_reboot timestamp is for this month
+        # check if post_reboot timestamp is for this month
         $cur = growell_patch::within_cur_month($facts['growell_patch_report']['post_reboot'])
         if $cur {
           # check if we're greater than the timestamp
@@ -51,7 +61,7 @@ class growell_patch::post_reboot (
           $_needs_reboot = true
         }
       } else {
-        # if the pre_reboot key is not in our report we must always reboot once
+        # if the post_reboot key is not in our report we must always reboot once
         $_needs_reboot = true
       }
       if $_needs_reboot {
@@ -61,7 +71,7 @@ class growell_patch::post_reboot (
           schedule => $_schedule,
           timeout  => $reboot_delay,
         }
-        # Record the pre_reboot timestamp
+        # Record the post_reboot timestamp
         $data = stdlib::to_json(
           {
             'post_reboot' => Timestamp.new(),
@@ -97,7 +107,7 @@ class growell_patch::post_reboot (
         }
       }
       if $facts['growell_patch_report'].dig('post_reboot') {
-        # check if pre_reboot timestamp is for this month
+        # check if post_reboot timestamp is for this month
         $cur = growell_patch::within_cur_month($facts['growell_patch_report']['post_reboot'])
         if $cur {
           # check if we're greater than the timestamp
@@ -106,7 +116,7 @@ class growell_patch::post_reboot (
           $_needs_reboot = true
         }
       } else {
-        # if the pre_reboot key is not in our report we should reboot assuming its pending
+        # if the post_reboot key is not in our report we should reboot assuming its pending
         $_needs_reboot = true
       }
       if $_needs_reboot {
