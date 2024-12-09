@@ -60,11 +60,11 @@ class growell_patch::post_reboot (
           apply    => 'immediately',
           schedule => $_schedule,
           timeout  => $reboot_delay,
-        } -> Exec <| tag == "${module_name}_pre_check" |>
+        }
         # Record the pre_reboot timestamp
         $data = stdlib::to_json(
           {
-            'pre_reboot' => Timestamp.new(),
+            'post_reboot' => Timestamp.new(),
           }
         )
         exec { $_notify_title:
@@ -113,19 +113,7 @@ class growell_patch::post_reboot (
         reboot_if_pending { $_reboot_if_pending_title:
           patch_window => $_schedule,
           os           => $facts['kernel'].downcase,
-        } -> Exec <| tag == "${module_name}_pre_check" |>
-        #exec { 'Growell_patch - Pre Patch Reboot':
-        #  command   => $reboot_logic_cmd,
-        #  onlyif    => $reboot_logic_onlyif,
-        #  provider  => $reboot_logic_provider,
-        #  logoutput => true,
-        #  schedule  => 'Growell_patch - Patch Window',
-        #}
-        #notify { 'Growell_patch - Performing Pre Patch OS reboot ifneeded':
-        #  notify   => Exec['Growell_patch - Pre Patch Reboot'],
-        #  schedule => 'Growell_patch - Patch Window',
-        #  message  => Deferred('growell_patch::reporting', [{'pre_reboot' => Timestamp.new()}])
-        #}
+        }
       }
     }
   }
