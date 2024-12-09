@@ -200,6 +200,8 @@ plan growell_patch::patch_now(
     out::message($result.report)
   }
 
+  out::message("post_reboot_resultset: ${post_reboot_resultset}")
+
   # Determine which nodes should be rebooting
   $post_reboot_initiated = $post_reboot_resultset.filter_set |$vals| {
     (
@@ -216,6 +218,8 @@ plan growell_patch::patch_now(
        )
     )
   }
+
+  out::message("post_reboot_initiated: ${post_reboot_initiated}")
 
   # If the post_reboot apply succeeds but the resources are not in the catalog, go ahead and continue with the process
   if $post_reboot_initiated.empty {
