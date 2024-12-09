@@ -230,6 +230,7 @@ plan growell_patch::patch_now(
   # If the post_reboot apply succeeds but the resources are not in the catalog, go ahead and continue with the process
   if $post_reboot_initiated.empty {
     $post_patch_ready = $post_reboot_resultset.ok_set.names
+    out::message('post_reboot_initiated is empty')
   } else {
     $post_reboot_wait_results = run_plan(
       'pe_patch::wait_for_reboot',
