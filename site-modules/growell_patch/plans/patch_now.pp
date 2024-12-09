@@ -180,19 +180,25 @@ plan growell_patch::patch_now(
       }
     }
 
-    # again another copy/paste from init.pp
-    $_post_reboot = case $post_reboot {
-      'always': { true }
-      'never': { false }
-      'ifneeded': { true }
-      default: { false }
-    }
-    class { 'growell_patch::reboot':
-      reboot_if_needed  => $_post_reboot,
-      reboot_delay      => 10,
+    class { 'growell_patch::post_reboot':
+      reboot_type       => $post_reboot,
+      priority          => 'normal',
       run_as_plan       => true,
       report_script_loc => $report_script_loc,
     }
+    ## again another copy/paste from init.pp
+    #$_post_reboot = case $post_reboot {
+    #  'always': { true }
+    #  'never': { false }
+    #  'ifneeded': { true }
+    #  default: { false }
+    #}
+    #class { 'growell_patch::reboot':
+    #  reboot_if_needed  => $_post_reboot,
+    #  reboot_delay      => 10,
+    #  run_as_plan       => true,
+    #  report_script_loc => $report_script_loc,
+    #}
   }
 
   # basic output

@@ -1378,20 +1378,39 @@ class growell_patch (
               unless $run_as_plan {
                 # Reboot after patching (in later patch_reboot stage)
                 if ($updates_to_install.count > 0) and $post_reboot {
-                  class { 'growell_patch::reboot':
-                    reboot_if_needed  => $post_reboot_if_needed,
+                  class { 'growell_patch::post_reboot':
+                    priority          => 'normal',
+                    reboot_type       => $_post_reboot,
                     schedule          => 'Growell_patch - Patch Window',
                     stage             => "${module_name}_post_reboot",
                     report_script_loc => $report_script_loc,
                   }
                 }
                 if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
-                  class { 'growell_patch::high_prio_reboot':
-                    reboot_if_needed => $high_prio_post_reboot_if_needed,
-                    schedule         => 'Growell_patch - High Priority Patch Window',
-                    stage            => "${module_name}_post_reboot",
+                  class { 'growell_patch::post_reboot':
+                    priority          => 'high',
+                    reboot_type       => $_high_prio_post_reboot,
+                    schedule          => 'Growell_patch - High Priority Patch Window',
+                    stage             => "${module_name}_post_reboot",
+                    report_script_loc => $report_script_loc,
                   }
                 }
+
+                #if ($updates_to_install.count > 0) and $post_reboot {
+                #  class { 'growell_patch::reboot':
+                #    reboot_if_needed  => $post_reboot_if_needed,
+                #    schedule          => 'Growell_patch - Patch Window',
+                #    stage             => "${module_name}_post_reboot",
+                #    report_script_loc => $report_script_loc,
+                #  }
+                #}
+                #if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
+                #  class { 'growell_patch::high_prio_reboot':
+                #    reboot_if_needed => $high_prio_post_reboot_if_needed,
+                #    schedule         => 'Growell_patch - High Priority Patch Window',
+                #    stage            => "${module_name}_post_reboot",
+                #  }
+                #}
               }
               # Perform post-patching Execs
               if ($run_as_plan and $facts['growell_patch_report'].dig('post_reboot')) {
