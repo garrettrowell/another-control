@@ -184,6 +184,7 @@ plan growell_patch::patch_now(
       reboot_type       => $post_reboot,
       priority          => 'normal',
       run_as_plan       => true,
+      reboot_delay      => 0,
       report_script_loc => $report_script_loc,
     }
     ## again another copy/paste from init.pp
