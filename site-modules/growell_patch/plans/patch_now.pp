@@ -204,15 +204,15 @@ plan growell_patch::patch_now(
   $post_reboot_initiated = $post_reboot_resultset.filter_set |$vals| {
     (
        (
-         'Reboot[Growell_patch - Patch Reboot]' in $vals['value']['report']['resource_statuses'].keys
+         'Reboot[Growell_patch - Patch Reboot]' in $vals.to_data['value']['report']['resource_statuses'].keys
          and
-         $vals['value']['report']['resource_statuses']['Reboot[Growell_patch - Patch Reboot]']['changed'] == true
+         $vals.to_data['value']['report']['resource_statuses']['Reboot[Growell_patch - Patch Reboot]']['changed'] == true
        )
        or
        (
-         'Exec[Growell_patch - Patch Reboot' in $vals['value']['report']['resource_statuses'].keys
+         'Exec[Growell_patch - Patch Reboot' in $vals.to_data['value']['report']['resource_statuses'].keys
          and
-         $vals['value']['report']['resource_statuses']['Exec[Growell_patch - Patch Reboot]']['changed'] == true
+         $vals.to_data['value']['report']['resource_statuses']['Exec[Growell_patch - Patch Reboot]']['changed'] == true
        )
     )
   }
