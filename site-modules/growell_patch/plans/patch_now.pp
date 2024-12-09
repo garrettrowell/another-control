@@ -201,7 +201,7 @@ plan growell_patch::patch_now(
   }
 
   # Determine which nodes should be rebooting
-  $post_reboot_initiated = $post_reboot_resultset.results.filter |$index, $vals| {
+  $post_reboot_initiated = $post_reboot_resultset.filter_set |$index, $vals| {
     (
        (
          'Reboot[Growell_patch - Patch Reboot]' in $vals['value']['report']['resource_statuses'].keys
