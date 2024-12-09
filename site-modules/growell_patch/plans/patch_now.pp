@@ -202,11 +202,19 @@ plan growell_patch::patch_now(
 
   # Determine which nodes should be rebooting
   $post_reboot_initiated = $post_reboot_resultset.ok_set.to_data.filter |$index, $vals| {
-    (('Reboot[Growell_patch - Patch Reboot]' in $vals['value']['report']['resource_statuses'].keys
-    and $vals['value']['report']['resource_statuses']['Reboot[Growell_patch - Patch Reboot]']['changed'] == true)
-    or
-    ('Exec[Growell_patch - Patch Reboot' in $vals['value']['report']['resource_statuses'].keys
-    and $vals['value']['report']['resource_statuses']['Exec[Growell_patch - Patch Reboot]']['changed'] == true)))
+    (
+       (
+         'Reboot[Growell_patch - Patch Reboot]' in $vals['value']['report']['resource_statuses'].keys
+         and
+         $vals['value']['report']['resource_statuses']['Reboot[Growell_patch - Patch Reboot]']['changed'] == true
+       )
+       or
+       (
+         'Exec[Growell_patch - Patch Reboot' in $vals['value']['report']['resource_statuses'].keys
+         and
+         $vals['value']['report']['resource_statuses']['Exec[Growell_patch - Patch Reboot]']['changed'] == true
+       )
+    )
   }
 
   # If the post_reboot apply succeeds but the resources are not in the catalog, go ahead and continue with the process
