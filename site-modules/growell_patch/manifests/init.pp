@@ -1383,12 +1383,35 @@ class growell_patch (
               false => Exec['pe_patch::exec::fact']
             }
             if ($updates_to_install.count + $high_prio_updates_to_install.count > 0) {
+              # We need our own exec since patchday also notify's the exec it gets refreshed then
               notify { 'Growell_patch - Pre Update Fact':
                 message  => 'Refreshing patching facts to ensure sources available',
-                notify   => $patch_refresh_actions,
+                notify   => Exec["${module_name}::update_pe_patch_fact"],
                 schedule => 'Growell_patch - Patch Window',
                 require  => Anchor['growell_patch::start'],
                 before   => Class["${module_name}::${_kern}::patchday"],
+              }
+              case $_kern {
+                'windows': {
+                  $fact_dir  = 'C:/ProgramData/PuppetLabs/pe_patch'
+                  $fact_file = 'pe_patch_fact_generation.ps1'
+                }
+                'linux': {
+                  $fact_dir  = '/opt/puppetlabs/pe_patch'
+                  $fact_file = 'pe_patch_fact_generation.sh'
+                }
+              }
+              $fact_cmd = "${fact_dir}/${fact_file}"
+              exec { "${module_name}::update_pe_patch_fact":
+                command     => $fact_cmd,
+                user        => $pe_patch::patch_data_owner,
+                group       => $pe_patch::patch_data_group,
+                refreshonly => true,
+                require     => [
+                  File[$fact_cmd],
+                  File["${fact_dir}/reboot_override"]
+                ],
+                timeout     => $pe_patch::initial_fact_timeout,
               }
 
               class { "${module_name}::${_kern}::patchday":
