@@ -1404,8 +1404,8 @@ class growell_patch (
               $fact_cmd = "${fact_dir}/${fact_file}"
               exec { "${module_name}::update_pe_patch_fact":
                 command     => $fact_cmd,
-                user        => $pe_patch::patch_data_owner,
-                group       => $pe_patch::patch_data_group,
+                # user        => $pe_patch::patch_data_owner,
+                # group       => $pe_patch::patch_data_group,
                 refreshonly => true,
                 require     => [
                   File[$fact_cmd],
