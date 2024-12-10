@@ -838,7 +838,45 @@ class growell_patch (
       # https://github.com/vFense/vFenseAgent-win/wiki/Registry-keys-for-configuring-Automatic-Updates-&-WSUS
       $_base_reg = 'HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate'
       $_au_base_reg = "${_base_reg}\\AU"
-      unless $wsus_url == undef {
+      if $wsus_url == undef {
+        registry_value { "${_base_reg}\\WUServer":
+          ensure => absent,
+          #          type   => 'string',
+          #          data   => $wsus_url,
+          #          tag    => ["${module_name}-WUServer", "${module_name}_reg"],
+          before => Class["${module_name}::${_kern}::patchday"],
+          notify => Service['wuauserv'],
+        }
+
+        # We need to not conflict with other modules that manage wsus, for example 'puppetlabs/wsus_client'
+        if (defined(Registry_value['UseWUServer']) or defined(Registry_value["${_au_base_reg}\\UseWUServer"])) {
+          Registry_value <| title == 'UseWUServer' or title == "${_au_base_reg}\\UseWUServer" |> {
+            ensure => absent,
+            #data   => 1,
+            tag    => ["${module_name}-UseWUServer", "${module_name}_reg"],
+            before => Class["${module_name}::${_kern}::patchday"],
+            notify => Service['wuauserv'],
+          }
+        } else {
+          registry_value { "${_au_base_reg}\\UseWUServer":
+            ensure => absent,
+            #   type   => dword,
+            #   data   => 1,
+            tag    => ["${module_name}-UseWUServer", "${module_name}_reg"],
+            before => Class["${module_name}::${_kern}::patchday"],
+            notify => Service['wuauserv'],
+          }
+        }
+
+        unless defined(Service['wuauserv']) {
+          # The windows update service needs be restarted in the event of registry changes
+          # Thus it needs to be in the catalog for our registry_value's to notify
+          service { 'wuauserv':
+            enable => true,
+            ensure => running,
+          }
+        }
+      } else {
         registry_value { "${_base_reg}\\WUServer":
           ensure => present,
           type   => 'string',
