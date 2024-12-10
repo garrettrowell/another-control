@@ -1394,24 +1394,32 @@ class growell_patch (
                 'windows': {
                   $fact_dir  = 'C:/ProgramData/PuppetLabs/pe_patch'
                   $fact_file = 'pe_patch_fact_generation.ps1'
+                  $fact_cmd  = "${fact_dir}/${fact_file}"
+                  exec { "${module_name}::update_pe_patch_fact":
+                    path        => 'C:/Windows/System32/WindowsPowerShell/v1.0',
+                    refreshonly => true,
+                    command     => "powershell -executionpolicy remotesigned -file ${fact_cmd}",
+                    timeout     => $pe_patch::initial_fact_timeout,
+                    notify      => Class["${module_name}::${_kern}::patchday"],
+                  }
                 }
                 'linux': {
                   $fact_dir  = '/opt/puppetlabs/pe_patch'
                   $fact_file = 'pe_patch_fact_generation.sh'
+                  $fact_cmd  = "${fact_dir}/${fact_file}"
+                  exec { "${module_name}::update_pe_patch_fact":
+                    command     => $fact_cmd,
+                    user      => $pe_patch::patch_data_owner,
+                    group     => $pe_patch::patch_data_group,
+                    refreshonly => true,
+                    require     => [
+                      File[$fact_cmd],
+                      File["${fact_dir}/reboot_override"]
+                    ],
+                    timeout     => $pe_patch::initial_fact_timeout,
+                    notify      => Class["${module_name}::${_kern}::patchday"],
+                  }
                 }
-              }
-              $fact_cmd = "${fact_dir}/${fact_file}"
-              exec { "${module_name}::update_pe_patch_fact":
-                command     => $fact_cmd,
-                # user      => $pe_patch::patch_data_owner,
-                # group     => $pe_patch::patch_data_group,
-                refreshonly => true,
-                require     => [
-                  File[$fact_cmd],
-                  File["${fact_dir}/reboot_override"]
-                ],
-                timeout     => $pe_patch::initial_fact_timeout,
-                notify      => Class["${module_name}::${_kern}::patchday"],
               }
 
               class { "${module_name}::${_kern}::patchday":
