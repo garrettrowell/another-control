@@ -6,7 +6,7 @@ plan growell_patch::patch_now(
   # collect facts
   run_plan(
     'facts',
-    'targets' => $targets,
+    'targets'       => $targets,
     '_catch_errors' => true
   )
 
@@ -38,12 +38,12 @@ plan growell_patch::patch_now(
     # there's gotta be a better way than copy/pasting this from init.pp
     case $facts['kernel'].downcase {
       'linux': {
-        $report_script_loc = "/opt/puppetlabs/growell_patch/reporting.rb"
+        $report_script_loc  = "/opt/puppetlabs/growell_patch/reporting.rb"
         $report_script_file = $report_script_loc
       }
       'windows': {
         $report_script_file = "C:/ProgramData/PuppetLabs/growell_patch/reporting.rb"
-        $report_script_loc = "\"C:/Program Files/Puppet Labs/Puppet/puppet/bin/ruby.exe\" ${report_script_file}"
+        $report_script_loc  = "\"C:/Program Files/Puppet Labs/Puppet/puppet/bin/ruby.exe\" ${report_script_file}"
       }
     }
     class { 'growell_patch::pre_reboot':
@@ -70,7 +70,7 @@ plan growell_patch::patch_now(
       reboot_wait_time => 600,
     )
     $pre_reboot_timed_out = $pre_reboot_wait_results['pending']
-    $patching_ready = $pre_reboot_resultset.ok_set.names - $pre_reboot_timed_out
+    $patching_ready       = $pre_reboot_resultset.ok_set.names - $pre_reboot_timed_out
   }
 
   # basic output
@@ -90,13 +90,12 @@ plan growell_patch::patch_now(
     [$item.target.name, $item.message]
   })
 
-
   # Pre Checks
   # Pre Patching Scripts (if they exist)
   # Main Patching Process
   $patch_resultset = apply(
     $patching_ready,
-    '_description' => 'Main Patching Run',
+    '_description'  => 'Main Patching Run',
     '_catch_errors' => true
   ) {
     class { 'growell_patch':
@@ -123,7 +122,7 @@ plan growell_patch::patch_now(
   # Determine if all updates installed correctly, or if any failed, or if there simply were none
   # When all updates installed correctly, or there were none, any pre_patching script was successful as well as the pre_check
   $patch_status = $patch_resultset.to_data.reduce({'patch_success' => [], 'patch_failed' => [], 'nothing_to_patch' => []}) |$memo, $node| {
-    $resources = $node['value']['report']['resource_statuses']
+    $resources  = $node['value']['report']['resource_statuses']
     $failed_packages = $resources.filter |$k, $v| {
       ((($v['resource_type'] == 'Package') and ('patchday' in $v['tags']) and ($v['failed'] == true)) # This is Linux
       or
@@ -136,22 +135,26 @@ plan growell_patch::patch_now(
     }
 
     if $failed_packages.keys.count > 0 {
-      $patch_failed_memo = $memo['patch_failed'] + $node['target']
-      $patch_success_memo = $memo['patch_success']
+      # If any patches fail to apply the node is marked as failed
+      $patch_failed_memo     = $memo['patch_failed'] + $node['target']
+      $patch_success_memo    = $memo['patch_success']
       $nothing_to_patch_memo = $memo['nothing_to_patch']
     } elsif $installed_packages.keys.count > 0 and $failed_packages.keys.empty {
-      $patch_failed_memo = $memo['patch_failed']
-      $patch_success_memo = $memo['patch_success'] + $node['target']
+      # If there were patches that applied correctly, and no failures
+      # the node is marked as success
+      $patch_failed_memo     = $memo['patch_failed']
+      $patch_success_memo    = $memo['patch_success'] + $node['target']
       $nothing_to_patch_memo = $memo['nothing_to_patch']
     } elsif $installed_packages.keys.count.empty and $failed_packages.keys.empty {
+      # If there were no patches and no failures then nothing happened :)
       $nothing_to_patch_memo = $memo['nothing_to_patch'] + $node['target']
-      $patch_failed_memo = $memo['patch_failed']
-      $patch_success_memo = $memo['patch_success']
+      $patch_failed_memo     = $memo['patch_failed']
+      $patch_success_memo    = $memo['patch_success']
     }
 
     ({
-      'patch_success' => $patch_success_memo,
-      'patch_failed' => $patch_failed_memo,
+      'patch_success'    => $patch_success_memo,
+      'patch_failed'     => $patch_failed_memo,
       'nothing_to_patch' => $nothing_to_patch_memo,
     })
   }
@@ -171,12 +174,12 @@ plan growell_patch::patch_now(
     # there's gotta be a better way than copy/pasting this from init.pp
     case $facts['kernel'].downcase {
       'linux': {
-        $report_script_loc = "/opt/puppetlabs/growell_patch/reporting.rb"
+        $report_script_loc  = "/opt/puppetlabs/growell_patch/reporting.rb"
         $report_script_file = $report_script_loc
       }
       'windows': {
         $report_script_file = "C:/ProgramData/PuppetLabs/growell_patch/reporting.rb"
-        $report_script_loc = "\"C:/Program Files/Puppet Labs/Puppet/puppet/bin/ruby.exe\" ${report_script_file}"
+        $report_script_loc  = "\"C:/Program Files/Puppet Labs/Puppet/puppet/bin/ruby.exe\" ${report_script_file}"
       }
     }
 
@@ -239,7 +242,7 @@ plan growell_patch::patch_now(
       reboot_wait_time => 600,
     )
     $post_reboot_timed_out = $post_reboot_wait_results['pending']
-    $post_patch_ready = $post_reboot_resultset.ok_set.names - $post_reboot_timed_out
+    $post_patch_ready      = $post_reboot_resultset.ok_set.names - $post_reboot_timed_out
   }
 
   #  # wait 5 sec so the reboot hopefully takes hold
@@ -261,7 +264,7 @@ plan growell_patch::patch_now(
   # re-collect facts to pickup changes in patching facts
   run_plan(
     'facts',
-    'targets' => $post_patch_ready,
+    'targets'       => $post_patch_ready,
     '_catch_errors' => true
   )
 
@@ -275,7 +278,7 @@ plan growell_patch::patch_now(
   # Post Patching Scripts (if they exist)
   $post_patch_resultset = apply(
     $post_patch_ready,
-    '_description' => 'Post Patching Validation',
+    '_description'  => 'Post Patching Validation',
     '_catch_errors' => true
   ) {
     class { 'growell_patch':
