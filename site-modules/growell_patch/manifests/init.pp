@@ -1383,6 +1383,14 @@ class growell_patch (
               false => Exec['pe_patch::exec::fact']
             }
             if ($updates_to_install.count + $high_prio_updates_to_install.count > 0) {
+              notify { 'Growell_patch - Pre Update Fact':
+                message  => 'Refreshing patching facts to ensure sources available',
+                notify   => $patch_refresh_actions,
+                schedule => 'Growell_patch - Patch Window',
+                require  => Anchor['growell_patch::start'],
+                before   => Class["${module_name}::${_kern}::patchday"],
+              }
+
               class { "${module_name}::${_kern}::patchday":
                 updates           => $updates_to_install.unique,
                 high_prio_updates => $high_prio_updates_to_install.unique,
