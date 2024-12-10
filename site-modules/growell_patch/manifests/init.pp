@@ -1389,7 +1389,6 @@ class growell_patch (
                 notify   => Exec["${module_name}::update_pe_patch_fact"],
                 schedule => 'Growell_patch - Patch Window',
                 require  => Anchor['growell_patch::start'],
-                notify   => Class["${module_name}::${_kern}::patchday"],
               }
               case $_kern {
                 'windows': {
@@ -1404,14 +1403,15 @@ class growell_patch (
               $fact_cmd = "${fact_dir}/${fact_file}"
               exec { "${module_name}::update_pe_patch_fact":
                 command     => $fact_cmd,
-                # user        => $pe_patch::patch_data_owner,
-                # group       => $pe_patch::patch_data_group,
+                # user      => $pe_patch::patch_data_owner,
+                # group     => $pe_patch::patch_data_group,
                 refreshonly => true,
                 require     => [
                   File[$fact_cmd],
                   File["${fact_dir}/reboot_override"]
                 ],
                 timeout     => $pe_patch::initial_fact_timeout,
+                notify      => Class["${module_name}::${_kern}::patchday"],
               }
 
               class { "${module_name}::${_kern}::patchday":
