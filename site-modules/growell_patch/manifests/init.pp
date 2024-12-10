@@ -1,5 +1,5 @@
-# @summary A wrapper around the puppetlabs/patching_as_code, which itself is a wrapper
-#   around puppetlabs/pe_patch
+# @summary This module began life as the 'puppetlabs/patching_as_code' module (v2.0.0)
+#   It has since been heavily modified in order to support self-service workflows
 #
 # A description of what this class does
 #
@@ -94,7 +94,13 @@ class growell_patch (
     ensure_packages('yum-utils')
   }
 
-  # Convert our custom schedule into the form expected by patching_as_code.
+  $_pe_patch_cachedir = $facts['kernel'] ? {
+    'windows' => 'C:/ProgramData/PuppetLabs/pe_patch',
+    'Linux'   => '/opt/puppetlabs/pe_patch',
+  }
+
+  # Check for any self-service overrides +
+  # Convert our custom schedule into the form used by patching_as_code.
   #
   # Using the growell_patch::calc_patchday function we are able to determine the 'day_of_week'
   #   and 'count_of_week' based off of our 'day', 'week', and 'offset' params.
@@ -103,6 +109,12 @@ class growell_patch (
   #
   $_override_fact = 'growell_patch_override'
   if $facts[$_override_fact] {
+    # Self-service fact detected
+    $_has_perm_override           = 'permanent' in $facts[$_override_fact] # indicates a permanent schedule change
+    $_has_temp_override           = 'temporary' in $facts[$_override_fact] # indicates a schedule change valid for 1 month
+    $_has_exclusion_override      = 'exclusion' in $facts[$_override_fact] # indicates patches should not be applied unless initiated by the patch_now plan
+    $_has_temp_exclusion_override = 'temporary_exclusion' in $facts[$_override_fact] # same as $_has_exclusion_override but only valid for 1 month
+
     if ($run_as_plan and 'always' in $patch_group) {
       # When running the growell_patch::patch_now plan, we need to set the group to 'always'
       $_patch_group    = 'always'
@@ -113,139 +125,164 @@ class growell_patch (
         noop => true,
       }
       # pe_patch's 'patch_group' file also should not get updated
-      $_pe_patch_cachedir = $facts['kernel'] ? {
-        'windows' => 'C:/ProgramData/PuppetLabs/pe_patch',
-        'Linux'   => '/opt/puppetlabs/pe_patch',
-      }
       File <| title == "${_pe_patch_cachedir}/patch_group" |> {
         noop => true,
       }
     } else {
-      # Self-service override was detected
-      $_has_perm_override      = 'permanent' in $facts[$_override_fact]
-      $_has_temp_override      = 'temporary' in $facts[$_override_fact]
-      $_has_exclusion_override = 'exclusion' in $facts[$_override_fact]
-
+      # Not patching using growell_patch::patch_now plan.
+      # Need to determine which override is applicable if any
       if $_has_exclusion_override {
+        # We have an exclusion so node is 'Patch by Owner'
         $_patch_group    = 'never'
         $_patch_schedule = {}
       } else {
-        if $_has_temp_override {
-          # if we have a temporary override consider it first, assuming it's applicable to the current month
-          $_within_cur_month = growell_patch::within_cur_month($facts[$_override_fact]['temporary']['timestamp'])
+        # No exclusion so next check for temp_exclusion
+        if $_has_temp_exclusion_override {
+          # Check if the temp_exclusion is applicable to the current month
+          $_within_cur_month = growell_patch::within_cur_month($facts[$_override_fact]['temporary_exclusion']['timestamp'])
           if $_within_cur_month {
-            # If the temporary override is for the current month honor it
-            $_patch_group = 'temporary_override'
-            $_patch_day = growell_patch::calc_patchday(
-              $facts[$_override_fact]['temporary']['day'],
-              $facts[$_override_fact]['temporary']['week'],
-              $facts[$_override_fact]['temporary']['offset']
-            )
-
-            $_patch_schedule = {
-              $_patch_group =>  {
-                'day_of_week'   => $_patch_day['day_of_week'],
-                'count_of_week' => $_patch_day['count_of_week'],
-                'hours'         => $facts[$_override_fact]['temporary']['hours'],
-                'max_runs'      => String($facts[$_override_fact]['temporary']['max_runs']),
-                'post_reboot'   => $facts[$_override_fact]['temporary']['post_reboot'],
-                'pre_reboot'    => $facts[$_override_fact]['temporary']['pre_reboot'],
-              }
-            }
+            # Since the temp_exclusion is for the current month honor it
+            $_patch_group    = 'never'
+            $_patch_schedule = {}
           } else {
-            # Since the temporary override is not applicable, we need to check for permanent override
-            if $_has_perm_override {
-              # We have a permanent override honor it
-              $_patch_group = 'permanent_override'
-              $_patch_day = growell_patch::calc_patchday(
-                $facts[$_override_fact]['permanent']['day'],
-                $facts[$_override_fact]['permanent']['week'],
-                $facts[$_override_fact]['permanent']['offset']
-              )
-
-              $_patch_schedule = {
-                $_patch_group =>  {
-                  'day_of_week'   => $_patch_day['day_of_week'],
-                  'count_of_week' => $_patch_day['count_of_week'],
-                  'hours'         => $facts[$_override_fact]['permanent']['hours'],
-                  'max_runs'      => String($facts[$_override_fact]['permanent']['max_runs']),
-                  'post_reboot'   => $facts[$_override_fact]['permanent']['post_reboot'],
-                  'pre_reboot'    => $facts[$_override_fact]['permanent']['pre_reboot'],
-                }
-              }
-            } else {
-              # Since there is no permanent override fall back to default schedule
-              $_patch_group = $patch_group
-              $_patch_schedule = $patch_schedule.reduce({}) |$memo, $x| {
-                $memo + {
-                  $x[0] => {
-                    'day_of_week'   => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['day_of_week'],
-                    'count_of_week' => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['count_of_week'],
-                    'hours'         => $x[1]['hours'],
-                    'max_runs'      => $x[1]['max_runs'],
-                    'post_reboot'   => $x[1]['post_reboot'],
-                    'pre_reboot'    => $x[1]['pre_reboot'],
+            # Since the temp_exclusion is not applicable, next check for temp_override
+            if $_has_temp_override {
+              # Check if the temp_override is applicable to the current month
+              $_within_cur_month = growell_patch::within_cur_month($facts[$_override_fact]['temporary']['timestamp'])
+              if $_within_cur_month {
+                # Since the temp_override is for the current month honor it
+                $_patch_group = 'temporary_override'
+                $_patch_day   = growell_patch::calc_patchday(
+                  $facts[$_override_fact]['temporary']['day'],
+                  $facts[$_override_fact]['temporary']['week'],
+                  $facts[$_override_fact]['temporary']['offset'],
+                )
+                $_patch_schedule = {
+                  $_patch_group => {
+                    'day_of_week'   => $_patch_day['day_of_week'],
+                    'count_of_week' => $_patch_day['count_of_week'],
+                    'hours'         => $facts[$_override_fact]['temporary']['hours'],
+                    'max_runs'      => String($facts[$_override_fact]['temporary']['max_runs']),
+                    'post_reboot'   => $facts[$_override_fact]['temporary']['post_reboot'],
+                    'pre_reboot'    => $facts[$_override_fact]['temporary']['pre_reboot'],
                   }
                 }
-              }
-            }
-          }
-        } else {
-          # Since there is no temporary override we need to check for permanent override
-          if $_has_perm_override {
-            # We have a permanent override honor it
-            $_patch_group = 'permanent_override'
-            $_patch_day = growell_patch::calc_patchday(
-              $facts[$_override_fact]['permanent']['day'],
-              $facts[$_override_fact]['permanent']['week'],
-              $facts[$_override_fact]['permanent']['offset']
-            )
-
-            $_patch_schedule = {
-              $_patch_group =>  {
-                'day_of_week'   => $_patch_day['day_of_week'],
-                'count_of_week' => $_patch_day['count_of_week'],
-                'hours'         => $facts[$_override_fact]['permanent']['hours'],
-                'max_runs'      => String($facts[$_override_fact]['permanent']['max_runs']),
-                'post_reboot'   => $facts[$_override_fact]['permanent']['post_reboot'],
-                'pre_reboot'    => $facts[$_override_fact]['permanent']['pre_reboot'],
-              }
-            }
-          } else {
-            # Since there is no permanent override fall back to default schedule
-            $_patch_group = $patch_group
-            $_patch_schedule = $patch_schedule.reduce({}) |$memo, $x| {
-              $memo + {
-                $x[0] => {
-                  'day_of_week'   => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['day_of_week'],
-                  'count_of_week' => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['count_of_week'],
-                  'hours'         => $x[1]['hours'],
-                  'max_runs'      => $x[1]['max_runs'],
-                  'post_reboot'   => $x[1]['post_reboot'],
-                  'pre_reboot'    => $x[1]['pre_reboot'],
+              } else {
+                # Since the temp_override is not applicable, next check for perm_override
+                if $_has_perm_override {
+                  # Since there is a perm_override, honor it
+                  $_patch_group = 'permanent_override'
+                  $_patch_day   = growell_patch::calc_patchday(
+                    $facts[$_override_fact]['permanent']['day'],
+                    $facts[$_override_fact]['permanent']['week'],
+                    $facts[$_override_fact]['permanent']['offset'],
+                  )
+                  $_patch_schedule = {
+                    $_patch_group => {
+                      'day_of_week'   => $_patch_day['day_of_week'],
+                      'count_of_week' => $_patch_day['count_of_week'],
+                      'hours'         => $facts[$_override_fact]['permanent']['hours'],
+                      'max_runs'      => String($facts[$_override_fact]['permanent']['max_runs']),
+                      'post_reboot'   => $facts[$_override_fact]['permanent']['post_reboot'],
+                      'pre_reboot'    => $facts[$_override_fact]['permanent']['pre_reboot'],
+                    }
+                  }
+                } else {
+                  # Since there is no perm_override, fall back to configured schedule
+                  $_patch_group = $patch_group
+                  $_patch_schedule = $patch_schedule.reduce({}) |$memo, $x| {
+                    $memo + {
+                      $x[0] => {
+                        'day_of_week'   => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['day_of_week'],
+                        'count_of_week' => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['count_of_week'],
+                        'hours'         => $x[1]['hours'],
+                        'max_runs'      => $x[1]['max_runs'],
+                        'post_reboot'   => $x[1]['post_reboot'],
+                        'pre_reboot'    => $x[1]['pre_reboot'],
+                      }
+                    }
+                  }
+                } # end of if $_has_perm_override {...} else {...}
+              } # end of if $_within_cur_month {...} else {...}
+            } else {
+              # Since there is no temp_override, next check for perm_override
+              if $_has_perm_override {
+                # Since there is a perm_override, honor it
+                $_patch_group = 'permanent_override'
+                $_patch_day   = growell_patch::calc_patchday(
+                  $facts[$_override_fact]['permanent']['day'],
+                  $facts[$_override_fact]['permanent']['week'],
+                  $facts[$_override_fact]['permanent']['offset'],
+                )
+                $_patch_schedule = {
+                  $_patch_group => {
+                    'day_of_week'   => $_patch_day['day_of_week'],
+                    'count_of_week' => $_patch_day['count_of_week'],
+                    'hours'         => $facts[$_override_fact]['permanent']['hours'],
+                    'max_runs'      => String($facts[$_override_fact]['permanent']['max_runs']),
+                    'post_reboot'   => $facts[$_override_fact]['permanent']['post_reboot'],
+                    'pre_reboot'    => $facts[$_override_fact]['permanent']['pre_reboot'],
+                  }
                 }
-              }
-            }
+              } else {
+                # Since there is no perm_override, fall back to configured schedule
+                $_patch_group = $patch_group
+                $_patch_schedule = $patch_schedule.reduce({}) |$memo, $x| {
+                  $memo + {
+                    $x[0] => {
+                      'day_of_week'   => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['day_of_week'],
+                      'count_of_week' => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['count_of_week'],
+                      'hours'         => $x[1]['hours'],
+                      'max_runs'      => $x[1]['max_runs'],
+                      'post_reboot'   => $x[1]['post_reboot'],
+                      'pre_reboot'    => $x[1]['pre_reboot'],
+                    }
+                  }
+                }
+              } # end of if $_has_perm_override {...} else {...}
+            } # end of if $_has_temp_override {...} else {...}
+          } # end of if $_within_cur_month {...} else {...}
+        } else {
+          # Since there's no temp_exclusion, next check for temp_override
+          #
+          # TODO: Implement this portion!!!
+          #
+        } # end of if $_has_temp_exclusion_override {...} else {...}
+      } # end of if $_has_exclusion_override {...} else {...}
+    } # end of if ($run_as_plan and 'always' in $patch_group) {...} else {...}
+  } else {
+    # No self-service fact detected
+    if ($run_as_plan and 'always' in $patch_group) {
+      # When running the growell_patch::patch_now plan, we need to set the group to 'always'
+      $_patch_group    = 'always'
+      $_patch_schedule = {}
+      # Override the configuration file so that it won't actually get updated.
+      # This eliminates the need to run the agent a second time in the plan
+      File <| title == "${module_name}_configuration.json" |> {
+        noop => true,
+      }
+      # pe_patch's 'patch_group' file also should not get updated
+      File <| title == "${_pe_patch_cachedir}/patch_group" |> {
+        noop => true,
+      }
+    } else {
+      # Not patching using growell_patch::patch_now plan.
+      # Calculate the patchday
+      $_patch_group = $patch_group
+      $_patch_schedule = $patch_schedule.reduce({}) |$memo, $x| {
+        $memo + {
+          $x[0] => {
+            'day_of_week'   => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['day_of_week'],
+            'count_of_week' => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['count_of_week'],
+            'hours'         => $x[1]['hours'],
+            'max_runs'      => $x[1]['max_runs'],
+            'post_reboot'   => $x[1]['post_reboot'],
+            'pre_reboot'    => $x[1]['pre_reboot'],
           }
         }
       }
-    }
-  } else {
-    # No override is detected
-    $_patch_group = $patch_group
-    $_patch_schedule = $patch_schedule.reduce({}) |$memo, $x| {
-      $memo + {
-        $x[0] => {
-          'day_of_week'   => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['day_of_week'],
-          'count_of_week' => growell_patch::calc_patchday($x[1]['day'], $x[1]['week'], $x[1]['offset'])['count_of_week'],
-          'hours'         => $x[1]['hours'],
-          'max_runs'      => $x[1]['max_runs'],
-          'post_reboot'   => $x[1]['post_reboot'],
-          'pre_reboot'    => $x[1]['pre_reboot'],
-        }
-      }
-    }
-  }
+    } # end of if ($run_as_plan and 'always' in $patch_group) {...} else {...}
+  } # end of if $facts[$_override_fact {...} else {...}
 
   # Process the configured groups so we can determine the proper outcome
   $result = growell_patch::process_groups($_patch_group, $_patch_schedule, $high_priority_patch_group, $windows_prefetch_before)
