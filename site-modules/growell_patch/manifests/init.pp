@@ -1389,7 +1389,7 @@ class growell_patch (
                 notify   => Exec["${module_name}::update_pe_patch_fact"],
                 schedule => 'Growell_patch - Patch Window',
                 require  => Anchor['growell_patch::start'],
-                before   => Class["${module_name}::${_kern}::patchday"],
+                notify   => Class["${module_name}::${_kern}::patchday"],
               }
               case $_kern {
                 'windows': {
