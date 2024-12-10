@@ -844,7 +844,7 @@ class growell_patch (
           #          type   => 'string',
           #          data   => $wsus_url,
           #          tag    => ["${module_name}-WUServer", "${module_name}_reg"],
-          before => Class["${module_name}::${_kern}::patchday"],
+          #before => Class["${module_name}::${_kern}::patchday"],
           notify => Service['wuauserv'],
         }
 
@@ -854,7 +854,7 @@ class growell_patch (
             ensure => absent,
             #data   => 1,
             tag    => ["${module_name}-UseWUServer", "${module_name}_reg"],
-            before => Class["${module_name}::${_kern}::patchday"],
+            #before => Class["${module_name}::${_kern}::patchday"],
             notify => Service['wuauserv'],
           }
         } else {
@@ -863,7 +863,7 @@ class growell_patch (
             #   type   => dword,
             #   data   => 1,
             tag    => ["${module_name}-UseWUServer", "${module_name}_reg"],
-            before => Class["${module_name}::${_kern}::patchday"],
+            #before => Class["${module_name}::${_kern}::patchday"],
             notify => Service['wuauserv'],
           }
         }
@@ -882,7 +882,7 @@ class growell_patch (
           type   => 'string',
           data   => $wsus_url,
           tag    => ["${module_name}-WUServer", "${module_name}_reg"],
-          before => Class["${module_name}::${_kern}::patchday"],
+          #before => Class["${module_name}::${_kern}::patchday"],
           notify => Service['wuauserv'],
         }
 
@@ -891,7 +891,7 @@ class growell_patch (
           Registry_value <| title == 'UseWUServer' or title == "${_au_base_reg}\\UseWUServer" |> {
             data   => 1,
             tag    => ["${module_name}-UseWUServer", "${module_name}_reg"],
-            before => Class["${module_name}::${_kern}::patchday"],
+            #before => Class["${module_name}::${_kern}::patchday"],
             notify => Service['wuauserv'],
           }
         } else {
@@ -900,7 +900,7 @@ class growell_patch (
             type   => dword,
             data   => 1,
             tag    => ["${module_name}-UseWUServer", "${module_name}_reg"],
-            before => Class["${module_name}::${_kern}::patchday"],
+            #before => Class["${module_name}::${_kern}::patchday"],
             notify => Service['wuauserv'],
           }
         }
