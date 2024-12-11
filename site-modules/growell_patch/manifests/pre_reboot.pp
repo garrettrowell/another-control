@@ -24,7 +24,7 @@ class growell_patch::pre_reboot (
         true  => undef,
       }
       $_notify_title = 'Growell_patch - Performing Pre Patch OS reboot'
-      $_reboot_if_pending_title = 'Growell_patch'
+      $_reboot_if_pending_title = 'Growell_patch - Pre'
     }
     'high': {
       $_reboot_title = 'Growell_patch - High Priority Pre Patch Reboot'
@@ -33,7 +33,7 @@ class growell_patch::pre_reboot (
         true  => undef,
       }
       $_notify_title = 'Growell_patch - Performing High Priority Pre Patch OS reboot'
-      $_reboot_if_pending_title = 'Growell_patch High Priority'
+      $_reboot_if_pending_title = 'Growell_patch High Priority - Pre'
     }
   }
 
