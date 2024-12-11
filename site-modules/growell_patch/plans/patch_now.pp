@@ -145,7 +145,7 @@ plan growell_patch::patch_now(
       $patch_failed_memo     = $memo['patch_failed']
       $patch_success_memo    = $memo['patch_success'] + $node['target']
       $nothing_to_patch_memo = $memo['nothing_to_patch']
-    } elsif $installed_packages.keys.count.empty and $failed_packages.keys.empty {
+    } elsif $installed_packages.keys.empty and $failed_packages.keys.empty {
       # If there were no patches and no failures then nothing happened :)
       $nothing_to_patch_memo = $memo['nothing_to_patch'] + $node['target']
       $patch_failed_memo     = $memo['patch_failed']
