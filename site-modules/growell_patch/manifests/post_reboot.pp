@@ -124,6 +124,18 @@ class growell_patch::post_reboot (
           patch_window => $_schedule,
           os           => $facts['kernel'].downcase,
         }
+
+        # Record the post_reboot timestamp
+        $data = stdlib::to_json(
+          {
+            'post_reboot' => Timestamp.new(),
+          }
+        )
+        exec { $_notify_title:
+          command  => "${report_script_loc} -d '${data}'",
+          notify   => Reboot_if_pending[$_reboot_if_pending_title],
+          schedule => $_schedule,
+        }
       }
     }
   }

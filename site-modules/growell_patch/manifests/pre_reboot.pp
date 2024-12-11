@@ -114,6 +114,19 @@ class growell_patch::pre_reboot (
           patch_window => $_schedule,
           os           => $facts['kernel'].downcase,
         } -> Exec <| tag == "${module_name}_pre_check" |>
+
+        # Record the pre_reboot timestamp
+        $data = stdlib::to_json(
+          {
+            'pre_reboot' => Timestamp.new(),
+          }
+        )
+        exec { $_notify_title:
+          command  => "${report_script_loc} -d '${data}'",
+          notify   => Reboot_if_pending[$_reboot_if_pending_title],
+          schedule => $_schedule,
+        }
+
         #exec { 'Growell_patch - Pre Patch Reboot':
         #  command   => $reboot_logic_cmd,
         #  onlyif    => $reboot_logic_onlyif,
