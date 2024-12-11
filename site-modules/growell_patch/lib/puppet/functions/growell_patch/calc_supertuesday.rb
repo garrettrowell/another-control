@@ -9,26 +9,30 @@ Puppet::Functions.create_function(:'growell_patch::calc_supertuesday') do
   def calc_supertuesday()
     cond = condition_date('Tuesday', 2)
     outdate = desired_date(cond, 0)
-    {
-      'outdate'       => outdate,
-      'day_of_week'   => get_day(outdate),
-      'count_of_week' => nth_occurance(outdate),
-    }
+    start_of_day = Time.parse(outdate)
+    end_of_day = Time.new(start_of_day.year, start_of_day.month, start_of_day.day, 23, 59, 59)
+
+    end_of_day
+    #{
+    #  'outdate'       => outdate,
+    #  'day_of_week'   => get_day(outdate),
+    #  'count_of_week' => nth_occurance(outdate),
+    #}
   end
 
-  DAYS_MAPPING = {
-    0 => 'Sunday',
-    1 => 'Monday',
-    2 => 'Tuesday',
-    3 => 'Wednesday',
-    4 => 'Thursday',
-    5 => 'Friday',
-    6 => 'Saturday'
-  }.freeze
-
-  def get_day(date)
-    DAYS_MAPPING[date.wday]
-  end
+#  DAYS_MAPPING = {
+#    0 => 'Sunday',
+#    1 => 'Monday',
+#    2 => 'Tuesday',
+#    3 => 'Wednesday',
+#    4 => 'Thursday',
+#    5 => 'Friday',
+#    6 => 'Saturday'
+#  }.freeze
+#
+#  def get_day(date)
+#    DAYS_MAPPING[date.wday]
+#  end
 
   def new_by_mday(year, month, weekday, nr)
     raise(ArgumentError, 'No number for weekday/nr') unless weekday.respond_to?(:between?) && nr.respond_to?(:between?)
@@ -58,7 +62,7 @@ Puppet::Functions.create_function(:'growell_patch::calc_supertuesday') do
     conditional_date + offset
   end
 
-  def nth_occurance(date)
-    (date.mday.to_f / 7).ceil
-  end
+#  def nth_occurance(date)
+#    (date.mday.to_f / 7).ceil
+#  end
 end
