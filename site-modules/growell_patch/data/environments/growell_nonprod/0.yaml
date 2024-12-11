@@ -2,9 +2,9 @@
 growell_patch::patch_schedule:
   growell_nonprod_wave0:
     day: 'Tuesday'
-    week: 3
-    offset: 3
-    hours: 16:00 - 20:00
+    week: 2
+    offset: 1
+    hours: 16:00 - 22:00
     max_runs: '1'
     post_reboot: ifneeded
     pre_reboot: ifneeded
