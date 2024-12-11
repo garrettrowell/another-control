@@ -37,6 +37,7 @@ class growell_patch::pre_reboot (
     }
   }
 
+  $_st = growell_patch::calc_supertuesday()
   if $run_as_plan {
     $_needs_reboot = true
   } else {
@@ -44,8 +45,13 @@ class growell_patch::pre_reboot (
       # check if pre_reboot timestamp is for this month
       $cur = growell_patch::within_cur_month($facts['growell_patch_report']['pre_reboot'])
       if $cur {
+        if $_st['end_time'] > Timestamp($facts['growell_patch_report']['pre_reboot']) {
+          $_needs_reboot = true
+        } else {
+          $_needs_reboot = false
+        }
         # check if we're greater than the timestamp
-        $_needs_reboot = Timestamp.new() < Timestamp($facts['growell_patch_report']['pre_reboot'])
+        #$_needs_reboot = Timestamp.new() < Timestamp($facts['growell_patch_report']['pre_reboot'])
       } else {
         $_needs_reboot = true
       }
