@@ -9,7 +9,7 @@ Puppet::Functions.create_function(:'growell_patch::calc_supertuesday') do
   def calc_supertuesday()
     cond = condition_date('Tuesday', 2)
     outdate = desired_date(cond, 0)
-    start_of_day = Time.parse(outdate)
+    start_of_day = Time.parse(outdate.to_s)
     end_of_day = Time.new(start_of_day.year, start_of_day.month, start_of_day.day, 23, 59, 59)
 
     end_of_day
