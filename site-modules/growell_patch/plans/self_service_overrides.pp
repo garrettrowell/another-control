@@ -1,6 +1,6 @@
 plan growell_patch::self_service_overrides(
   TargetSpec $targets,
-  Enum['permanent','temporary','exclusion','blocklist'] $type,
+  Enum['permanent','temporary','exclusion','blocklist', 'temporary_exclusion'] $type,
   Enum['add', 'remove'] $action,
   Optional[String[1]] $day = undef,
   Optional[Integer] $week = undef,
@@ -133,6 +133,27 @@ plan growell_patch::self_service_overrides(
           }
         }
       }
+      'temporary_exclusion': {
+        if $action == 'add' {
+          $fact_content = {
+            $_override_fact => deep_merge(
+              $cur_override, {
+                'temporary_exclusion' => {
+                  'timestamp'   => Timestamp.new(),
+                }
+              }
+            )
+          }
+        } else {
+          # When removing a temporary_exclusion override, first check if we have an override_fact
+          if $cur_override {
+            $fact_content = {
+              $_override_fact => $cur_override.filter |$k,$v| { $k != 'temporary_exclusion' }
+            }
+          }
+        }
+      }
+
     }
 
     unless $action == 'remove' and empty($cur_override) {
