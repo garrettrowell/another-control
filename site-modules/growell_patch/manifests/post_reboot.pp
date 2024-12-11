@@ -37,6 +37,24 @@ class growell_patch::post_reboot (
     }
   }
 
+  if $run_as_plan {
+    $_needs_reboot = true
+  } else {
+    if $facts['growell_patch_report'].dig('post_reboot') {
+      # check if post_reboot timestamp is for this month
+      $cur = growell_patch::within_cur_month($facts['growell_patch_report']['post_reboot'])
+      if $cur {
+        # check if we're greater than the timestamp
+        $_needs_reboot = Timestamp.new() < Timestamp($facts['growell_patch_report']['post_reboot'])
+      } else {
+        $_needs_reboot = true
+      }
+    } else {
+      # if the post_reboot key is not in our report we must always reboot once
+      $_needs_reboot = true
+    }
+  }
+
   case $reboot_type {
     'never': {
       # Post checks + scripts look for our 'post_reboot' fact so we need to write it
@@ -51,19 +69,6 @@ class growell_patch::post_reboot (
       }
     }
     'always': {
-      if $facts['growell_patch_report'].dig('post_reboot') {
-        # check if post_reboot timestamp is for this month
-        $cur = growell_patch::within_cur_month($facts['growell_patch_report']['post_reboot'])
-        if $cur {
-          # check if we're greater than the timestamp
-          $_needs_reboot = Timestamp.new() < Timestamp($facts['growell_patch_report']['post_reboot'])
-        } else {
-          $_needs_reboot = true
-        }
-      } else {
-        # if the post_reboot key is not in our report we must always reboot once
-        $_needs_reboot = true
-      }
       if $_needs_reboot {
         # Reboot as part of this Puppet run
         reboot { $_reboot_title:
@@ -82,11 +87,6 @@ class growell_patch::post_reboot (
           notify   => Reboot[$_reboot_title],
           schedule => $_schedule,
         }
-        #notify { $_notify_title:
-        #  notify   => Reboot[$_reboot_title],
-        #  schedule => $_schedule,
-        #  message  => Deferred('growell_patch::reporting', [{'pre_reboot' => Timestamp.new()}])
-        #}
       }
     }
     'ifneeded': {
@@ -105,19 +105,6 @@ class growell_patch::post_reboot (
         default: {
           fail('Unsupported operating system for Growell_patch!')
         }
-      }
-      if $facts['growell_patch_report'].dig('post_reboot') {
-        # check if post_reboot timestamp is for this month
-        $cur = growell_patch::within_cur_month($facts['growell_patch_report']['post_reboot'])
-        if $cur {
-          # check if we're greater than the timestamp
-          $_needs_reboot = Timestamp.new() < Timestamp($facts['growell_patch_report']['post_reboot'])
-        } else {
-          $_needs_reboot = true
-        }
-      } else {
-        # if the post_reboot key is not in our report we should reboot assuming its pending
-        $_needs_reboot = true
       }
       if $_needs_reboot {
         reboot_if_pending { $_reboot_if_pending_title:

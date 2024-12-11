@@ -780,19 +780,23 @@ class growell_patch (
           }
         )
         if (($_is_patchday or $_is_high_prio_patch_day) and ($_in_patch_window or $_in_high_prio_patch_window)) {
-          if $facts['growell_patch_report'].dig('pre_check') {
-            $cur = growell_patch::within_cur_month($facts['growell_patch_report']['pre_check']['timestamp'])
-            if $cur {
-              if $facts['growell_patch_report']['pre_check']['status'] == 'success' {
-                $_needs_ran = Timestamp.new() < Timestamp($facts['growell_patch_report']['pre_check']['timestamp'])
+          if $run_as_plan {
+            $_needs_ran = true
+          } else {
+            if $facts['growell_patch_report'].dig('pre_check') {
+              $cur = growell_patch::within_cur_month($facts['growell_patch_report']['pre_check']['timestamp'])
+              if $cur {
+                if $facts['growell_patch_report']['pre_check']['status'] == 'success' {
+                  $_needs_ran = Timestamp.new() < Timestamp($facts['growell_patch_report']['pre_check']['timestamp'])
+                } else {
+                  $needs_ran = true
+                }
               } else {
-                $needs_ran = true
+                $_needs_ran = true
               }
             } else {
               $_needs_ran = true
             }
-          } else {
-            $_needs_ran = true
           }
           $_com_pre_check_script = {
             'command' => $_pre_check_script_path,
@@ -915,6 +919,7 @@ class growell_patch (
                 exec_args         => $_com_post_check_script,
                 stage             => "${module_name}_after_post_reboot",
                 report_script_loc => $report_script_loc,
+                run_as_plan       => $run_as_plan,
               }
             }
             if $_in_high_prio_patch_window {
@@ -923,6 +928,7 @@ class growell_patch (
                 exec_args         => $_com_post_check_script,
                 stage             => "${module_name}_after_post_reboot",
                 report_script_loc => $report_script_loc,
+                run_as_plan       => $run_as_plan,
               }
             }
           } elsif $run_as_plan == false {
@@ -932,6 +938,7 @@ class growell_patch (
                 exec_args         => $_com_post_check_script,
                 stage             => "${module_name}_after_post_reboot",
                 report_script_loc => $report_script_loc,
+                run_as_plan       => $run_as_plan,
               }
             }
             if $_in_high_prio_patch_window {
@@ -940,6 +947,7 @@ class growell_patch (
                 exec_args         => $_com_post_check_script,
                 stage             => "${module_name}_after_post_reboot",
                 report_script_loc => $report_script_loc,
+                run_as_plan       => $run_as_plan,
               }
             }
           }
@@ -1312,6 +1320,7 @@ class growell_patch (
                 exec_args         => $_com_post_check_script,
                 stage             => "${module_name}_after_post_reboot",
                 report_script_loc => $report_script_loc,
+                run_as_plan       => $run_as_plan,
               }
             }
             if $_in_high_prio_patch_window {
@@ -1320,6 +1329,7 @@ class growell_patch (
                 exec_args         => $_com_post_check_script,
                 stage             => "${module_name}_after_post_reboot",
                 report_script_loc => $report_script_loc,
+                run_as_plan       => $run_as_plan,
               }
             }
           } elsif $run_as_plan == false {
@@ -1329,6 +1339,7 @@ class growell_patch (
                 exec_args         => $_com_post_check_script,
                 stage             => "${module_name}_after_post_reboot",
                 report_script_loc => $report_script_loc,
+                run_as_plan       => $run_as_plan,
               }
             }
             if $_in_high_prio_patch_window {
@@ -1337,6 +1348,7 @@ class growell_patch (
                 exec_args         => $_com_post_check_script,
                 stage             => "${module_name}_after_post_reboot",
                 report_script_loc => $report_script_loc,
+                run_as_plan       => $run_as_plan,
               }
             }
           }
@@ -1453,6 +1465,7 @@ class growell_patch (
                 schedule          => 'Growell_patch - Patch Window',
                 before            => Anchor['growell_patch::start'],
                 report_script_loc => $report_script_loc,
+                run_as_plan       => $run_as_plan,
               }
             }
             default: {
@@ -1471,6 +1484,7 @@ class growell_patch (
                 schedule          => 'Growell_patch - High Priority Patch Window',
                 before            => Anchor['growell_patch::start'],
                 report_script_loc => $report_script_loc,
+                run_as_plan       => $run_as_plan,
               }
             }
             default: {
@@ -1485,15 +1499,19 @@ class growell_patch (
     if $enable_patching == true {
       if (($patch_on_metered_links == true) or (! $facts['metered_link'] == true)) and (! $facts['patch_unsafe_process_active'] == true) {
         # Check if we installed updates this month, if so we've already patched
-        if $facts['growell_patch_report'].dig('updates_installed') {
-          $cur_patching = growell_patch::within_cur_month($facts['growell_patch_report']['updates_installed']['timestamp'])
-          if $cur_patching {
-            $_patching_needs_ran = false
+        if $run_as_plan {
+          $_patching_needs_ran = true
+        } else {
+          if $facts['growell_patch_report'].dig('updates_installed') {
+            $cur_patching = growell_patch::within_cur_month($facts['growell_patch_report']['updates_installed']['timestamp'])
+            if $cur_patching {
+              $_patching_needs_ran = false
+            } else {
+              $_patching_needs_ran = true
+            }
           } else {
             $_patching_needs_ran = true
           }
-        } else {
-          $_patching_needs_ran = true
         }
 
         case $_kern {
@@ -1505,6 +1523,7 @@ class growell_patch (
                   pre_patch_commands => $_pre_patch_commands,
                   priority           => 'normal',
                   report_script_loc  => $report_script_loc,
+                  run_as_plan        => $run_as_plan,
                 }
               }
             }
@@ -1514,6 +1533,7 @@ class growell_patch (
                   pre_patch_commands => $_pre_patch_commands,
                   priority           => 'high',
                   report_script_loc  => $report_script_loc,
+                  run_as_plan        => $run_as_plan,
                 }
               }
             }
@@ -1601,6 +1621,7 @@ class growell_patch (
                     schedule          => 'Growell_patch - Patch Window',
                     stage             => "${module_name}_post_reboot",
                     report_script_loc => $report_script_loc,
+                    run_as_plan       => $run_as_plan,
                   }
                 }
                 if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
@@ -1610,6 +1631,7 @@ class growell_patch (
                     schedule          => 'Growell_patch - High Priority Patch Window',
                     stage             => "${module_name}_post_reboot",
                     report_script_loc => $report_script_loc,
+                    run_as_plan       => $run_as_plan,
                   }
                 }
 
@@ -1639,6 +1661,7 @@ class growell_patch (
                       priority            => 'normal',
                       stage               => "${module_name}_after_post_reboot",
                       report_script_loc   => $report_script_loc,
+                      run_as_plan         => $run_as_plan,
                     }
                   }
                 }
@@ -1649,6 +1672,7 @@ class growell_patch (
                       priority            => 'high',
                       stage               => "${module_name}_after_post_reboot",
                       report_script_loc   => $report_script_loc,
+                      run_as_plan         => $run_as_plan,
                     }
                   }
                 }
@@ -1661,6 +1685,7 @@ class growell_patch (
                       priority            => 'normal',
                       stage               => "${module_name}_after_post_reboot",
                       report_script_loc   => $report_script_loc,
+                      run_as_plan         => $run_as_plan,
                     }
                   }
                 }
@@ -1671,6 +1696,7 @@ class growell_patch (
                       priority            => 'high',
                       stage               => "${module_name}_after_post_reboot",
                       report_script_loc   => $report_script_loc,
+                      run_as_plan         => $run_as_plan,
                     }
                   }
                 }

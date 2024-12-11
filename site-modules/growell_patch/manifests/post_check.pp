@@ -2,6 +2,7 @@ class growell_patch::post_check (
   Enum['normal', 'high'] $priority = 'normal',
   Hash $exec_args,
   String $report_script_loc,
+  Boolean $run_as_plan = false,
 ){
   case $priority {
     'normal': {
@@ -16,19 +17,23 @@ class growell_patch::post_check (
     }
   }
 
-  if $facts['growell_patch_report'].dig('post_check') {
-    $cur = growell_patch::within_cur_month($facts['growell_patch_report']['post_check']['timestamp'])
-    if $cur {
-      if $facts['growell_patch_report']['post_check']['status'] == 'success' {
-        $_needs_ran = Timestamp.new() < Timestamp($facts['growell_patch_report']['post_check']['timestamp'])
+  if $run_as_plan {
+    $_needs_ran = true
+  } else {
+    if $facts['growell_patch_report'].dig('post_check') {
+      $cur = growell_patch::within_cur_month($facts['growell_patch_report']['post_check']['timestamp'])
+      if $cur {
+        if $facts['growell_patch_report']['post_check']['status'] == 'success' {
+          $_needs_ran = Timestamp.new() < Timestamp($facts['growell_patch_report']['post_check']['timestamp'])
+        } else {
+          $_needs_ran = true
+        }
       } else {
         $_needs_ran = true
       }
     } else {
       $_needs_ran = true
     }
-  } else {
-    $_needs_ran = true
   }
 
   if $_needs_ran {
