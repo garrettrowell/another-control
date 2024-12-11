@@ -1550,13 +1550,27 @@ class growell_patch (
                 }
               }
 
-              class { "${module_name}::${_kern}::patchday":
-                updates           => $updates_to_install.unique,
-                high_prio_updates => $high_prio_updates_to_install.unique,
-                install_options   => $install_options,
-                report_script_loc => $report_script_loc,
-                require           => Anchor['growell_patch::start'],
-                before            => Anchor['growell_patch::post'],
+              # Check if we installed updates this month, if so we've already patched
+              if $facts['growell_patch_report'].dig('updates_installed') {
+                $cur = growell_patch::within_cur_month($facts['growell_patch_report']['updates_installed']['timestamp'])
+                if $cur {
+                  $_needs_ran = false
+                } else {
+                  $_needs_ran = true
+                }
+              } else {
+                $_needs_ran = true
+              }
+
+              if $_needs_ran {
+                class { "${module_name}::${_kern}::patchday":
+                  updates           => $updates_to_install.unique,
+                  high_prio_updates => $high_prio_updates_to_install.unique,
+                  install_options   => $install_options,
+                  report_script_loc => $report_script_loc,
+                  require           => Anchor['growell_patch::start'],
+                  before            => Anchor['growell_patch::post'],
+                }
               }
             }
             if ($updates_to_install.count > 0) {
