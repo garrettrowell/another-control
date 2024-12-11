@@ -47,9 +47,6 @@ class growell_patch (
   Optional[String[1]]                            $windows_prefetch_before   = undef,
   Optional[Stdlib::HTTPUrl]                      $wsus_url                  = undef,
 ) {
-  $tmp = growell_patch::calc_supertuesday()
-  notify { "supertuesday: ${tmp}": }
-
   # Create extra stages so we can reboot before and after
   stage { "${module_name}_post_reboot": }
   stage { "${module_name}_after_post_reboot": }
@@ -410,6 +407,10 @@ class growell_patch (
   $_high_prio_pre_reboot  = $result['high_prio_patch']['pre_reboot']
   # Avoid having to call $facts['kernel'].downcase a ton of times
   $_kern = $facts['kernel'].downcase
+  # Calculate when this months supertuesday is for comparisons later
+  $_super_tuesday       = growell_patch::calc_supertuesday()
+  $_super_tuesday_start = Timestamp("${_super_tuesday['start_time']}")
+  $_super_tuesday_end   = Timestamp("${_super_tuesday['end_time']}")
 
   # Create a reporting script that we can call via Exec resources to keep track of whats happened during the patching process
   case $_kern {
@@ -1469,6 +1470,7 @@ class growell_patch (
                 before            => Anchor['growell_patch::start'],
                 report_script_loc => $report_script_loc,
                 run_as_plan       => $run_as_plan,
+                super_tuesday_end => $_super_tuesday_end,
               }
             }
             default: {
@@ -1488,6 +1490,7 @@ class growell_patch (
                 before            => Anchor['growell_patch::start'],
                 report_script_loc => $report_script_loc,
                 run_as_plan       => $run_as_plan,
+                super_tuesday_end => $_super_tuesday_end,
               }
             }
             default: {

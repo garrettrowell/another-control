@@ -14,6 +14,7 @@ class growell_patch::pre_reboot (
   Integer $reboot_delay = 60,
   String $report_script_loc,
   Boolean $run_as_plan = false,
+  Timestamp $super_tuesday_end,
 ) {
   $reboot_delay_min = round($reboot_delay / 60)
   case $priority {
@@ -37,7 +38,6 @@ class growell_patch::pre_reboot (
     }
   }
 
-  $_st = growell_patch::calc_supertuesday()
   if $run_as_plan {
     $_needs_reboot = true
   } else {
@@ -45,7 +45,7 @@ class growell_patch::pre_reboot (
       # check if pre_reboot timestamp is for this month
       $cur = growell_patch::within_cur_month($facts['growell_patch_report']['pre_reboot'])
       if $cur {
-        if Timestamp("${_st['end_time']}") > Timestamp($facts['growell_patch_report']['pre_reboot']) {
+        if $super_tuesday_end > Timestamp($facts['growell_patch_report']['pre_reboot']) {
           $_needs_reboot = true
         } else {
           $_needs_reboot = false
