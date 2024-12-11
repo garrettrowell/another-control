@@ -45,7 +45,7 @@ class growell_patch::pre_reboot (
       # check if pre_reboot timestamp is for this month
       $cur = growell_patch::within_cur_month($facts['growell_patch_report']['pre_reboot'])
       if $cur {
-        if Timestamp($_st['end_time']) > Timestamp($facts['growell_patch_report']['pre_reboot']) {
+        if Timestamp("${_st['end_time']}") > Timestamp($facts['growell_patch_report']['pre_reboot']) {
           $_needs_reboot = true
         } else {
           $_needs_reboot = false
