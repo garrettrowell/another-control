@@ -791,7 +791,11 @@ class growell_patch (
               $cur = growell_patch::within_cur_month($facts['growell_patch_report']['pre_check']['timestamp'])
               if $cur {
                 if $facts['growell_patch_report']['pre_check']['status'] == 'success' {
-                  $_needs_ran = Timestamp.new() < Timestamp($facts['growell_patch_report']['pre_check']['timestamp'])
+                  if $_super_tuesday_end > Timestamp($facts['growell_patch_report']['pre_check']['timestamp']) {
+                    $_needs_ran = true
+                  } else {
+                    $_needs_ran = false
+                  }
                 } else {
                   $needs_ran = true
                 }
@@ -1519,7 +1523,11 @@ class growell_patch (
           if $facts['growell_patch_report'].dig('updates_installed') {
             $cur_patching = growell_patch::within_cur_month($facts['growell_patch_report']['updates_installed']['timestamp'])
             if $cur_patching {
-              $_patching_needs_ran = false
+              if $_super_tuesday_end > Timestamp($facts['growell_patch_report']['updates_installed']['timestamp']) {
+                $_patching_needs_ran = true
+              } else {
+                $_patching_needs_ran = false
+              }
             } else {
               $_patching_needs_ran = true
             }
