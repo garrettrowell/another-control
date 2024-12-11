@@ -1484,6 +1484,18 @@ class growell_patch (
 
     if $enable_patching == true {
       if (($patch_on_metered_links == true) or (! $facts['metered_link'] == true)) and (! $facts['patch_unsafe_process_active'] == true) {
+        # Check if we installed updates this month, if so we've already patched
+        if $facts['growell_patch_report'].dig('updates_installed') {
+          $cur_patching = growell_patch::within_cur_month($facts['growell_patch_report']['updates_installed']['timestamp'])
+          if $cur_patching {
+            $_patching_needs_ran = false
+          } else {
+            $_patching_needs_ran = true
+          }
+        } else {
+          $_patching_needs_ran = true
+        }
+
         case $_kern {
           /(windows|linux)/: {
             # Run pre-patch commands if provided
@@ -1510,7 +1522,7 @@ class growell_patch (
               true  => [Exec['pe_patch::exec::fact'], Exec['pe_patch::exec::fact_upload']],
               false => Exec['pe_patch::exec::fact']
             }
-            if ($updates_to_install.count + $high_prio_updates_to_install.count > 0) {
+            if ($updates_to_install.count + $high_prio_updates_to_install.count > 0 and $_patching_needs_ran) {
               # We need our own exec since patchday also notify's the exec it gets refreshed then
               notify { 'Growell_patch - Pre Update Fact':
                 message  => 'Refreshing patching facts to ensure sources available',
@@ -1550,30 +1562,16 @@ class growell_patch (
                 }
               }
 
-              # Check if we installed updates this month, if so we've already patched
-              if $facts['growell_patch_report'].dig('updates_installed') {
-                $cur_patching = growell_patch::within_cur_month($facts['growell_patch_report']['updates_installed']['timestamp'])
-                if $cur_patching {
-                  $_patching_needs_ran = false
-                } else {
-                  $_patching_needs_ran = true
-                }
-              } else {
-                $_patching_needs_ran = true
-              }
-
-              if $_patching_needs_ran {
-                class { "${module_name}::${_kern}::patchday":
-                  updates           => $updates_to_install.unique,
-                  high_prio_updates => $high_prio_updates_to_install.unique,
-                  install_options   => $install_options,
-                  report_script_loc => $report_script_loc,
-                  require           => Anchor['growell_patch::start'],
-                  before            => Anchor['growell_patch::post'],
-                }
+              class { "${module_name}::${_kern}::patchday":
+                updates           => $updates_to_install.unique,
+                high_prio_updates => $high_prio_updates_to_install.unique,
+                install_options   => $install_options,
+                report_script_loc => $report_script_loc,
+                require           => Anchor['growell_patch::start'],
+                before            => Anchor['growell_patch::post'],
               }
             }
-            if ($updates_to_install.count > 0) {
+            if ($updates_to_install.count > 0 and $_patching_needs_ran) {
               notify { 'Growell_patch - Update Fact':
                 message  => 'Patches installed, refreshing patching facts...',
                 notify   => $patch_refresh_actions,
@@ -1582,7 +1580,7 @@ class growell_patch (
                 require  => Class["${module_name}::${_kern}::patchday"],
               }
             }
-            if ($high_prio_updates_to_install.count > 0) {
+            if ($high_prio_updates_to_install.count > 0 and $_patching_needs_ran) {
               notify { 'Growell_patch - Update Fact (High Priority)':
                 message  => 'Patches installed, refreshing patching facts...',
                 notify   => $patch_refresh_actions,
