@@ -1552,17 +1552,17 @@ class growell_patch (
 
               # Check if we installed updates this month, if so we've already patched
               if $facts['growell_patch_report'].dig('updates_installed') {
-                $cur = growell_patch::within_cur_month($facts['growell_patch_report']['updates_installed']['timestamp'])
-                if $cur {
-                  $_needs_ran = false
+                $cur_patching = growell_patch::within_cur_month($facts['growell_patch_report']['updates_installed']['timestamp'])
+                if $cur_patching {
+                  $_patching_needs_ran = false
                 } else {
-                  $_needs_ran = true
+                  $_patching_needs_ran = true
                 }
               } else {
-                $_needs_ran = true
+                $_patching_needs_ran = true
               }
 
-              if $_needs_ran {
+              if $_patching_needs_ran {
                 class { "${module_name}::${_kern}::patchday":
                   updates           => $updates_to_install.unique,
                   high_prio_updates => $high_prio_updates_to_install.unique,
