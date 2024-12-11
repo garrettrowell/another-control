@@ -47,6 +47,9 @@ class growell_patch (
   Optional[String[1]]                            $windows_prefetch_before   = undef,
   Optional[Stdlib::HTTPUrl]                      $wsus_url                  = undef,
 ) {
+  $tmp = growell_patch::calc_supertuesday()
+  notify { "supertuesday: ${tmp}": }
+
   # Create extra stages so we can reboot before and after
   stage { "${module_name}_post_reboot": }
   stage { "${module_name}_after_post_reboot": }
