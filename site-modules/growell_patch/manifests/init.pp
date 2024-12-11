@@ -924,6 +924,7 @@ class growell_patch (
                 stage             => "${module_name}_after_post_reboot",
                 report_script_loc => $report_script_loc,
                 run_as_plan       => $run_as_plan,
+                super_tuesday_end => $_super_tuesday_end,
               }
             }
             if $_in_high_prio_patch_window {
@@ -933,6 +934,7 @@ class growell_patch (
                 stage             => "${module_name}_after_post_reboot",
                 report_script_loc => $report_script_loc,
                 run_as_plan       => $run_as_plan,
+                super_tuesday_end => $_super_tuesday_end,
               }
             }
           } elsif $run_as_plan == false {
@@ -943,6 +945,7 @@ class growell_patch (
                 stage             => "${module_name}_after_post_reboot",
                 report_script_loc => $report_script_loc,
                 run_as_plan       => $run_as_plan,
+                super_tuesday_end => $_super_tuesday_end,
               }
             }
             if $_in_high_prio_patch_window {
@@ -952,6 +955,7 @@ class growell_patch (
                 stage             => "${module_name}_after_post_reboot",
                 report_script_loc => $report_script_loc,
                 run_as_plan       => $run_as_plan,
+                super_tuesday_end => $_super_tuesday_end,
               }
             }
           }
@@ -1325,15 +1329,17 @@ class growell_patch (
                 stage             => "${module_name}_after_post_reboot",
                 report_script_loc => $report_script_loc,
                 run_as_plan       => $run_as_plan,
+                super_tuesday_end => $_super_tuesday_end,
               }
             }
             if $_in_high_prio_patch_window {
               class { "${module_name}::post_check":
-                priority          => 'normal',
+                priority          => 'high',
                 exec_args         => $_com_post_check_script,
                 stage             => "${module_name}_after_post_reboot",
                 report_script_loc => $report_script_loc,
                 run_as_plan       => $run_as_plan,
+                super_tuesday_end => $_super_tuesday_end,
               }
             }
           } elsif $run_as_plan == false {
@@ -1344,15 +1350,17 @@ class growell_patch (
                 stage             => "${module_name}_after_post_reboot",
                 report_script_loc => $report_script_loc,
                 run_as_plan       => $run_as_plan,
+                super_tuesday_end => $_super_tuesday_end
               }
             }
             if $_in_high_prio_patch_window {
               class { "${module_name}::post_check":
-                priority          => 'normal',
+                priority          => 'high',
                 exec_args         => $_com_post_check_script,
                 stage             => "${module_name}_after_post_reboot",
                 report_script_loc => $report_script_loc,
                 run_as_plan       => $run_as_plan,
+                super_tuesday_end => $_super_tuesday_end,
               }
             }
           }
@@ -1530,6 +1538,7 @@ class growell_patch (
                   priority           => 'normal',
                   report_script_loc  => $report_script_loc,
                   run_as_plan        => $run_as_plan,
+                  super_tuesday_end  => $_super_tuesday_end,
                 }
               }
             }
@@ -1540,6 +1549,7 @@ class growell_patch (
                   priority           => 'high',
                   report_script_loc  => $report_script_loc,
                   run_as_plan        => $run_as_plan,
+                  super_tuesday_end  => $_super_tuesday_end,
                 }
               }
             }
@@ -1628,6 +1638,7 @@ class growell_patch (
                     stage             => "${module_name}_post_reboot",
                     report_script_loc => $report_script_loc,
                     run_as_plan       => $run_as_plan,
+                    super_tuesday_end => $_super_tuesday_end,
                   }
                 }
                 if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
@@ -1638,6 +1649,7 @@ class growell_patch (
                     stage             => "${module_name}_post_reboot",
                     report_script_loc => $report_script_loc,
                     run_as_plan       => $run_as_plan,
+                    super_tuesday_end => $_super_tuesday_end,
                   }
                 }
 
@@ -1668,6 +1680,7 @@ class growell_patch (
                       stage               => "${module_name}_after_post_reboot",
                       report_script_loc   => $report_script_loc,
                       run_as_plan         => $run_as_plan,
+                      super_tuesday_end   => $_super_tuesday_end,
                     }
                   }
                 }
@@ -1679,6 +1692,7 @@ class growell_patch (
                       stage               => "${module_name}_after_post_reboot",
                       report_script_loc   => $report_script_loc,
                       run_as_plan         => $run_as_plan,
+                      super_tuesday_end   => $_super_tuesday_end,
                     }
                   }
                 }
@@ -1692,6 +1706,7 @@ class growell_patch (
                       stage               => "${module_name}_after_post_reboot",
                       report_script_loc   => $report_script_loc,
                       run_as_plan         => $run_as_plan,
+                      super_tuesday_end   => $_super_tuesday_end,
                     }
                   }
                 }
@@ -1703,6 +1718,7 @@ class growell_patch (
                       stage               => "${module_name}_after_post_reboot",
                       report_script_loc   => $report_script_loc,
                       run_as_plan         => $run_as_plan,
+                      super_tuesday_end   => $_super_tuesday_end,
                     }
                   }
                 }

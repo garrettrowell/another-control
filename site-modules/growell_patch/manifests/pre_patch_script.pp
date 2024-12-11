@@ -3,6 +3,7 @@ class growell_patch::pre_patch_script (
   Hash $pre_patch_commands,
   String $report_script_loc,
   Boolean $run_as_plan = false,
+  Optional[Timestamp] $super_tuesday_end = undef,
 ){
   case $priority {
     'normal': {
@@ -24,7 +25,11 @@ class growell_patch::pre_patch_script (
       $cur = growell_patch::within_cur_month($facts['growell_patch_report']['pre_patching_script']['timestamp'])
       if $cur {
         if $facts['growell_patch_report']['pre_patching_script']['status'] == 'success' {
-          $_needs_ran = Timestamp.new() < Timestamp($facts['growell_patch_report']['pre_patching_script']['timestamp'])
+          if $super_tuesday_end > Timestamp($facts['growell_patch_report']['pre_patching_script']['timestamp']) {
+            $_needs_ran = true
+          } else {
+            $_needs_ran = false
+          }
         } else {
           $_needs_ran = true
         }

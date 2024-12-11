@@ -3,6 +3,7 @@ class growell_patch::post_check (
   Hash $exec_args,
   String $report_script_loc,
   Boolean $run_as_plan = false,
+  Optional[Timestamp] $super_tuesday_end = undef,
 ){
   case $priority {
     'normal': {
@@ -24,7 +25,11 @@ class growell_patch::post_check (
       $cur = growell_patch::within_cur_month($facts['growell_patch_report']['post_check']['timestamp'])
       if $cur {
         if $facts['growell_patch_report']['post_check']['status'] == 'success' {
-          $_needs_ran = Timestamp.new() < Timestamp($facts['growell_patch_report']['post_check']['timestamp'])
+          if $super_tuesday_end > Timestamp($facts['growell_patch_report']['post_check']['timestamp']) {
+            $_needs_ran = true
+          } else {
+            $_needs_ran = false
+          }
         } else {
           $_needs_ran = true
         }

@@ -14,7 +14,7 @@ class growell_patch::pre_reboot (
   Integer $reboot_delay = 60,
   String $report_script_loc,
   Boolean $run_as_plan = false,
-  Timestamp $super_tuesday_end,
+  Optional[Timestamp] $super_tuesday_end = undef,
 ) {
   $reboot_delay_min = round($reboot_delay / 60)
   case $priority {
