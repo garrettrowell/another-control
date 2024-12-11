@@ -2,7 +2,7 @@
 growell_patch::patch_schedule:
   growell_nonprod_wave0:
     day: 'Tuesday'
-    week: 2
+    week: 1
     offset: 1
     hours: 16:00 - 22:00
     max_runs: '1'
