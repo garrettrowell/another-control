@@ -44,7 +44,10 @@ define growell_patch::kb (
       $install_data = stdlib::to_json(
         {
           'updates_installed' => {
-            $kb => Timestamp.new(),
+            'timestamp' => Timestamp.new(),
+            'packages'  => {
+              $kb    => Timestamp.new(),
+            }
           }
         }
       )

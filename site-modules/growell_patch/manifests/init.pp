@@ -813,7 +813,6 @@ class growell_patch (
                   }
                 }
               )
-              notify { 'i made it into pre_check_script': }
               exec { "${precheck_report_base} - failed":
                 command  => "${report_script_loc} -d '${precheck_failure_data}'",
                 schedule => 'Growell_patch - Patch Window',
