@@ -7,25 +7,25 @@ class growell_patch::pre_patch_script (
 ){
   case $priority {
     'normal': {
-      $_schedule = 'Growell_patch - Patch Window'
-      $_exec_title_base = "Growell_patch - Before patching - "
-      $_notify_title_base = "Growell_patch - Pre Patching Script"
+      $_schedule = "${module_name} - Patch Window"
+      $_exec_title_base = "${module_name} - Before patching - "
+      $_notify_title_base = "${module_name} - Pre Patching Script"
     }
     'high': {
-      $_schedule = 'Growell_patch - High Priority Patch Window'
-      $_exec_title_base = "Growell_patch - Before patching (High Priority) - "
-      $_notify_title_base = "Growell_patch - Pre Patching Script (High Priority)"
+      $_schedule = "${module_name} - High Priority Patch Window"
+      $_exec_title_base = "${module_name} - Before patching (High Priority) - "
+      $_notify_title_base = "${module_name} - Pre Patching Script (High Priority)"
     }
   }
 
   if $run_as_plan {
     $_needs_ran = true
   } else {
-    if $facts['growell_patch_report'].dig('pre_patching_script') {
-      $cur = growell_patch::within_cur_month($facts['growell_patch_report']['pre_patching_script']['timestamp'])
+    if $facts["${module_name}_report"].dig('pre_patching_script') {
+      $cur = growell_patch::within_cur_month($facts["${module_name}_report"]['pre_patching_script']['timestamp'])
       if $cur {
-        if $facts['growell_patch_report']['pre_patching_script']['status'] == 'success' {
-          if $super_tuesday_end > Timestamp($facts['growell_patch_report']['pre_patching_script']['timestamp']) {
+        if $facts["${module_name}_report"]['pre_patching_script']['status'] == 'success' {
+          if $super_tuesday_end > Timestamp($facts["${module_name}_report"]['pre_patching_script']['timestamp']) {
             $_needs_ran = true
           } else {
             $_needs_ran = false
@@ -54,7 +54,7 @@ class growell_patch::pre_patch_script (
     exec { "${_notify_title_base} - failed":
       command  => "${report_script_loc} -d '${failure_data}'",
       schedule => $_schedule,
-      tag      => ['growell_patch_pre_patching'],
+      tag      => ["${module_name}_pre_patching"],
     }
 
     # Run the post_patch_command(s)
@@ -65,7 +65,7 @@ class growell_patch::pre_patch_script (
         before   => Class["${module_name}::${facts['kernel'].downcase}::patchday"],
         schedule => $_schedule,
         notify   => Exec["${_notify_title_base} - success"],
-        tag      => ['growell_patch_pre_patching', "${module_name}_pre_script"],
+        tag      => ["${module_name}_pre_patching", "${module_name}_pre_script"],
       }
     }
 
@@ -82,7 +82,7 @@ class growell_patch::pre_patch_script (
       command     => "${report_script_loc} -d '${success_data}'",
       refreshonly => true,
       schedule    => $_schedule,
-      tag         => ['growell_patch_pre_patching'],
+      tag         => ["${module_name}_pre_patching"],
     }
   }
 

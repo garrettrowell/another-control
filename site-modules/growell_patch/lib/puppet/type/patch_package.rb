@@ -59,7 +59,7 @@ Puppet::Type.newtype(:patch_package) do
         catalog.resource(package_res)['schedule'] = self[:patch_window]
         catalog.resource(package_res)['install_options'] = self[:install_options]
         catalog.resource(package_res)['before'] = Array(res['before']) + ['Anchor[growell_patch::patchday::end]']
-        catalog.resource(package_res)['require'] = (Array(res['require']) + ['Exec[Growell_patch - Clean Cache]'])
+        catalog.resource(package_res)['require'] = (Array(res['require']) + ['Exec[growell_patch - Clean Cache]'])
       else
         Puppet.send('notice', "Package[#{name}] (managed) will not be updated by Growell_patch, due to the package enforcing a specific version")
       end

@@ -37,12 +37,12 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
       post_reboot = 'never'
       pre_reboot  = 'never'
       call_function('create_resources', 'schedule', {
-        'Growell_patch - Patch Window' => {
+        'growell_patch - Patch Window' => {
           'period' => 'never'
         }
       })
       call_function('create_resources', 'schedule', {
-        'Growell_patch - Pre Reboot' => {
+        'growell_patch - Pre Reboot' => {
           'period' => 'never'
         }
       })
@@ -53,13 +53,13 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
       pre_reboot      = 'ifneeded'
       in_patch_window = true
       call_function('create_resources', 'schedule', {
-        'Growell_patch - Patch Window' => {
+        'growell_patch - Patch Window' => {
           'range'  => '00:00 - 23:59',
           'repeat' => 1440
         }
       })
       call_function('create_resources', 'schedule', {
-        'Growell_patch - Pre Reboot' => {
+        'growell_patch - Pre Reboot' => {
           'range'  => '00:00 - 23:59',
           'repeat' => 1
         }
@@ -94,13 +94,13 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         post_reboot         = patch_schedule[active_pg]['post_reboot']
         pre_reboot          = patch_schedule[active_pg]['pre_reboot']
         call_function('create_resources', 'schedule', {
-          'Growell_patch - Patch Window' => {
+          'growell_patch - Patch Window' => {
             'range'  => patch_schedule[active_pg]['hours'],
             'repeat' => patch_schedule[active_pg]['max_runs']
           }
         })
         call_function('create_resources', 'schedule', {
-          'Growell_patch - Pre Reboot' => {
+          'growell_patch - Pre Reboot' => {
             'range'  => patch_schedule[active_pg]['hours'],
             'repeat' => 1
           }
@@ -122,7 +122,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
       high_prio_post_reboot = 'never'
       high_prio_pre_reboot  = 'never'
       call_function('create_resources', 'schedule', {
-        'Growell_patch - High Priority Patch Window' => {
+        'growell_patch - High Priority Patch Window' => {
           'period' => 'never'
         }
       })
@@ -132,7 +132,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
       high_prio_post_reboot     = 'ifneeded'
       high_prio_pre_reboot      = 'ifneeded'
       call_function('create_resources', 'schedule', {
-        'Growell_patch - High Priority Patch Window' => {
+        'growell_patch - High Priority Patch Window' => {
           'range'  => '00:00 - 23:59',
           'repeat' => 1440
         }
@@ -149,7 +149,7 @@ Puppet::Functions.create_function(:'growell_patch::process_groups') do
         high_prio_post_reboot         = patch_schedule[high_priority_patch_group]['post_reboot']
         high_prio_pre_reboot          = patch_schedule[high_priority_patch_group]['pre_reboot']
         call_function('create_resources', 'schedule', {
-          'Growell_patch - High Priority Patch Window' => {
+          'growell_patch - High Priority Patch Window' => {
             'range'  => patch_schedule[high_priority_patch_group]['hours'],
             'repeat' => patch_schedule[high_priority_patch_group]['max_runs'],
           }

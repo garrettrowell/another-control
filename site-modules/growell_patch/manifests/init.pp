@@ -108,7 +108,7 @@ class growell_patch (
   #
   # The growell_patch::self_service_overrides Plan can be used to create patching overrides for desired nodes
   #
-  $_override_fact = 'growell_patch_override'
+  $_override_fact = "${module_name}_override"
   if $facts[$_override_fact] {
     # Self-service fact detected
     $_has_perm_override           = 'permanent' in $facts[$_override_fact] # indicates a permanent schedule change
@@ -788,11 +788,11 @@ class growell_patch (
           if $run_as_plan {
             $_needs_ran = true
           } else {
-            if $facts['growell_patch_report'].dig('pre_check') {
-              $cur = growell_patch::within_cur_month($facts['growell_patch_report']['pre_check']['timestamp'])
+            if $facts["${module_name}_report"].dig('pre_check') {
+              $cur = growell_patch::within_cur_month($facts["${module_name}_report"]['pre_check']['timestamp'])
               if $cur {
-                if $facts['growell_patch_report']['pre_check']['status'] == 'success' {
-                  if $_super_tuesday_end > Timestamp($facts['growell_patch_report']['pre_check']['timestamp']) {
+                if $facts["${module_name}_report"]['pre_check']['status'] == 'success' {
+                  if $_super_tuesday_end > Timestamp($facts["${module_name}_report"]['pre_check']['timestamp']) {
                     $_needs_ran = true
                   } else {
                     $_needs_ran = false
@@ -811,13 +811,13 @@ class growell_patch (
             'command' => $_pre_check_script_path,
             'path'    => $_cmd_path,
             'before'  => Class["${module_name}::${_kern}::patchday"],
-            'tag'     => ['growell_patch_pre_patching', 'growell_patch_pre_check'],
+            'tag'     => ["${module_name}_pre_patching", "${module_name}_pre_check"],
             'require' => File['pre_check_script'],
           }
 
           if ($updates_to_install.count > 0) {
             if $_needs_ran {
-              $precheck_report_base = 'Growell_patch - Pre Check'
+              $precheck_report_base = "${module_name} - Pre Check"
               $precheck_failure_data = stdlib::to_json(
                 {
                   'pre_check' => {
@@ -828,14 +828,14 @@ class growell_patch (
               )
               exec { "${precheck_report_base} - failed":
                 command  => "${report_script_loc} -d '${precheck_failure_data}'",
-                schedule => 'Growell_patch - Patch Window',
+                schedule => "${module_name} - Patch Window",
                 before   => Exec['pre_check_script'],
-                tag      => ['growell_patch_pre_check'],
+                tag      => ["${module_name}_pre_check"],
               }
 
               exec { 'pre_check_script':
                 *        => $_com_pre_check_script,
-                schedule => 'Growell_patch - Patch Window',
+                schedule => "${module_name} - Patch Window",
               }
 
               $precheck_success_data = stdlib::to_json(
@@ -851,14 +851,14 @@ class growell_patch (
                 command     => "${report_script_loc} -d '${precheck_success_data}'",
                 refreshonly => true,
                 subscribe   => Exec['pre_check_script'],
-                schedule    => 'Growell_patch - Patch Window',
-                tag         => ['growell_patch_pre_check'],
+                schedule    => "${module_name} - Patch Window",
+                tag         => ["${module_name}_pre_check"],
               }
             }
           }
           if ($high_prio_updates_to_install.count > 0) {
             if $_needs_ran {
-              $precheck_report_base = 'Growell_patch - High Priority Pre Check'
+              $precheck_report_base = "${module_name} - High Priority Pre Check"
               $precheck_failure_data = stdlib::to_json(
                 {
                   'pre_check' => {
@@ -869,14 +869,14 @@ class growell_patch (
               )
               exec { "${precheck_report_base} - failed":
                 command  => "${report_script_loc} -d '${precheck_failure_data}'",
-                schedule => 'Growell_patch - High Priority Patch Window',
+                schedule => "${module_name} - High Priority Patch Window",
                 before   => Exec['pre_check_script (High Priority)'],
-                tag      => ['growell_patch_pre_check'],
+                tag      => ["${module_name}_pre_check"],
               }
 
               exec { 'pre_check_script (High Priority)':
                 *        => $_com_pre_check_script,
-                schedule => 'Growell_patch - High Priority Patch Window',
+                schedule => "${module_name} - High Priority Patch Window",
               }
 
               $precheck_success_data = stdlib::to_json(
@@ -892,8 +892,8 @@ class growell_patch (
                 command     => "${report_script_loc} -d '${precheck_success_data}'",
                 refreshonly => true,
                 subscribe   => Exec['pre_check_script (High Priority)'],
-                schedule    => 'Growell_patch - High Priority Patch Window',
-                tag         => ['growell_patch_pre_check'],
+                schedule    => "${module_name} - High Priority Patch Window",
+                tag         => ["${module_name}_pre_check"],
               }
 
             }
@@ -917,11 +917,11 @@ class growell_patch (
           $_com_post_check_script = {
             'command' => $_post_check_script_path,
             'path'    => $_cmd_path,
-            'require' => [File['post_check_script'], Anchor['growell_patch::post']],
-            'tag'     => ['growell_patch_post_patching', "${module_name}_post_check"],
+            'require' => [File['post_check_script'], Anchor["${module_name}::post"]],
+            'tag'     => ["${module_name}_post_patching", "${module_name}_post_check"],
           }
           # When running as a plan we need to check if the post reboot occured
-          if ($run_as_plan and $facts['growell_patch_report'].dig('post_reboot')) {
+          if ($run_as_plan and $facts["${module_name}_report"].dig('post_reboot')) {
             if $_in_patch_window {
               class { "${module_name}::post_check":
                 priority          => 'normal',
@@ -1202,11 +1202,11 @@ class growell_patch (
           }
         )
         if (($_is_patchday or $_is_high_prio_patch_day) and ($_in_patch_window or $_in_high_prio_patch_window)) {
-          if $facts['growell_patch_report'].dig('pre_check') {
-            $cur = growell_patch::within_cur_month($facts['growell_patch_report']['pre_check']['timestamp'])
+          if $facts["${module_name}_report"].dig('pre_check') {
+            $cur = growell_patch::within_cur_month($facts["${module_name}_report"]['pre_check']['timestamp'])
             if $cur {
-              if $facts['growell_patch_report']['pre_check']['status'] == 'success' {
-                $_needs_ran = Timestamp.new() < Timestamp($facts['growell_patch_report']['pre_check']['timestamp'])
+              if $facts["${module_name}_report"]['pre_check']['status'] == 'success' {
+                $_needs_ran = Timestamp.new() < Timestamp($facts["${module_name}_report"]['pre_check']['timestamp'])
               } else {
                 $_needs_ran = true
               }
@@ -1221,11 +1221,11 @@ class growell_patch (
             'provider' => powershell,
             'require'  => File['pre_check_script'],
             'before'   => Class["${module_name}::${_kern}::patchday"],
-            'tag'      => ['growell_patch_pre_patching'],
+            'tag'      => ["${module_name}_pre_patching"],
           }
           if ($updates_to_install.count > 0) {
             if $_needs_ran {
-              $precheck_report_base = 'Growell_patch - Pre Check'
+              $precheck_report_base = "${module_name} - Pre Check"
               $precheck_failure_data = stdlib::to_json(
                 {
                   'pre_check' => {
@@ -1236,13 +1236,13 @@ class growell_patch (
               )
               exec { "${precheck_report_base} - failed":
                 command  => "${report_script_loc} -d '${precheck_failure_data}'",
-                schedule => 'Growell_patch - Patch Window',
+                schedule => "${module_name} - Patch Window",
                 before   => Exec['pre_check_script'],
-                tag      => ['growell_patch_pre_check'],
+                tag      => ["${module_name}_pre_check"],
               }
               exec { 'pre_check_script':
                 *        => $_com_pre_check_script,
-                schedule => 'Growell_patch - Patch Window',
+                schedule => "${module_name} - Patch Window",
               }
               $precheck_success_data = stdlib::to_json(
                 {
@@ -1257,14 +1257,14 @@ class growell_patch (
                 command     => "${report_script_loc} -d '${precheck_success_data}'",
                 refreshonly => true,
                 subscribe   => Exec['pre_check_script'],
-                schedule    => 'Growell_patch - Patch Window',
-                tag         => ['growell_patch_pre_check'],
+                schedule    => "${module_name} - Patch Window",
+                tag         => ["${module_name}_pre_check"],
               }
             }
           }
           if ($high_prio_updates_to_install.count > 0) {
             if $_needs_ran {
-              $precheck_report_base = 'Growell_patch - High Priority Pre Check'
+              $precheck_report_base = "${module_name} - High Priority Pre Check"
               $precheck_failure_data = stdlib::to_json(
                 {
                   'pre_check' => {
@@ -1275,14 +1275,14 @@ class growell_patch (
               )
               exec { "${precheck_report_base} - failed":
                 command  => "${report_script_loc} -d '${precheck_failure_data}'",
-                schedule => 'Growell_patch - High Priority Patch Window',
+                schedule => "${module_name} - High Priority Patch Window",
                 before   => Exec['pre_check_script (High Priority)'],
-                tag      => ['growell_patch_pre_check'],
+                tag      => ["${module_name}_pre_check"],
               }
 
               exec { 'pre_check_script (High Priority)':
                 *        => $_com_pre_check_script,
-                schedule => 'Growell_patch - High Priority Patch Window',
+                schedule => "${module_name} - High Priority Patch Window",
               }
 
               $precheck_success_data = stdlib::to_json(
@@ -1298,8 +1298,8 @@ class growell_patch (
                 command     => "${report_script_loc} -d '${precheck_success_data}'",
                 refreshonly => true,
                 subscribe   => Exec['pre_check_script (High Priority)'],
-                schedule    => 'Growell_patch - High Priority Patch Window',
-                tag         => ['growell_patch_pre_check'],
+                schedule    => "${module_name} - High Priority Patch Window",
+                tag         => ["${module_name}_pre_check"],
               }
             }
           }
@@ -1322,11 +1322,11 @@ class growell_patch (
           $_com_post_check_script = {
             'command'  => $_post_check_script_path,
             'provider' => powershell,
-            'require'  => [File['post_check_script'], Anchor['growell_patch::post']],
-            'tag'      => ['growell_patch_post_patching', "${module_name}_post_check"],
+            'require'  => [File['post_check_script'], Anchor["${module_name}::post"]],
+            'tag'      => ["${module_name}_post_patching", "${module_name}_post_check"],
           }
           # When running as a plan we need to check if the post reboot occured
-          if ($run_as_plan and $facts['growell_patch_report'].dig('post_reboot')) {
+          if ($run_as_plan and $facts["${module_name}_report"].dig('post_reboot')) {
             if $_in_patch_window {
               class { "${module_name}::post_check":
                 priority          => 'normal',
@@ -1476,18 +1476,18 @@ class growell_patch (
           # Reboot the node first if a reboot is already pending
           case $_kern {
             /(windows|linux)/: {
-              class { 'growell_patch::pre_reboot':
+              class { "${module_name}::pre_reboot":
                 priority          => 'normal',
                 reboot_type       => $_pre_reboot,
-                schedule          => 'Growell_patch - Patch Window',
-                before            => Anchor['growell_patch::start'],
+                schedule          => "${module_name} - Patch Window",
+                before            => Anchor["${module_name}::start"],
                 report_script_loc => $report_script_loc,
                 run_as_plan       => $run_as_plan,
                 super_tuesday_end => $_super_tuesday_end,
               }
             }
             default: {
-              fail('Unsupported operating system for Growell_patch!')
+              fail("Unsupported operating system for ${module_name}!")
             }
           }
         }
@@ -1496,18 +1496,18 @@ class growell_patch (
           # Reboot the node first if a reboot is already pending
           case $_kern {
             /(windows|linux)/: {
-              class { 'growell_patch::pre_reboot':
+              class { "${module_name}::pre_reboot":
                 priority          => 'high',
                 reboot_type       => $_high_prio_pre_reboot,
-                schedule          => 'Growell_patch - High Priority Patch Window',
-                before            => Anchor['growell_patch::start'],
+                schedule          => "${module_name} - High Priority Patch Window",
+                before            => Anchor["${module_name}::start"],
                 report_script_loc => $report_script_loc,
                 run_as_plan       => $run_as_plan,
                 super_tuesday_end => $_super_tuesday_end,
               }
             }
             default: {
-              fail("Unsupported operating system for Growell_patch!")
+              fail("Unsupported operating system for ${module_name}!")
             }
           }
         }
@@ -1521,10 +1521,10 @@ class growell_patch (
         if $run_as_plan {
           $_patching_needs_ran = true
         } else {
-          if $facts['growell_patch_report'].dig('updates_installed') {
-            $cur_patching = growell_patch::within_cur_month($facts['growell_patch_report']['updates_installed']['timestamp'])
+          if $facts["${module_name}_report"].dig('updates_installed') {
+            $cur_patching = growell_patch::within_cur_month($facts["${module_name}_report"]['updates_installed']['timestamp'])
             if $cur_patching {
-              if $_super_tuesday_end > Timestamp($facts['growell_patch_report']['updates_installed']['timestamp']) {
+              if $_super_tuesday_end > Timestamp($facts["${module_name}_report"]['updates_installed']['timestamp']) {
                 $_patching_needs_ran = true
               } else {
                 $_patching_needs_ran = false
@@ -1569,11 +1569,11 @@ class growell_patch (
             }
             if ($updates_to_install.count + $high_prio_updates_to_install.count > 0 and $_patching_needs_ran) {
               # We need our own exec since patchday also notify's the exec it gets refreshed then
-              notify { 'Growell_patch - Pre Update Fact':
+              notify { "${module_name} - Pre Update Fact":
                 message  => 'Refreshing patching facts to ensure sources available',
                 notify   => Exec["${module_name}::update_pe_patch_fact"],
-                schedule => 'Growell_patch - Patch Window',
-                require  => Anchor['growell_patch::start'],
+                schedule => "${module_name} - Patch Window",
+                require  => Anchor["${module_name}::start"],
               }
               case $_kern {
                 'windows': {
@@ -1612,38 +1612,38 @@ class growell_patch (
                 high_prio_updates => $high_prio_updates_to_install.unique,
                 install_options   => $install_options,
                 report_script_loc => $report_script_loc,
-                require           => Anchor['growell_patch::start'],
-                before            => Anchor['growell_patch::post'],
+                require           => Anchor["${module_name}::start"],
+                before            => Anchor["${module_name}::post"],
               }
             }
             if ($updates_to_install.count > 0 and $_patching_needs_ran) {
-              notify { 'Growell_patch - Update Fact':
+              notify { "${module_name} - Update Fact":
                 message  => 'Patches installed, refreshing patching facts...',
                 notify   => $patch_refresh_actions,
-                schedule => 'Growell_patch - Patch Window',
-                before   => Anchor['growell_patch::post'],
+                schedule => "${module_name} - Patch Window",
+                before   => Anchor["${module_name}::post"],
                 require  => Class["${module_name}::${_kern}::patchday"],
               }
             }
             if ($high_prio_updates_to_install.count > 0 and $_patching_needs_ran) {
-              notify { 'Growell_patch - Update Fact (High Priority)':
+              notify { "${module_name} - Update Fact (High Priority)":
                 message  => 'Patches installed, refreshing patching facts...',
                 notify   => $patch_refresh_actions,
-                schedule => 'Growell_patch - High Priority Patch Window',
-                before   => Anchor['growell_patch::post'],
+                schedule => "${module_name} - High Priority Patch Window",
+                before   => Anchor["${module_name}::post"],
                 require  => Class["${module_name}::${_kern}::patchday"],
               }
             }
-            anchor { 'growell_patch::post': } #lint:ignore:anchor_resource
+            anchor { "${module_name}::post": } #lint:ignore:anchor_resource
             if ($post_reboot and $_is_patchday) or ($high_prio_post_reboot and ($high_prio_updates_to_install.count > 0)) { #lint:ignore:140chars
               # Only post_reboot if this is a normal puppet run. if being ran as a plan we handle it elsewhere
               unless $run_as_plan {
                 # Reboot after patching (in later patch_reboot stage)
                 if ($updates_to_install.count > 0) and $post_reboot {
-                  class { 'growell_patch::post_reboot':
+                  class { "${module_name}::post_reboot":
                     priority          => 'normal',
                     reboot_type       => $_post_reboot,
-                    schedule          => 'Growell_patch - Patch Window',
+                    schedule          => "${module_name} - Patch Window",
                     stage             => "${module_name}_post_reboot",
                     report_script_loc => $report_script_loc,
                     run_as_plan       => $run_as_plan,
@@ -1651,35 +1651,19 @@ class growell_patch (
                   }
                 }
                 if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
-                  class { 'growell_patch::post_reboot':
+                  class { "${module_name}::post_reboot":
                     priority          => 'high',
                     reboot_type       => $_high_prio_post_reboot,
-                    schedule          => 'Growell_patch - High Priority Patch Window',
+                    schedule          => "${module_name} - High Priority Patch Window",
                     stage             => "${module_name}_post_reboot",
                     report_script_loc => $report_script_loc,
                     run_as_plan       => $run_as_plan,
                     super_tuesday_end => $_super_tuesday_end,
                   }
                 }
-
-                #if ($updates_to_install.count > 0) and $post_reboot {
-                #  class { 'growell_patch::reboot':
-                #    reboot_if_needed  => $post_reboot_if_needed,
-                #    schedule          => 'Growell_patch - Patch Window',
-                #    stage             => "${module_name}_post_reboot",
-                #    report_script_loc => $report_script_loc,
-                #  }
-                #}
-                #if ($high_prio_updates_to_install.count > 0) and $high_prio_post_reboot {
-                #  class { 'growell_patch::high_prio_reboot':
-                #    reboot_if_needed => $high_prio_post_reboot_if_needed,
-                #    schedule         => 'Growell_patch - High Priority Patch Window',
-                #    stage            => "${module_name}_post_reboot",
-                #  }
-                #}
               }
               # Perform post-patching Execs
-              if ($run_as_plan and $facts['growell_patch_report'].dig('post_reboot')) {
+              if ($run_as_plan and $facts["${module_name}_report"].dig('post_reboot')) {
                 # If running as a plan we need to check that the post_reboot actually happened
                 if ($_in_patch_window and $post_reboot) {
                   unless $_post_patch_commands.empty {
@@ -1765,30 +1749,30 @@ class growell_patch (
                   }
                 }
                 default: {
-                  fail('Unsupported operating system for Growell_patch!')
+                  fail("Unsupported operating system for ${module_name}!")
                 }
               }
               if $post_reboot and $_is_patchday and !$high_priority_only {
                 $_pre_reboot_commands.each | $cmd, $cmd_opts | {
-                  exec { "Growell_patch - Before reboot - ${cmd}":
+                  exec { "${module_name} - Before reboot - ${cmd}":
                     *        => delete($cmd_opts, ['provider', 'onlyif', 'unless', 'require', 'before', 'schedule', 'tag']),
                     provider => $reboot_logic_provider,
                     onlyif   => $reboot_logic_onlyif,
-                    require  => Anchor['growell_patch::post'],
-                    schedule => 'Growell_patch - Patch Window',
-                    tag      => ['growell_patch_pre_reboot'],
+                    require  => Anchor["${module_name}::post"],
+                    schedule => "${module_name} - Patch Window",
+                    tag      => ["${module_name}_pre_reboot"],
                   }
                 }
               }
               if $high_prio_post_reboot and ($high_prio_updates_to_install.count > 0) {
                 $_pre_reboot_commands.each | $cmd, $cmd_opts | {
-                  exec { "Growell_patch - Before reboot (High Priority) - ${cmd}":
+                  exec { "${module_name} - Before reboot (High Priority) - ${cmd}":
                     *        => delete($cmd_opts, ['provider', 'onlyif', 'unless', 'require', 'before', 'schedule', 'tag']),
                     provider => $reboot_logic_provider,
                     onlyif   => $reboot_logic_onlyif_high_prio,
-                    require  => Anchor['growell_patch::post'],
-                    schedule => 'Growell_patch - High Priority Patch Window',
-                    tag      => ['growell_patch_pre_reboot'],
+                    require  => Anchor["${module_name}::post"],
+                    schedule => "${module_name} - High Priority Patch Window",
+                    tag      => ["${module_name}_pre_reboot"],
                   }
                 }
               }
@@ -1796,28 +1780,28 @@ class growell_patch (
               # Do not reboot after patching, just run post_patch commands if given
               if ($updates_to_install.count > 0) {
                 $_post_patch_commands.each | $cmd, $cmd_opts | {
-                  exec { "Growell_patch - After patching - ${cmd}":
+                  exec { "${module_name} - After patching - ${cmd}":
                     *        => delete($cmd_opts, ['require', 'schedule', 'tag']),
-                    require  => Anchor['growell_patch::post'],
-                    schedule => 'Growell_patch - Patch Window',
-                    tag      => ['growell_patch_post_patching'],
+                    require  => Anchor["${module_name}::post"],
+                    schedule => "${module_name} - Patch Window",
+                    tag      => ["${module_name}_post_patching"],
                   }
                 }
               }
               if ($high_prio_updates_to_install.count > 0) {
                 $_post_patch_commands.each | $cmd, $cmd_opts | {
-                  exec { "Growell_patch - After patching (High Priority)- ${cmd}":
+                  exec { "${module_name} - After patching (High Priority)- ${cmd}":
                     *        => delete($cmd_opts, ['require', 'schedule', 'tag']),
-                    require  => Anchor['growell_patch::post'],
-                    schedule => 'Growell_patch - High Priority Patch Window',
-                    tag      => ['growell_patch_post_patching'],
+                    require  => Anchor["${module_naem}::post"],
+                    schedule => "${module_name} - High Priority Patch Window",
+                    tag      => ["${module_name}_post_patching"],
                   }
                 }
               }
             }
           }
           default: {
-            fail('Unsupported operating system for Growell_patch!')
+            fail("Unsupported operating system for ${module_name}!")
           }
         }
       } else {

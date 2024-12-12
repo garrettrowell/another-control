@@ -19,33 +19,33 @@ class growell_patch::post_reboot (
   $reboot_delay_min = round($reboot_delay / 60)
   case $priority {
     'normal': {
-      $_reboot_title = 'Growell_patch - Post Patch Reboot'
+      $_reboot_title = "${module_name} - Post Patch Reboot"
       $_schedule = $run_as_plan ?{
-        false => 'Growell_patch - Patch Window',
+        false => "${module_name} - Patch Window",
         true  => undef,
       }
-      $_notify_title = 'Growell_patch - Performing Post Patch OS reboot'
-      $_reboot_if_pending_title = 'Growell_patch - Post'
+      $_notify_title = "${module_name} - Performing Post Patch OS reboot"
+      $_reboot_if_pending_title = "${module_name} - Post"
     }
     'high': {
-      $_reboot_title = 'Growell_patch - High Priority Post Patch Reboot'
+      $_reboot_title = "${module_name} - High Priority Post Patch Reboot"
       $_schedule = $run_as_plan ? {
-        false => 'Growell_patch - High Priority Patch Window',
+        false => "${module_name} - High Priority Patch Window",
         true  => undef,
       }
-      $_notify_title = 'Growell_patch - Performing High Priority Post Patch OS reboot'
-      $_reboot_if_pending_title = 'Growell_patch High Priority - Post'
+      $_notify_title = "${module_name} - Performing High Priority Post Patch OS reboot"
+      $_reboot_if_pending_title = "${module_name} High Priority - Post"
     }
   }
 
   if $run_as_plan {
     $_needs_reboot = true
   } else {
-    if $facts['growell_patch_report'].dig('post_reboot') {
+    if $facts["${module_name}_report"].dig('post_reboot') {
       # check if post_reboot timestamp is for this month
-      $cur = growell_patch::within_cur_month($facts['growell_patch_report']['post_reboot'])
+      $cur = growell_patch::within_cur_month($facts["${module_name}_report"]['post_reboot'])
       if $cur {
-        if $super_tuesday_end > Timestamp($facts['growell_patch_report']['pre_reboot']) {
+        if $super_tuesday_end > Timestamp($facts["${module_name}_report"]['pre_reboot']) {
           $_needs_reboot = true
         } else {
           $_needs_reboot = false

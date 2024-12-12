@@ -16,7 +16,7 @@ class growell_patch::windows::patchday (
     $updates.each | $kb | {
       growell_patch::kb { $kb:
         ensure            => 'present',
-        maintwindow       => 'Growell_patch - Patch Window',
+        maintwindow       => "${module_name} - Patch Window",
         report_script_loc => $report_script_loc,
       }
     }
@@ -26,11 +26,11 @@ class growell_patch::windows::patchday (
     $high_prio_updates.each | $kb | {
       growell_patch::kb { $kb:
         ensure            => 'present',
-        maintwindow       => 'Growell_patch - High Priority Patch Window',
+        maintwindow       => "${module_name} - High Priority Patch Window",
         report_script_loc => $report_script_loc,
       }
     }
   }
 
-  anchor { 'growell_patch::patchday::end': } #lint:ignore:anchor_resource
+  anchor { "${module_name}::patchday::end": } #lint:ignore:anchor_resource
 }

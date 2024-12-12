@@ -8,24 +8,24 @@ class growell_patch::post_check (
   case $priority {
     'normal': {
       $_exec_title = 'post_check_script'
-      $_schedule = 'Growell_patch - Patch Window'
-      $_notify_title_base = 'Growell_patch - Post Check'
+      $_schedule = "${module_name} - Patch Window"
+      $_notify_title_base = "${module_name} - Post Check"
     }
     'high': {
       $_exec_title = 'post_check_script (High Priority)'
-      $_schedule = 'Growell_patch - High Priority Patch Window'
-      $_notify_title_base = 'Growell_patch - Post Check (High Priority)'
+      $_schedule = "${module_name} - High Priority Patch Window"
+      $_notify_title_base = "${module_name} - Post Check (High Priority)"
     }
   }
 
   if $run_as_plan {
     $_needs_ran = true
   } else {
-    if $facts['growell_patch_report'].dig('post_check') {
-      $cur = growell_patch::within_cur_month($facts['growell_patch_report']['post_check']['timestamp'])
+    if $facts["${module_name}_report"].dig('post_check') {
+      $cur = growell_patch::within_cur_month($facts["${module_name}_report"]['post_check']['timestamp'])
       if $cur {
-        if $facts['growell_patch_report']['post_check']['status'] == 'success' {
-          if $super_tuesday_end > Timestamp($facts['growell_patch_report']['post_check']['timestamp']) {
+        if $facts["${module_name}_report"]['post_check']['status'] == 'success' {
+          if $super_tuesday_end > Timestamp($facts["${module_name}_report"]['post_check']['timestamp']) {
             $_needs_ran = true
           } else {
             $_needs_ran = false

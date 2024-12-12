@@ -74,7 +74,7 @@ Puppet::Type.newtype(:reboot_if_pending) do
     end
     ## pre-patch resources should gain Reboot[Growell_patch - Pending OS reboot] for require
     pre_patch_resources.each do |res|
-      catalog.resource(res.to_s)['require'] = Array(catalog.resource(res.to_s)['require']) << 'Reboot[Growell_patch - Pending OS reboot]'
+      catalog.resource(res.to_s)['require'] = Array(catalog.resource(res.to_s)['require']) << 'Reboot[growell_patch - Pending OS reboot]'
     end
     ## post-patch resources should lose existing before dependencies
     post_patch_resources.each do |res|
@@ -87,7 +87,7 @@ Puppet::Type.newtype(:reboot_if_pending) do
     end
 
     catalog.add_resource(Puppet::Type.type('reboot').new(
-                           title: 'Growell_patch - Pending OS reboot',
+                           title: 'growell_patch - Pending OS reboot',
                            apply: 'immediately',
                            schedule: parameter(:patch_window).value,
                            before: 'Anchor[growell_patch::start]',
@@ -95,9 +95,9 @@ Puppet::Type.newtype(:reboot_if_pending) do
                          ))
 
     catalog.add_resource(Puppet::Type.type('notify').new(
-                           title: 'Growell_patch - Performing Pending OS reboot before patching...',
+                           title: 'growell_patch - Performing Pending OS reboot before patching...',
                            schedule: parameter(:patch_window).value,
-                           notify: 'Reboot[Growell_patch - Pending OS reboot]',
+                           notify: 'Reboot[growell_patch - Pending OS reboot]',
                            before: 'Anchor[growell_patch::start]',
                            require: pre_reboot_resources,
                          ))

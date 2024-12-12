@@ -36,17 +36,17 @@ class growell_patch::linux::patchday (
   }
 
   if $updates.count > 0 {
-    exec { 'Growell_patch - Clean Cache':
+    exec { "${module_name} - Clean Cache":
       command  => $cmd,
       path     => $cmd_path,
-      schedule => 'Growell_patch - Patch Window',
+      schedule => "${module_name} - Patch Window",
     }
 
     $updates.each | $package | {
       patch_package { $package:
-        patch_window    => 'Growell_patch - Patch Window',
+        patch_window    => "${module_name} - Patch Window",
         install_options => $install_options,
-        require         => Exec['Growell_patch - Clean Cache'],
+        require         => Exec["${module_name} - Clean Cache"],
       }
 
       $install_data = stdlib::to_json(
@@ -64,23 +64,23 @@ class growell_patch::linux::patchday (
         command     => "${report_script_loc} -d '${install_data}'",
         subscribe   => Patch_package[$package],
         refreshonly => true,
-        schedule    => 'Growell_patch - Patch Window',
+        schedule    => "${module_name} - Patch Window",
       }
     }
   }
 
   if $high_prio_updates.count > 0 {
-    exec { 'Growell_patch - Clean Cache (High Priority)':
+    exec { "${module_name} - Clean Cache (High Priority)":
       command  => $cmd,
       path     => $cmd_path,
-      schedule => 'Growell_patch - High Priority Patch Window',
+      schedule => "${module_name} - High Priority Patch Window",
     }
 
     $high_prio_updates.each | $package | {
       patch_package { $package:
-        patch_window    => 'Growell_patch - High Priority Patch Window',
+        patch_window    => "${module_name} - High Priority Patch Window",
         install_options => $install_options,
-        require         => Exec['Growell_patch - Clean Cache (High Priority)'],
+        require         => Exec["${module_name} - Clean Cache (High Priority)"],
       }
 
       $install_data = stdlib::to_json(
@@ -98,11 +98,11 @@ class growell_patch::linux::patchday (
         command     => "${report_script_loc} -d '${install_data}'",
         subscribe   => Patch_package[$package],
         refreshonly => true,
-        schedule    => 'Growell_patch - High Priority Patch Window',
+        schedule    => "${module_name} - High Priority Patch Window",
       }
 
     }
   }
 
-  anchor { 'growell_patch::patchday::end': } #lint:ignore:anchor_resource
+  anchor { "${module_name}::patchday::end": } #lint:ignore:anchor_resource
 }

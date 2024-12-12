@@ -3,6 +3,7 @@ plan growell_patch::patch_now(
   Optional[Enum['always', 'never', 'ifneeded']] $pre_reboot = 'always',
   Optional[Enum['always', 'never', 'ifneeded']] $post_reboot = 'always',
 ) {
+  $module_name = 'growell_patch'
   # collect facts
   run_plan(
     'facts',
@@ -57,7 +58,7 @@ plan growell_patch::patch_now(
 
   # Determine which nodes should be rebooting
   $pre_reboot_initiated = $pre_reboot_resultset.ok_set.to_data.filter |$index, $vals| {
-    'Reboot[Growell_patch - Pre Patch Reboot]' in $vals['value']['report']['resource_statuses'].keys and $vals['value']['report']['resource_statuses']['Reboot[Growell_patch - Pre Patch Reboot]']['changed'] == true
+    "Reboot[${module_name} - Pre Patch Reboot]" in $vals['value']['report']['resource_statuses'].keys and $vals['value']['report']['resource_statuses']["Reboot[${module_name} - Pre Patch Reboot]"]['changed'] == true
   }
 
   # If the pre_reboot apply succeeds but the resources are not in the catalog, go ahead and continue with the process
@@ -112,12 +113,12 @@ plan growell_patch::patch_now(
   # Determine for which nodes the pre_patching script (if it exists) ran successfully
   # This exec only fires if the script was successful
   $pre_patching_script_success = $patch_resultset.ok_set.filter_set |$vals| {
-    'Exec[Growell_patch - Pre Patching Script - success]' in $vals.to_data['value']['report']['resource_statuses'].keys
+    "Exec[${module_name} - Pre Patching Script - success]" in $vals.to_data['value']['report']['resource_statuses'].keys
   }
   # Determine for which nodes the pre_check ran successfully
   # This exec only fires if the pre_check was successful
   $pre_check_success = $patch_resultset.ok_set.filter_set |$vals| {
-    'Exec[Growell_patch - Pre Check - success]' in $vals.to_data['value']['report']['resource_statuses'].keys
+    "Exec[${module_name} - Pre Check - success]" in $vals.to_data['value']['report']['resource_statuses'].keys
   }
   # Determine if all updates installed correctly, or if any failed, or if there simply were none
   # When all updates installed correctly, or there were none, any pre_patching script was successful as well as the pre_check
@@ -190,19 +191,6 @@ plan growell_patch::patch_now(
       reboot_delay      => 0,
       report_script_loc => $report_script_loc,
     }
-    ## again another copy/paste from init.pp
-    #$_post_reboot = case $post_reboot {
-    #  'always': { true }
-    #  'never': { false }
-    #  'ifneeded': { true }
-    #  default: { false }
-    #}
-    #class { 'growell_patch::reboot':
-    #  reboot_if_needed  => $_post_reboot,
-    #  reboot_delay      => 10,
-    #  run_as_plan       => true,
-    #  report_script_loc => $report_script_loc,
-    #}
   }
 
   # basic output
@@ -216,15 +204,15 @@ plan growell_patch::patch_now(
   $post_reboot_initiated = $post_reboot_resultset.filter_set |$vals| {
     (
        (
-         'Reboot[Growell_patch - Post Patch Reboot]' in $vals.to_data['value']['report']['resource_statuses'].keys
+         "Reboot[${module_name} - Post Patch Reboot]" in $vals.to_data['value']['report']['resource_statuses'].keys
          and
-         $vals.to_data['value']['report']['resource_statuses']['Reboot[Growell_patch - Post Patch Reboot]']['changed'] == true
+         $vals.to_data['value']['report']['resource_statuses']["Reboot[${module_name} - Post Patch Reboot]"]['changed'] == true
        )
        or
        (
-         'Exec[Growell_patch - Post Patch Reboot' in $vals.to_data['value']['report']['resource_statuses'].keys
+         "Exec[${module_name} - Post Patch Reboot" in $vals.to_data['value']['report']['resource_statuses'].keys
          and
-         $vals.to_data['value']['report']['resource_statuses']['Exec[Growell_patch - Post Patch Reboot]']['changed'] == true
+         $vals.to_data['value']['report']['resource_statuses']["Exec[${module_name} - Post Patch Reboot]"]['changed'] == true
        )
     )
   }
@@ -244,22 +232,6 @@ plan growell_patch::patch_now(
     $post_reboot_timed_out = $post_reboot_wait_results['pending']
     $post_patch_ready      = $post_reboot_resultset.ok_set.names - $post_reboot_timed_out
   }
-
-  #  # wait 5 sec so the reboot hopefully takes hold
-  #  ctrl::sleep(5)
-  #
-  #  # using the reboot plan would avoid having to do this, and likely do a better job at handling
-  #  $post_reboot_wait_resultset = wait_until_available(
-  #    $targets,
-  #    wait_time      => 120,
-  #    retry_interval => 1,
-  #    _catch_errors  => true,
-  #  )
-  #
-  #  # basic output
-  #  $post_reboot_wait_resultset.each |$result| {
-  #    out::message($result)
-  #  }
 
   # re-collect facts to pickup changes in patching facts
   run_plan(
@@ -295,12 +267,12 @@ plan growell_patch::patch_now(
   # Determine for which nodes the pre_patching script (if it exists) ran successfully
   # This exec only fires if the script was successful
   $post_patching_script_success = $post_patch_resultset.ok_set.filter_set |$vals| {
-    'Exec[Growell_patch - Post Patching Script - success]' in $vals.to_data['value']['report']['resource_statuses'].keys
+    "Exec[${module_name} - Post Patching Script - success]" in $vals.to_data['value']['report']['resource_statuses'].keys
   }
   # Determine for which nodes the pre_check ran successfully
   # This exec only fires if the pre_check was successful
   $post_check_success = $post_patch_resultset.ok_set.filter_set |$vals| {
-    'Exec[Growell_patch - Post Check - success]' in $vals.to_data['value']['report']['resource_statuses'].keys
+    "Exec[${module_name} - Post Check - success]" in $vals.to_data['value']['report']['resource_statuses'].keys
   }
 
   out::message("post_patch_script: ${post_patching_script_success}")
